@@ -1,7 +1,7 @@
 #include "VertexArray.h"
 
 #include "VertexBufferLayout.h"
-#include "Renderer.h"
+#include "glUtils.h"
 
 VertexArray::VertexArray()
 {
