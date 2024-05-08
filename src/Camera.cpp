@@ -9,7 +9,12 @@ Camera::Camera(int width, int height, glm::vec3 position, glm::vec3 orientation,
 	Camera::up = up;
 }
 
-void Camera::updateMatrix(float FOVdeg, float nearPlane, float farPlane, int inWidth, int inHeight)
+Camera::~Camera()
+{
+
+}
+
+void Camera::Update(float FOVdeg, float nearPlane, float farPlane, int inWidth, int inHeight)
 {
 	// Initialize the view and projection matrices to the identity matrix
 	glm::mat4 view = glm::mat4(1.0f);
@@ -25,12 +30,7 @@ void Camera::updateMatrix(float FOVdeg, float nearPlane, float farPlane, int inW
 	//else glm::perspective(glm::radians(FOVdeg), (float)(width / height), nearPlane, farPlane);
 	projection = glm::perspective(glm::radians(FOVdeg), (float)(width) / float(height), nearPlane, farPlane);
 
-	cameraMatrix = projection * view;
-}
-
-void Camera::Matrix(Shader& shader, const char* uniform)
-{
-	shader.SetUniformMat4f(uniform, cameraMatrix);
+	matrix = projection * view;
 }
 
 void Camera::Inputs(GLFWwindow* window)

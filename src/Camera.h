@@ -13,16 +13,7 @@
 
 class Camera
 {
-public:
-	// The position of the camera
-	glm::vec3 position;
-	// The lookat vector (i.e. the direction the camera is looking)
-	glm::vec3 orientation;
-	// The up vector (think orientation of the viewport)
-	glm::vec3 up;
-	// The camera matrix (initialized to identity matrix)
-	glm::mat4 cameraMatrix = glm::mat4(1.0f);
-
+private:
 	// Width and Height of the viewport/window
 	int width;
 	int height;
@@ -35,13 +26,22 @@ public:
 	// Camera rotation sensitivity
 	float sensitivity = 100.0f;
 
-	// Constructor for the camera
+public:
+	// The position of the camera
+	glm::vec3 position;
+	// The lookat vector (i.e. the direction the camera is looking)
+	glm::vec3 orientation;
+	// The up vector (think orientation of the viewport)
+	glm::vec3 up;
+	// The camera matrix (initialized to identity matrix)
+	glm::mat4 matrix = glm::mat4(1.0f);
+
+public:
 	Camera(int width, int height, glm::vec3 position, glm::vec3 orientation, glm::vec3 up);
+	~Camera();
 
 	// Updates the camera matrix
-	void updateMatrix(float FOVdeg, float nearPlane, float farPlane, int inWidth, int inHeight);
-	// Send the camera matrix to the specified shader with the given uniform name
-	void Matrix(Shader& shader, const char* uniform);
+	void Update(float FOVdeg, float nearPlane, float farPlane, int inWidth, int inHeight);
 
 	// Handles camera movement inputs
 	void Inputs(GLFWwindow* window);

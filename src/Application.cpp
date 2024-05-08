@@ -77,10 +77,10 @@ int main(void)
 
     {
         float positions[] = {
-            -0.5f, -0.5f, 0.0f, 0.0f,// 0
-             0.5f, -0.5f, 1.0f, 0.0f,// 1
-             0.5f,  0.5f, 1.0f, 1.0f,// 2
-            -0.5f,  0.5f, 0.0f, 1.0f,// 3
+            -5.0f, -5.0f, 0.0f, 0.0f,// 0
+             5.0f, -5.0f, 1.0f, 0.0f,// 1
+             5.0f,  5.0f, 1.0f, 1.0f,// 2
+            -5.0f,  5.0f, 0.0f, 1.0f,// 3
         };
 
         unsigned int indices[] = {
@@ -93,12 +93,12 @@ int main(void)
         GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
         // Enable depth testing
         GLCall(glEnable(GL_DEPTH_TEST));
-        // Enables face culling
-        GLCall(glEnable(GL_CULL_FACE));
-        // Keeps front faces
-        GLCall(glCullFace(GL_FRONT));
-        // Uses counter clock-wise standard
-        GLCall(glFrontFace(GL_CCW));
+        //// Enables face culling
+        //GLCall(glEnable(GL_CULL_FACE));
+        //// Keeps front faces
+        //GLCall(glCullFace(GL_FRONT));
+        //// Uses counter clock-wise standard
+        //GLCall(glFrontFace(GL_CCW));
 
         VertexArray va;
         va.Bind();
@@ -110,8 +110,7 @@ int main(void)
 
         IndexBuffer ib(indices, 6);
 
-        // Initialize the camera with fov=45 at (1, 0, 1), oriented at (-1, 0, 0) with up vector (0, 0, 1)
-        Camera camera(width, height, glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        Camera camera(width, height, glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
         Shader shader("res/shaders/BasicTexture.shader");
         shader.Bind();
@@ -159,9 +158,7 @@ int main(void)
             // Handle camera inputs
             camera.Inputs(window);
             // Update the camera matrix
-            camera.updateMatrix(yfov, 0.1f, 100.0f, width, height);
-            // Pass camera matrix to shader
-            camera.Matrix(shader, "u_MVP");
+            camera.Update(yfov, 0.1f, 100.0f, width, height);
 
             /* Render here */
             ImGui_ImplOpenGL3_NewFrame();
@@ -174,6 +171,7 @@ int main(void)
 
             shader.Bind();
             shader.SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
+            shader.SetUniformMat4f("u_MVP", camera.matrix);
 
             renderer.Draw(va, ib, shader);
 
