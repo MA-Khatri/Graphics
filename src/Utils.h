@@ -11,6 +11,7 @@
 extern unsigned int width;
 extern unsigned int height;
 extern float yfov;
+extern int ui_mode;
 
 // Resizes the glViewport when the GLFW window is resized
 void glfw_framebuffer_size_callback(GLFWwindow* window, int newWidth, int newHeight);
