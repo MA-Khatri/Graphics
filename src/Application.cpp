@@ -15,6 +15,7 @@
 #include "Texture.h"
 #include "Camera.h"
 #include "Utils.h"
+#include "Shapes.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -36,24 +37,6 @@ float yfov = 45.0f;
 
 // Camera mode = 1, UI mode  = -1
 int ui_mode = -1;
-
-/* ==================== */
-/* ====== Shapes ====== */
-/* ==================== */
-
-float size = 1.0f;
-float positions[] = {
-     size,  size, 1.0f, 1.0f, // 0
-     size, -size, 1.0f, 0.0f, // 1
-    -size, -size, 0.0f, 0.0f, // 2
-    -size,  size, 0.0f, 1.0f, // 3
-};
-
-unsigned int indices[] = {
-    0, 1, 2,
-    2, 3, 0
-};
-
 
 int main(void)
 {
@@ -111,33 +94,30 @@ int main(void)
     /* ========================= */
     /* ====== SCENE SETUP ====== */
     /* ========================= */
+    
+    /* ====== Shapes ====== */
+	Shape plane = CreatePlane();
+    Shape groundGrid = CreateGroundPlaneGrid(100, 100, 50.0);
+    Shape axes = CreateAxes();
+
     Renderer renderer;
 
-    VertexArray* va = new VertexArray();
-    va->Bind();
+    /* ====== Shaders ====== */
+    Shader* shader = new Shader("res/shaders/Basic.shader");
 
-    VertexBuffer* vb = new VertexBuffer(positions, 4 * 4 * sizeof(float));
-    VertexBufferLayout layout;
-    layout.Push<float>(2);
-    layout.Push<float>(2);
-    va->AddBuffer(*vb, layout);
-    
-    IndexBuffer* ib = new IndexBuffer(indices, 6);
+    Shader* world = new Shader("res/shaders/World.shader");
 
-    Shader* shader = new Shader("res/shaders/BasicTexture.shader");
+    /* ====== Uniforms ====== */
     shader->Bind();
     shader->SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
+    //Texture* texture = new Texture("res/textures/rend.png");
+    //texture->Bind();
+    //shader->SetUniform1i("u_Texture", 0);
 
-    Texture* texture = new Texture("res/textures/rend.png");
-    texture->Bind();
-    shader->SetUniform1i("u_Texture", 0);
+    //world->Bind();
 
+    /* ====== Camera ====== */
     Camera camera(width, height, glm::vec3(7.0f, 0.0f, 2.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-
-    va->Unbind();
-    vb->Unbind();
-    ib->Unbind();
-    shader->Unbind();
 
     /* 
         Initialize camera matrix. 
@@ -147,8 +127,13 @@ int main(void)
     */
     camera.Update(yfov, 0.1f, 100.0f, width, height);
 
+    /* ====== Local Variables ====== */
     float r = 0.0f;
     float increment = 0.05f;
+
+    /* ====== Clean up ====== */
+    shader->Unbind();
+
 
     /* ========================= */
     /* ====== Framebuffer ====== */
@@ -174,7 +159,7 @@ int main(void)
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 
-    /* Set "renderedTexture" as our colour attachement #0 */
+    /* Set "renderedTexture" as our color attachment #0 */
     GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0));
 
     /* Set the list of draw buffers. */
@@ -243,16 +228,21 @@ int main(void)
         /* Bind our frame buffer so that we render to it instead of the default viewport */
         GLCall(glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName));
 
-        GLCall(glClearColor(0.2f, 0.2f, 0.2f, 1.0f));
+        GLCall(glClearColor(0.1f, 0.1f, 0.3f, 1.0f));
         renderer.Clear();
 
-        shader->Bind();
-        shader->SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
-        shader->SetUniformMat4f("u_MVP", camera.matrix);
-        renderer.Draw(*va, *ib, *shader);
+        world->Bind();
+        world->SetUniformMat4f("u_VP", camera.matrix);
+        renderer.Draw(*groundGrid.va, *groundGrid.ib, *world, GL_LINES);
+        renderer.Draw(*axes.va, *axes.ib, *world, GL_LINES);
 
-        shader->SetUniformMat4f("u_MVP", camera.matrix * glm::translate(glm::mat4(1), glm::vec3(0.0f, 2.2f, 0.0f)));
-        renderer.Draw(*va, *ib, *shader);
+        //shader->Bind();
+        //shader->SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
+        //shader->SetUniformMat4f("u_MVP", camera.matrix);
+        //renderer.Draw(*plane.va, *plane.ib, *shader, GL_TRIANGLES);
+
+        //shader->SetUniformMat4f("u_MVP", camera.matrix * glm::translate(glm::mat4(1), glm::vec3(0.0f, 2.2f, 0.0f)));
+        //renderer.Draw(*plane.va, *plane.ib, *shader, GL_TRIANGLES);
 
         /* Unbind the frame buffer so that ImGui can do its thing */
         GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
@@ -264,6 +254,21 @@ int main(void)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+
+		ImGui::Begin("Viewport");
+		{
+			ImGui::BeginChild("GameRender");
+
+			ImVec2 wsize = ImGui::GetWindowSize();
+			width = wsize.x;
+			height = wsize.y;
+
+			/* Note: We invert the V axis for the texture returned by OpenGL */
+			ImGui::Image((ImTextureID)renderedTexture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+
+			ImGui::EndChild();
+		}
+		ImGui::End();
 
         ImGui::Begin("Info");
         {                
@@ -278,21 +283,6 @@ int main(void)
             else m_mode = "UI";
                 
             ImGui::Text("Mouse Mode: %s", m_mode.c_str());
-        }
-        ImGui::End();
-
-        ImGui::Begin("Viewport");
-        {
-            ImGui::BeginChild("GameRender");
-
-            ImVec2 wsize = ImGui::GetWindowSize();
-            width = wsize.x;
-            height = wsize.y;
-
-            /* Note: We invert the V axis for the texture returned by OpenGL */
-            ImGui::Image((ImTextureID)renderedTexture, wsize, ImVec2(0, 1), ImVec2(1, 0));
-
-            ImGui::EndChild();
         }
         ImGui::End();
         
@@ -316,11 +306,9 @@ int main(void)
     /* ====================== */
     /* ====== CLEAN UP ====== */
     /* ======================= */
-    delete(va);
-    delete(vb);
-    delete(ib);
     delete(shader);
-    delete(texture);
+    delete(world);
+    //delete(texture);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
