@@ -33,8 +33,8 @@ unsigned int window_width = 1280;
 unsigned int window_height = 800;
 
 /* Viewport size */
-unsigned int viewport_width = 1280;
-unsigned int viewport_height = 800;
+unsigned int viewport_width = 912;
+unsigned int viewport_height = 765;
 
 /* Vertical field of view */
 float yfov = 45.0f;
@@ -104,9 +104,11 @@ int main(void)
     /* ========================= */
     
     /* ====== Shapes ====== */
-	Shape plane = CreatePlane();
-    Shape groundGrid = CreateGroundPlaneGrid(100, 100, 50.0);
+    Shape groundGrid = CreateGroundPlaneGrid(101, 101, 50.0, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), glm::vec4(0.0f, 1.0f, 0.0f, 0.5f));
     Shape axes = CreateAxes();
+    Shape ring = CreateRing();
+	Shape plane = CreatePlane();
+    Shape sphere = CreateUVSphere();
 
     Renderer renderer;
 
@@ -241,8 +243,10 @@ int main(void)
 
         world->Bind();
         world->SetUniformMat4f("u_VP", camera.matrix);
-        renderer.Draw(*groundGrid.va, *groundGrid.ib, *world, GL_LINES);
-        renderer.Draw(*axes.va, *axes.ib, *world, GL_LINES);
+        renderer.Draw(*groundGrid.va, *groundGrid.ib, *world, groundGrid.mode);
+        renderer.Draw(*axes.va, *axes.ib, *world, axes.mode);
+        renderer.Draw(*ring.va, *ring.ib, *world, ring.mode);
+        renderer.Draw(*sphere.va, *sphere.ib, *world, sphere.mode);
 
         //shader->Bind();
         //shader->SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);

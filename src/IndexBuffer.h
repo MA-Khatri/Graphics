@@ -7,7 +7,7 @@ private:
 	unsigned int m_Count;
 
 public:
-	IndexBuffer(const unsigned int* data, unsigned int count);
+	IndexBuffer(const unsigned int* data, unsigned int count); // Note: count is just number of elements here! (not times sizeof(...))
 	~IndexBuffer();
 
 	void Bind() const;
