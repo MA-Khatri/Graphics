@@ -8,8 +8,10 @@
 #include "glUtils.h"
 
 // External globals set in Application.cpp
-extern unsigned int width;
-extern unsigned int height;
+extern unsigned int window_width;
+extern unsigned int window_height;
+//extern unsigned int viewport_width;
+//extern unsigned int viewport_height;
 extern float yfov;
 extern int ui_mode;
 

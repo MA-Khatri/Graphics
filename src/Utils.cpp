@@ -6,11 +6,11 @@ bool p_pressed = false;
 
 void glfw_framebuffer_size_callback(GLFWwindow* window, int newWidth, int newHeight)
 {
-	/* We do not set the width and height to the window size anymore. Instead, it is set by the size of the viewport. */
-	//width = newWidth;
-	//height = newHeight;
+	/* We do not set the width and height to the window size anymore? */
+	window_width = newWidth;
+	window_height = newHeight;
 
-	GLCall(glViewport(0, 0, width, height));
+	GLCall(glViewport(0, 0, window_width, window_height));
 }
 
 void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)

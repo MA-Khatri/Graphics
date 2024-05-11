@@ -28,14 +28,22 @@
 /* ====== Globals ====== */
 /* ===================== */
 
-// (Initial) Window size
-unsigned int width = 1280;
-unsigned int height = 800;
+/* Window size */
+unsigned int window_width = 1280;
+unsigned int window_height = 800;
 
-// Vertical field of view
+/* Viewport size */
+unsigned int viewport_width = 1280;
+unsigned int viewport_height = 800;
+
+/* Vertical field of view */
 float yfov = 45.0f;
 
-// Camera mode = 1, UI mode  = -1
+/* Clipping */
+float near_clip = 0.01f;
+float far_clip = 10000.0f;
+
+/* Camera mode = 1, UI mode = -1 */
 int ui_mode = -1;
 
 int main(void)
@@ -52,7 +60,7 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
-    GLFWwindow* window = glfwCreateWindow(width, height, "OpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(window_width, window_height, "OpenGL", NULL, NULL);
     if (!window)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -117,7 +125,7 @@ int main(void)
     //world->Bind();
 
     /* ====== Camera ====== */
-    Camera camera(width, height, glm::vec3(7.0f, 0.0f, 2.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    Camera camera(viewport_width, viewport_height, glm::vec3(7.0f, 0.0f, 2.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
     /* 
         Initialize camera matrix. 
@@ -125,7 +133,7 @@ int main(void)
         this will use the initial width & height set, not the initial viewport size which 
         we cannot get until we're in the main loop. 
     */
-    camera.Update(yfov, 0.1f, 100.0f, width, height);
+    camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
 
     /* ====== Local Variables ====== */
     float r = 0.0f;
@@ -146,18 +154,18 @@ int main(void)
     GLCall(glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName));
 
     /* The texture we're going to render to */
-    GLuint renderedTexture;
+	GLuint renderedTexture;
     GLCall(glGenTextures(1, &renderedTexture));
 
     /* "Bind" the newly created texture: all future texture functions will modify this texture until we unbind it */
     GLCall(glBindTexture(GL_TEXTURE_2D, renderedTexture));
 
     /* Give an empty image to OpenGL (the last "0") */
-    GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 768, 0, GL_RGB, GL_UNSIGNED_BYTE, 0));
+    GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, viewport_width, viewport_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0));
 
     /* Needed due to poor filtering */
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 
     /* Set "renderedTexture" as our color attachment #0 */
     GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0));
@@ -211,7 +219,7 @@ int main(void)
             /* Handle camera inputs */
             camera.Inputs(window);
             /* Update the camera matrix */ 
-            camera.Update(yfov, 0.1f, 100.0f, width, height);
+            camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
         }
 
         /* Modify r channel of color uniform */
@@ -260,8 +268,18 @@ int main(void)
 			ImGui::BeginChild("GameRender");
 
 			ImVec2 wsize = ImGui::GetWindowSize();
-			width = wsize.x;
-			height = wsize.y;
+
+            if (wsize.x != viewport_width || wsize.y != viewport_height)
+            {
+			    viewport_width = wsize.x;
+			    viewport_height = wsize.y;
+
+                GLCall(glBindTexture(GL_TEXTURE_2D, renderedTexture));
+		        GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, viewport_width, viewport_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0));
+                GLCall(glViewport(0, 0, viewport_width, viewport_height));
+			    GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+            }
+
 
 			/* Note: We invert the V axis for the texture returned by OpenGL */
 			ImGui::Image((ImTextureID)renderedTexture, wsize, ImVec2(0, 1), ImVec2(1, 0));
@@ -273,7 +291,8 @@ int main(void)
         ImGui::Begin("Info");
         {                
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::Text("Window size\n  Width: %.1i  Height: %.1i", width, height);
+			ImGui::Text("Window size\n  Width: %.1i  Height: %.1i", window_width, window_height);
+			ImGui::Text("Viewport size\n  Width: %.1i  Height: %.1i", viewport_width, viewport_height);
             ImGui::Text("Field of View (Y):  %.1f deg", yfov);
             ImGui::Text("Camera Position:    X=%.3f, Y=%.3f, Z=%.3f", camera.position.x, camera.position.y, camera.position.z);
             ImGui::Text("Camera Orientation: X=%.3f, Y=%.3f, Z=%.3f", camera.orientation.x, camera.orientation.y, camera.orientation.z);
