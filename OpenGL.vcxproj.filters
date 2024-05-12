@@ -494,6 +494,8 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="res\shaders\World.shader" />
+    <None Include="res\shaders\World.vert" />
+    <None Include="res\shaders\World.frag" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">

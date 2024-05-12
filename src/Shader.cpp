@@ -8,9 +8,16 @@
 #include "glUtils.h"
 
 Shader::Shader(const std::string& filepath)
-	: m_FilePath(filepath), m_RendererID(0)
+	: m_VertexPath(filepath), m_FragmentPath(filepath), m_RendererID(0)
 {
     ShaderProgramSource source = ParseShader(filepath);
+    m_RendererID = CreateShader(source.VertexSource, source.FragmentSource);
+}
+
+Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
+    : m_VertexPath(vertexPath), m_FragmentPath(fragmentPath), m_RendererID(0)
+{
+    ShaderProgramSource source = ParseShaders(vertexPath, fragmentPath);
     m_RendererID = CreateShader(source.VertexSource, source.FragmentSource);
 }
 
@@ -89,6 +96,27 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath)
         {
             ss[(int)type] << line << "\n";
         }
+    }
+
+    return { ss[0].str(), ss[1].str() };
+}
+
+ShaderProgramSource Shader::ParseShaders(const std::string& vertexPath, const std::string& fragmentPath)
+{
+	std::ifstream v_stream(vertexPath);
+    std::ifstream f_stream(fragmentPath);
+
+	std::string line;
+	std::stringstream ss[2]; // one for vertex, another for fragment shader
+	
+    while (getline(v_stream, line))
+    {
+        ss[0] << line << "\n";
+    }
+
+    while (getline(f_stream, line))
+    {
+        ss[1] << line << "\n";
     }
 
     return { ss[0].str(), ss[1].str() };

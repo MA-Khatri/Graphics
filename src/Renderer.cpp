@@ -6,7 +6,7 @@ void Renderer::Clear() const
     GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
-void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader, const unsigned int draw_mode) const
+void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader, const GLenum draw_mode) const
 {
     shader.Bind();
     va.Bind();

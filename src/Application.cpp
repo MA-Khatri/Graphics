@@ -94,6 +94,7 @@ int main(void)
     GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     GLCall(glEnable(GL_DEPTH_TEST));
+    GLCall(glDepthFunc(GL_LESS));
     
     GLCall(glEnable(GL_CULL_FACE));
     GLCall(glCullFace(GL_FRONT));
@@ -116,6 +117,7 @@ int main(void)
     Shader* shader = new Shader("res/shaders/Basic.shader");
 
     Shader* world = new Shader("res/shaders/World.shader");
+    //Shader* world = new Shader("res/shaders/World.vert", "res/shaders/World.frag"); // test with separate files
 
     /* ====== Uniforms ====== */
     shader->Bind();
@@ -237,6 +239,18 @@ int main(void)
 
         /* Bind our frame buffer so that we render to it instead of the default viewport */
         GLCall(glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName));
+
+        /* Enable desired... */
+		GLCall(glEnable(GL_BLEND));
+		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+		GLCall(glEnable(GL_DEPTH_TEST));
+		GLCall(glDepthFunc(GL_LESS));
+
+		GLCall(glEnable(GL_CULL_FACE));
+		GLCall(glCullFace(GL_FRONT));
+		GLCall(glFrontFace(GL_CCW));
+
 
         GLCall(glClearColor(0.1f, 0.1f, 0.3f, 1.0f));
         renderer.Clear();
