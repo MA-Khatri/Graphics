@@ -13,8 +13,6 @@
 #include "glm/glm.hpp"
 #include "glUtils.h"
 
-static Shader* g_default_shader = new Shader("res/shaders/Default.shader");
-
 class Object 
 {
 private:

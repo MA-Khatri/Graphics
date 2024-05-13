@@ -212,13 +212,13 @@ Primitive CreateUVSphere(unsigned int div)
 	std::vector<float> verts;
 	std::vector<unsigned int> indices;
 
-	for (unsigned int j = 0; j <= div; j++)
+	for (int j = 0; j <= div; j++)
 	{
 		float aj = j * pi / div;
 		float sj = std::sin(aj);
 		float cj = std::cos(aj);
 
-		for (unsigned int i = 0; i <= div; i++)
+		for (int i = 0; i <= div; i++)
 		{
 			float ai = i * 2 * pi / div;
 			float si = std::sin(ai);
@@ -236,9 +236,9 @@ Primitive CreateUVSphere(unsigned int div)
 		}
 	}
 
-	for (unsigned int j = 0; j < div; j++)
+	for (int j = 0; j < div; j++)
 	{
-		for (unsigned int i = 0; i < div; i++)
+		for (int i = 0; i < div; i++)
 		{
 			unsigned int p1 = j * (div + 1) + i;
 			unsigned int p2 = p1 + (div + 1);
