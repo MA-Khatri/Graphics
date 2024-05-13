@@ -15,7 +15,7 @@
 #include "Texture.h"
 #include "Camera.h"
 #include "Utils.h"
-#include "Shapes.h"
+#include "Primitive.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -104,12 +104,12 @@ int main(void)
     /* ====== SCENE SETUP ====== */
     /* ========================= */
     
-    /* ====== Shapes ====== */
-    Shape groundGrid = CreateGroundPlaneGrid(101, 101, 50.0, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), glm::vec4(0.0f, 1.0f, 0.0f, 0.5f));
-    Shape axes = CreateAxes();
-    Shape ring = CreateRing();
-	Shape plane = CreatePlane();
-    Shape sphere = CreateUVSphere();
+    /* ====== Primitives ====== */
+    Primitive groundGrid = CreateGroundPlaneGrid(101, 101, 50.0, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), glm::vec4(0.0f, 1.0f, 0.0f, 0.5f));
+    Primitive axes = CreateAxes();
+    Primitive ring = CreateRing();
+	Primitive plane = CreatePlane();
+    Primitive sphere = CreateUVSphere();
 
     Renderer renderer;
 
@@ -240,27 +240,15 @@ int main(void)
         /* Bind our frame buffer so that we render to it instead of the default viewport */
         GLCall(glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName));
 
-        /* Enable desired... */
-		GLCall(glEnable(GL_BLEND));
-		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-		GLCall(glEnable(GL_DEPTH_TEST));
-		GLCall(glDepthFunc(GL_LESS));
-
-		GLCall(glEnable(GL_CULL_FACE));
-		GLCall(glCullFace(GL_FRONT));
-		GLCall(glFrontFace(GL_CCW));
-
-
         GLCall(glClearColor(0.1f, 0.1f, 0.3f, 1.0f));
         renderer.Clear();
 
         world->Bind();
         world->SetUniformMat4f("u_VP", camera.matrix);
-        renderer.Draw(*groundGrid.va, *groundGrid.ib, *world, groundGrid.mode);
-        renderer.Draw(*axes.va, *axes.ib, *world, axes.mode);
-        renderer.Draw(*ring.va, *ring.ib, *world, ring.mode);
-        renderer.Draw(*sphere.va, *sphere.ib, *world, sphere.mode);
+        renderer.Draw(*groundGrid.va, *groundGrid.ib, *world, groundGrid.draw_mode);
+        renderer.Draw(*axes.va, *axes.ib, *world, axes.draw_mode);
+        renderer.Draw(*ring.va, *ring.ib, *world, ring.draw_mode);
+        renderer.Draw(*sphere.va, *sphere.ib, *world, sphere.draw_mode);
 
         //shader->Bind();
         //shader->SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);

@@ -1,12 +1,12 @@
 #include <vector>
 
-#include "Shapes.h"
+#include "Primitive.h"
 
 #include <cmath>
 
 const float pi = 3.14159265358979323846f;
 
-Shape CreateGroundPlaneGrid(int xcount, int ycount, float xymax, glm::vec4 xcolor, glm::vec4 ycolor)
+Primitive CreateGroundPlaneGrid(int xcount, int ycount, float xymax, glm::vec4 xcolor, glm::vec4 ycolor)
 {
 	std::vector<float> verts;
 	std::vector<unsigned int> indices;
@@ -72,10 +72,10 @@ Shape CreateGroundPlaneGrid(int xcount, int ycount, float xymax, glm::vec4 xcolo
 	vb->Unbind();
 	ib->Unbind();
 
-	return Shape{ va, vb, ib, GL_LINES };
+	return Primitive{ va, vb, ib, GL_LINES };
 }
 
-Shape CreateAxes(glm::vec4 xcolor, glm::vec4 ycolor, glm::vec4 zcolor)
+Primitive CreateAxes(glm::vec4 xcolor, glm::vec4 ycolor, glm::vec4 zcolor)
 {
 	std::vector<float> verts;
 	std::vector<unsigned int> indices;
@@ -129,10 +129,10 @@ Shape CreateAxes(glm::vec4 xcolor, glm::vec4 ycolor, glm::vec4 zcolor)
 	vb->Unbind();
 	ib->Unbind();
 
-	return Shape{ va, vb, ib, GL_LINES };
+	return Primitive{ va, vb, ib, GL_LINES };
 }
 
-Shape CreateRing(unsigned int div, glm::vec4 color)
+Primitive CreateRing(unsigned int div, glm::vec4 color)
 {
 	std::vector<float> verts;
 	std::vector<unsigned int> indices;
@@ -170,10 +170,10 @@ Shape CreateRing(unsigned int div, glm::vec4 color)
 	vb->Unbind();
 	ib->Unbind();
 
-	return Shape{ va, vb, ib, GL_LINE_LOOP };
+	return Primitive{ va, vb, ib, GL_LINE_LOOP };
 }
 
-Shape CreatePlane(float size)
+Primitive CreatePlane(float size)
 {
 	float positions[] = {
 		 size,  size, 1.0f, 1.0f, // 0
@@ -204,10 +204,10 @@ Shape CreatePlane(float size)
 	vb->Unbind();
 	ib->Unbind();
 
-	return Shape{ va, vb, ib, GL_TRIANGLES };
+	return Primitive{ va, vb, ib, GL_TRIANGLES };
 }
 
-Shape CreateUVSphere(unsigned int div)
+Primitive CreateUVSphere(unsigned int div)
 {
 	std::vector<float> verts;
 	std::vector<unsigned int> indices;
@@ -270,5 +270,5 @@ Shape CreateUVSphere(unsigned int div)
 	vb->Unbind();
 	ib->Unbind();
 
-	return Shape{ va, vb, ib, GL_TRIANGLES };
+	return Primitive{ va, vb, ib, GL_TRIANGLES };
 }
