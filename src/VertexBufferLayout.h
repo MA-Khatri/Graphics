@@ -24,7 +24,7 @@ struct VertexBufferElement
 	}
 };
 
-struct VertexBufferLayout
+class VertexBufferLayout
 {
 private:
 	std::vector<VertexBufferElement> m_Elements;

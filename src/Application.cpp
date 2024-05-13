@@ -16,6 +16,7 @@
 #include "Camera.h"
 #include "Utils.h"
 #include "Primitive.h"
+//#include "Object.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -110,6 +111,8 @@ int main(void)
     Primitive ring = CreateRing();
 	Primitive plane = CreatePlane();
     Primitive sphere = CreateUVSphere();
+
+    //Object* sphere = new Object(CreateUVSphere());
 
     Renderer renderer;
 
@@ -249,6 +252,8 @@ int main(void)
         renderer.Draw(*axes.va, *axes.ib, *world, axes.draw_mode);
         renderer.Draw(*ring.va, *ring.ib, *world, ring.draw_mode);
         renderer.Draw(*sphere.va, *sphere.ib, *world, sphere.draw_mode);
+        
+        //sphere->Draw(camera, *world);
 
         //shader->Bind();
         //shader->SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
@@ -277,8 +282,8 @@ int main(void)
 
             if (wsize.x != viewport_width || wsize.y != viewport_height)
             {
-			    viewport_width = wsize.x;
-			    viewport_height = wsize.y;
+			    viewport_width = (unsigned int)wsize.x;
+			    viewport_height = (unsigned int)wsize.y;
 
                 GLCall(glBindTexture(GL_TEXTURE_2D, renderedTexture));
 		        GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, viewport_width, viewport_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0));

@@ -15,7 +15,13 @@ Object::Object(Mesh mesh)
 
 Object::~Object()
 {
+	va->Unbind();
+	vb->Unbind();
+	ib->Unbind();
 
+	delete(va);
+	delete(vb);
+	delete(ib);
 }
 
 void Object::SetTransform(glm::mat4x4 transform)
@@ -55,19 +61,26 @@ void Object::Scale(float x, float y, float z)
 
 void Object::Draw()
 {
-	
+	g_default_shader->Bind();
+	va->Bind();
+	g_default_shader->SetUniformMat4f("u_MVP", model_matrix);
+
+	GLCall(glDrawElements(draw_mode, ib->GetCount(), GL_UNSIGNED_INT, nullptr));
 }
 
 void Object::Draw(Camera camera)
 {
+	g_default_shader->Bind();
+	va->Bind();
+	g_default_shader->SetUniformMat4f("u_MVP", model_matrix * camera.matrix);
 
+	GLCall(glDrawElements(draw_mode, ib->GetCount(), GL_UNSIGNED_INT, nullptr));
 }
 
 void Object::Draw(Camera camera, Shader& shader)
 {
 	shader.Bind();
 	va->Bind();
-
 	shader.SetUniformMat4f("u_MVP", model_matrix * camera.matrix);
 	
 	GLCall(glDrawElements(draw_mode, ib->GetCount(), GL_UNSIGNED_INT, nullptr));
