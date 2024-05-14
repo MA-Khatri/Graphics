@@ -7,7 +7,6 @@
 #include "IndexBuffer.h"
 #include "Texture.h"
 #include "Camera.h"
-#include "Primitive.h"
 #include "Mesh.h"
 
 #include "glm/glm.hpp"
@@ -26,7 +25,6 @@ private:
 	glm::mat4x4 model_matrix = glm::mat4x4(1.0f);
 
 public:
-	Object(Primitive primitive);
 	Object(Mesh mesh);
 	~Object();
 

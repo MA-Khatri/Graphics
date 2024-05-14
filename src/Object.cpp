@@ -1,21 +1,20 @@
 #include "Object.h"
 
-
-
-Object::Object(Primitive primitive)
-	:va(primitive.va), vb(primitive.vb), ib(primitive.ib), draw_mode(primitive.draw_mode)
-{
-
-}
-
 Object::Object(Mesh mesh)
+	:va(mesh.va), vb(mesh.vb), ib(mesh.ib), draw_mode(mesh.draw_mode)
 {
 
 }
 
 Object::~Object()
 {
+	va->Unbind();
+	vb->Unbind();
+	ib->Unbind();
 
+	delete(va);
+	delete(vb);
+	delete(ib);
 }
 
 void Object::SetTransform(glm::mat4x4 transform)
@@ -55,12 +54,24 @@ void Object::Scale(float x, float y, float z)
 
 void Object::Draw()
 {
-	
+	Shader default_shader = Shader("res/shaders/Default.shader");
+	default_shader.Bind();
+	va->Bind();
+
+	default_shader.SetUniformMat4f("u_MVP", model_matrix);
+
+	GLCall(glDrawElements(draw_mode, ib->GetCount(), GL_UNSIGNED_INT, nullptr));
 }
 
 void Object::Draw(Camera camera)
 {
+	Shader default_shader = Shader("res/shaders/Default.shader");
+	default_shader.Bind();
+	va->Bind();
 
+	default_shader.SetUniformMat4f("u_MVP", camera.matrix * model_matrix);
+
+	GLCall(glDrawElements(draw_mode, ib->GetCount(), GL_UNSIGNED_INT, nullptr));
 }
 
 void Object::Draw(Camera camera, Shader& shader)
@@ -68,7 +79,7 @@ void Object::Draw(Camera camera, Shader& shader)
 	shader.Bind();
 	va->Bind();
 
-	shader.SetUniformMat4f("u_MVP", model_matrix * camera.matrix);
+	shader.SetUniformMat4f("u_MVP", camera.matrix * model_matrix);
 	
 	GLCall(glDrawElements(draw_mode, ib->GetCount(), GL_UNSIGNED_INT, nullptr));
 }

@@ -15,7 +15,8 @@
 #include "Texture.h"
 #include "Camera.h"
 #include "Utils.h"
-#include "Primitive.h"
+#include "Mesh.h"
+#include "Object.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -23,6 +24,7 @@
 #include "imgui/imgui.h"
 #include "imgui/backends/imgui_impl_glfw.h"
 #include "imgui/backends/imgui_impl_opengl3.h"
+
 
 /* ===================== */
 /* ====== Globals ====== */
@@ -36,15 +38,19 @@ unsigned int window_height = 800;
 unsigned int viewport_width = 912;
 unsigned int viewport_height = 765;
 
+/* Framebuffer scale allows rendering viewport at higher/lower resolution */
+float framebuffer_scale = 1.0f;
+
 /* Vertical field of view */
 float yfov = 45.0f;
 
 /* Clipping */
-float near_clip = 0.01f;
-float far_clip = 10000.0f;
+float near_clip = 0.1f;
+float far_clip = 1000.0f;
 
 /* Camera mode = 1, UI mode = -1 */
 int ui_mode = -1;
+
 
 int main(void)
 {
@@ -92,41 +98,49 @@ int main(void)
     /* ============================= */
     GLCall(glEnable(GL_BLEND));
     GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    
+    ///* This causes problems, probably because my faces are wrong... */
+    //GLCall(glEnable(GL_CULL_FACE));
+    //GLCall(glCullFace(GL_FRONT));
+    //GLCall(glFrontFace(GL_CCW));
 
     GLCall(glEnable(GL_DEPTH_TEST));
     GLCall(glDepthFunc(GL_LESS));
-    
-    GLCall(glEnable(GL_CULL_FACE));
-    GLCall(glCullFace(GL_FRONT));
-    GLCall(glFrontFace(GL_CCW));
-
     /* ========================= */
     /* ====== SCENE SETUP ====== */
     /* ========================= */
     
-    /* ====== Primitives ====== */
-    Primitive groundGrid = CreateGroundPlaneGrid(101, 101, 50.0, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), glm::vec4(0.0f, 1.0f, 0.0f, 0.5f));
-    Primitive axes = CreateAxes();
-    Primitive ring = CreateRing();
-	Primitive plane = CreatePlane();
-    Primitive sphere = CreateUVSphere();
+    /* ====== Objects ====== */
+    Object groundGrid = Object(CreateGroundPlaneGrid(101, 101, 50.0, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)));
+    Object axes = Object(CreateAxes());
+    Object ring = Object(CreateRing());
 
-    Renderer renderer;
+	Object plane = Object(CreatePlane());
+    plane.Translate(0.0f, -4.0f, 0.0f);
+    plane.Scale(2.0f);
+
+    Object sphere = Object(CreateUVSphere());
+	sphere.Scale(2.0f, 0.5f, 3.0f);
+    
+    Object cube = Object(CreateCube());
+    cube.Translate(0.0f, 2.0f, 0.0f);
+
+    Object cylinder = Object(LoadOBJ("res/meshes/cylinder.obj"));
 
     /* ====== Shaders ====== */
-    Shader* shader = new Shader("res/shaders/Basic.shader");
+    Shader* shader_world = new Shader("res/shaders/World.shader");
+    //Shader* shader_world = new Shader("res/shaders/World.vert", "res/shaders/World.frag"); // test with separate files
 
-    Shader* world = new Shader("res/shaders/World.shader");
-    //Shader* world = new Shader("res/shaders/World.vert", "res/shaders/World.frag"); // test with separate files
+    Shader* shader_basic = new Shader("res/shaders/Basic.shader");
 
     /* ====== Uniforms ====== */
-    shader->Bind();
-    shader->SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
+    shader_basic->Bind();
+    shader_basic->SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
+    shader_basic->Unbind();
+
     //Texture* texture = new Texture("res/textures/rend.png");
     //texture->Bind();
-    //shader->SetUniform1i("u_Texture", 0);
-
-    //world->Bind();
+    //shader_basic->SetUniform1i("u_Texture", 0);
 
     /* ====== Camera ====== */
     Camera camera(viewport_width, viewport_height, glm::vec3(7.0f, 0.0f, 2.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -142,10 +156,6 @@ int main(void)
     /* ====== Local Variables ====== */
     float r = 0.0f;
     float increment = 0.05f;
-
-    /* ====== Clean up ====== */
-    shader->Unbind();
-
 
     /* ========================= */
     /* ====== Framebuffer ====== */
@@ -165,11 +175,18 @@ int main(void)
     GLCall(glBindTexture(GL_TEXTURE_2D, renderedTexture));
 
     /* Give an empty image to OpenGL (the last "0") */
-    GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, viewport_width, viewport_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0));
+    GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GLsizei(framebuffer_scale*viewport_width), GLsizei(framebuffer_scale*viewport_height), 0, GL_RGB, GL_UNSIGNED_BYTE, 0));
 
     /* Needed due to poor filtering */
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
     GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+
+	/* Setup the depth buffer */
+	GLuint depthrenderbuffer;
+	GLCall(glGenRenderbuffers(1, &depthrenderbuffer));
+	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer));
+	GLCall(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, GLsizei(framebuffer_scale * viewport_width), GLsizei(framebuffer_scale * viewport_height)));
+	GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer));
 
     /* Set "renderedTexture" as our color attachment #0 */
     GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0));
@@ -226,13 +243,6 @@ int main(void)
             camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
         }
 
-        /* Modify r channel of color uniform */
-        if (r > 1.0f)
-            increment = -0.05f;
-        else if (r < 0.0f)
-            increment = 0.05f;
-        r += increment;
-
         /* ============================= */
         /* ==== Non-ImGui Rendering ==== */
         /* ============================= */
@@ -241,22 +251,26 @@ int main(void)
         GLCall(glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName));
 
         GLCall(glClearColor(0.1f, 0.1f, 0.3f, 1.0f));
-        renderer.Clear();
+        GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-        world->Bind();
-        world->SetUniformMat4f("u_VP", camera.matrix);
-        renderer.Draw(*groundGrid.va, *groundGrid.ib, *world, groundGrid.draw_mode);
-        renderer.Draw(*axes.va, *axes.ib, *world, axes.draw_mode);
-        renderer.Draw(*ring.va, *ring.ib, *world, ring.draw_mode);
-        renderer.Draw(*sphere.va, *sphere.ib, *world, sphere.draw_mode);
+        groundGrid.Draw(camera, *shader_world);
 
-        //shader->Bind();
-        //shader->SetUniform4f("u_Color", r, 0.3f, 0.8f, 1.0f);
-        //shader->SetUniformMat4f("u_MVP", camera.matrix);
-        //renderer.Draw(*plane.va, *plane.ib, *shader, GL_TRIANGLES);
+		shader_basic->Bind();
+		shader_basic->SetUniform4f("u_Color", 1.0f, 1.0f, 1.0f, 1.0f);
+        plane.Draw(camera, *shader_basic);
+        
+        axes.Draw(camera, *shader_world);
+        ring.Draw(camera, *shader_world);
 
-        //shader->SetUniformMat4f("u_MVP", camera.matrix * glm::translate(glm::mat4(1), glm::vec3(0.0f, 2.2f, 0.0f)));
-        //renderer.Draw(*plane.va, *plane.ib, *shader, GL_TRIANGLES);
+        shader_basic->Bind();
+		shader_basic->SetUniform4f("u_Color", 0.0f, 1.0f, 0.0f, 1.0f);
+        //sphere.Draw(camera, *shader_basic);
+        //cylinder.Draw(camera, *shader_basic);
+		cylinder.Draw(camera);
+
+		shader_basic->Bind();
+        shader_basic->SetUniform4f("u_Color", 1.0f, 0.0f, 0.0f, 1.0f);
+        cube.Draw(camera, *shader_basic);
 
         /* Unbind the frame buffer so that ImGui can do its thing */
         GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
@@ -275,17 +289,20 @@ int main(void)
 
 			ImVec2 wsize = ImGui::GetWindowSize();
 
+            /* Handle resizing of the viewport */
             if (wsize.x != viewport_width || wsize.y != viewport_height)
             {
-			    viewport_width = wsize.x;
-			    viewport_height = wsize.y;
+			    viewport_width = (unsigned int)wsize.x;
+			    viewport_height = (unsigned int)wsize.y;
 
                 GLCall(glBindTexture(GL_TEXTURE_2D, renderedTexture));
-		        GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, viewport_width, viewport_height, 0, GL_RGB, GL_UNSIGNED_BYTE, 0));
-                GLCall(glViewport(0, 0, viewport_width, viewport_height));
+		        GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GLsizei(framebuffer_scale * viewport_width), GLsizei(framebuffer_scale * viewport_height), 0, GL_RGB, GL_UNSIGNED_BYTE, 0));
+                GLCall(glViewport(0, 0, GLsizei(framebuffer_scale * viewport_width), GLsizei(framebuffer_scale * viewport_height)));
 			    GLCall(glBindTexture(GL_TEXTURE_2D, 0));
-            }
 
+				glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, GLsizei(framebuffer_scale * viewport_width), GLsizei(framebuffer_scale * viewport_height));
+            }
 
 			/* Note: We invert the V axis for the texture returned by OpenGL */
 			ImGui::Image((ImTextureID)renderedTexture, wsize, ImVec2(0, 1), ImVec2(1, 0));
@@ -331,8 +348,8 @@ int main(void)
     /* ====================== */
     /* ====== CLEAN UP ====== */
     /* ======================= */
-    delete(shader);
-    delete(world);
+    delete(shader_basic);
+    delete(shader_world);
     //delete(texture);
 
     ImGui_ImplOpenGL3_Shutdown();

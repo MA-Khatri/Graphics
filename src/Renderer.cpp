@@ -14,3 +14,9 @@ void Renderer::Draw(const VertexArray& va, const IndexBuffer& ib, const Shader& 
 
     GLCall(glDrawElements(draw_mode, ib.GetCount(), GL_UNSIGNED_INT, nullptr));
 }
+
+void Renderer::Draw(Object object)
+{
+    
+}
+
