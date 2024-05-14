@@ -17,6 +17,7 @@
 #include "Utils.h"
 #include "Mesh.h"
 #include "Object.h"
+#include "Light.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -39,7 +40,7 @@ unsigned int viewport_width = 912;
 unsigned int viewport_height = 765;
 
 /* Framebuffer scale allows rendering viewport at higher/lower resolution */
-float framebuffer_scale = 1.0f;
+float framebuffer_scale = 2.0f; // set to 2 is expensive but it looks better...
 
 /* Vertical field of view */
 float yfov = 45.0f;
@@ -109,6 +110,11 @@ int main(void)
     /* ========================= */
     /* ====== SCENE SETUP ====== */
     /* ========================= */
+
+	/* ====== Shaders ====== */
+	Shader* shader_world = new Shader("res/shaders/World.shader");
+	Shader* shader_basic = new Shader("res/shaders/Basic.shader");
+    Shader* shader_light = new Shader("res/shaders/Light.shader");
     
     /* ====== Objects ====== */
     Object groundGrid = Object(CreateGroundPlaneGrid(101, 101, 50.0, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)));
@@ -120,18 +126,21 @@ int main(void)
     plane.Scale(2.0f);
 
     Object sphere = Object(CreateUVSphere());
-	sphere.Scale(2.0f, 0.5f, 3.0f);
+    sphere.Translate(-1.0f, -2.0f, 0.0f);
+	//sphere.Scale(2.0f, 0.5f, 3.0f);
     
     Object cube = Object(CreateCube());
-    cube.Translate(0.0f, 2.0f, 0.0f);
+    cube.Translate(0.0f, 4.0f, 0.0f);
 
     Object cylinder = Object(LoadOBJ("res/meshes/cylinder.obj"));
+    cylinder.Translate(1.0f, 2.0f, 0.0f);
 
-    /* ====== Shaders ====== */
-    Shader* shader_world = new Shader("res/shaders/World.shader");
-    //Shader* shader_world = new Shader("res/shaders/World.vert", "res/shaders/World.frag"); // test with separate files
-
-    Shader* shader_basic = new Shader("res/shaders/Basic.shader");
+    /* ====== Light ====== */
+    Light light = Light(glm::vec3(10.0f, 10.0f, 10.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    shader_light->Bind();
+	shader_light->SetUniform3f("u_lightPosn", light.position.x, light.position.y, light.position.z);
+	shader_light->SetUniform3f("u_lightColor", light.color.x, light.color.y, light.color.z);
+    shader_light->SetUniform4f("u_Color", 1.0f, 1.0f, 1.0f, 1.0f);
 
     /* ====== Uniforms ====== */
     shader_basic->Bind();
@@ -154,8 +163,7 @@ int main(void)
     camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
 
     /* ====== Local Variables ====== */
-    float r = 0.0f;
-    float increment = 0.05f;
+    // TODO?
 
     /* ========================= */
     /* ====== Framebuffer ====== */
@@ -262,11 +270,12 @@ int main(void)
         axes.Draw(camera, *shader_world);
         ring.Draw(camera, *shader_world);
 
-        shader_basic->Bind();
-		shader_basic->SetUniform4f("u_Color", 0.0f, 1.0f, 0.0f, 1.0f);
-        //sphere.Draw(camera, *shader_basic);
-        //cylinder.Draw(camera, *shader_basic);
-		cylinder.Draw(camera);
+        shader_light->Bind();
+        shader_light->SetUniform4f("u_Color", 0.5f, 0.0f, 1.0f, 1.0f);
+        sphere.Draw(camera, *shader_light);
+
+		shader_light->SetUniform4f("u_Color", 1.0f, 0.5f, 0.0f, 1.0f);
+        cylinder.Draw(camera, *shader_light);
 
 		shader_basic->Bind();
         shader_basic->SetUniform4f("u_Color", 1.0f, 0.0f, 0.0f, 1.0f);

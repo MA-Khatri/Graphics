@@ -78,6 +78,9 @@
     <ClCompile Include="src\Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Light.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\Basic.shader" />
@@ -498,6 +501,7 @@
     </None>
     <None Include="res\shaders\World.shader" />
     <None Include="res\shaders\Default.shader" />
+    <None Include="res\shaders\Light.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">
@@ -1428,6 +1432,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\vendor\OBJ-Loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
