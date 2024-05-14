@@ -3,9 +3,6 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-# Force include dependencies and resources
-!dependencies/*
-!res/*
 
 # User-specific files
 *.rsuser
@@ -365,3 +362,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+
+# Force include back in some directories
+!res/**
+!dependencies/**
