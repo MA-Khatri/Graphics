@@ -20,12 +20,13 @@ private:
 	IndexBuffer* ib;
 	GLenum draw_mode;
 
-	std::vector<Texture> textures;
+	std::vector<Texture*> textures;
 
 	glm::mat4x4 model_matrix = glm::mat4x4(1.0f);
 
 public:
 	Object(Mesh mesh);
+	Object(Mesh mesh, std::vector<Texture*> textures);
 	~Object();
 
 	void SetTransform(glm::mat4x4 transform);

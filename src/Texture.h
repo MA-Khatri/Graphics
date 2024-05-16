@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glUtils.h"
+#include "Shader.h"
 #include <iostream>
 
 class Texture
@@ -10,9 +11,11 @@ private:
 	std::string m_FilePath;
 	unsigned char* m_LocalBuffer;
 	int m_Width, m_Height, m_BPP;
+	std::string m_TextureType;
 
 public:
-	Texture(const std::string& path);
+	Texture(const std::string& path, const std::string texture_type = "Diffuse", GLenum pixel_format = GL_RGBA, GLenum pixel_type = GL_UNSIGNED_BYTE,
+		GLenum min_filter = GL_LINEAR, GLenum mag_filter = GL_LINEAR, GLenum wrap_s = GL_REPEAT, GLenum wrap_t = GL_REPEAT);
 	~Texture();
 
 	void Bind(unsigned int slot = 0) const;
@@ -20,4 +23,5 @@ public:
 
 	inline int GetWidth() const { return m_Width; }
 	inline int GetHeight() const { return m_Height; }
+	inline std::string GetType() const { return m_TextureType; }
 };

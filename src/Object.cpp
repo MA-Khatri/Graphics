@@ -6,6 +6,12 @@ Object::Object(Mesh mesh)
 
 }
 
+Object::Object(Mesh mesh, std::vector<Texture*> textures)
+	:va(mesh.va), vb(mesh.vb), ib(mesh.ib), draw_mode(mesh.draw_mode), textures(textures)
+{
+
+}
+
 Object::~Object()
 {
 	va->Unbind();
@@ -78,6 +84,26 @@ void Object::Draw(Camera camera, Shader& shader)
 {
 	shader.Bind();
 	va->Bind();
+
+	// Keep track of how many of each type of textures we have
+	unsigned int numDiffuse = 0;
+	unsigned int numSpecular = 0;
+
+	for (unsigned int i = 0; i < textures.size(); i++)
+	{
+		std::string num;
+		std::string type = textures[i]->GetType();
+		if (type == "Diffuse")
+		{
+			num = std::to_string(numDiffuse++);
+		}
+		else if (type == "Specular")
+		{
+			num = std::to_string(numSpecular++);
+		}
+		shader.SetUniform1i(("u_" + type + num).c_str(), i);
+		textures[i]->Bind(i);
+	}
 
 	shader.SetUniformMat4f("u_MVP", camera.matrix * model_matrix);
 	

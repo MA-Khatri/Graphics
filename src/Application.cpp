@@ -94,6 +94,7 @@ int main(void)
 
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
+
     /* ============================= */
     /* ====== OpenGL SETTINGS ====== */
     /* ============================= */
@@ -107,49 +108,44 @@ int main(void)
 
     GLCall(glEnable(GL_DEPTH_TEST));
     GLCall(glDepthFunc(GL_LESS));
+
+
     /* ========================= */
     /* ====== SCENE SETUP ====== */
     /* ========================= */
 
 	/* ====== Shaders ====== */
 	Shader* shader_world = new Shader("res/shaders/World.shader");
-	Shader* shader_basic = new Shader("res/shaders/Basic.shader");
-    Shader* shader_light = new Shader("res/shaders/Light.shader");
+	//Shader* shader_basic = new Shader("res/shaders/Basic.shader");
+	//Shader* shader_light = new Shader("res/shaders/Light.shader");
+    Shader* shader_floor = new Shader("res/shaders/Floor.shader");
     
+
+    /* ====== Textures ====== */
+    std::vector<Texture*> floorTextures = {
+		new Texture("res/textures/planks_diffuse.png", "Diffuse", GL_RGBA, GL_UNSIGNED_BYTE),
+		new Texture("res/textures/planks_specular.png", "Specular", GL_RED, GL_UNSIGNED_BYTE)
+    };
+
+
     /* ====== Objects ====== */
     Object groundGrid = Object(CreateGroundPlaneGrid(101, 101, 50.0, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)));
-    Object axes = Object(CreateAxes());
-    Object ring = Object(CreateRing());
 
-	Object plane = Object(CreatePlane());
-    plane.Translate(0.0f, -4.0f, 0.0f);
+    Object plane = Object(CreatePlane(), floorTextures);
     plane.Scale(2.0f);
 
-    Object sphere = Object(CreateUVSphere());
-    sphere.Translate(-1.0f, -2.0f, 0.0f);
-	//sphere.Scale(2.0f, 0.5f, 3.0f);
-    
-    Object cube = Object(CreateCube());
-    cube.Translate(0.0f, 4.0f, 0.0f);
-
-    Object cylinder = Object(LoadOBJ("res/meshes/cylinder.obj"));
-    cylinder.Translate(1.0f, 2.0f, 0.0f);
 
     /* ====== Light ====== */
-    Light light = Light(glm::vec3(10.0f, 10.0f, 10.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    shader_light->Bind();
-	shader_light->SetUniform3f("u_lightPosn", light.position.x, light.position.y, light.position.z);
-	shader_light->SetUniform3f("u_lightColor", light.color.x, light.color.y, light.color.z);
-    shader_light->SetUniform4f("u_Color", 1.0f, 1.0f, 1.0f, 1.0f);
+    Light light = Light(glm::vec3(0.0f, 0.0f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f));
+    shader_floor->Bind();
+	shader_floor->SetUniform3f("u_LightPosition", light.position.x, light.position.y, light.position.z);
+	shader_floor->SetUniform3f("u_LightColor", light.color.x, light.color.y, light.color.z);
+
 
     /* ====== Uniforms ====== */
-    shader_basic->Bind();
-    shader_basic->SetUniform4f("u_Color", 0.2f, 0.3f, 0.8f, 1.0f);
-    shader_basic->Unbind();
+	shader_floor->Bind();
+    shader_floor->SetUniform1i("u_LightMode", 2);
 
-    //Texture* texture = new Texture("res/textures/rend.png");
-    //texture->Bind();
-    //shader_basic->SetUniform1i("u_Texture", 0);
 
     /* ====== Camera ====== */
     Camera camera(viewport_width, viewport_height, glm::vec3(7.0f, 0.0f, 2.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -164,6 +160,7 @@ int main(void)
 
     /* ====== Local Variables ====== */
     // TODO?
+
 
     /* ========================= */
     /* ====== Framebuffer ====== */
@@ -210,6 +207,7 @@ int main(void)
     GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 
+
     /* ========================= */
     /* ====== ImGui SETUP ====== */
     /* ========================= */
@@ -231,6 +229,7 @@ int main(void)
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
+
 
     /* ======================= */
     /* ====== MAIN LOOP ====== */
@@ -258,28 +257,21 @@ int main(void)
         /* Bind our frame buffer so that we render to it instead of the default viewport */
         GLCall(glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName));
 
-        GLCall(glClearColor(0.1f, 0.1f, 0.3f, 1.0f));
+        GLCall(glClearColor(0.1f, 0.1f, 0.2f, 1.0f));
         GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
         groundGrid.Draw(camera, *shader_world);
 
-		shader_basic->Bind();
-		shader_basic->SetUniform4f("u_Color", 1.0f, 1.0f, 1.0f, 1.0f);
-        plane.Draw(camera, *shader_basic);
-        
-        axes.Draw(camera, *shader_world);
-        ring.Draw(camera, *shader_world);
+		shader_floor->Bind();
+        shader_floor->SetUniform3f("u_LightPosition", light.position.x, light.position.y, light.position.z);
+        shader_floor->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
 
-        shader_light->Bind();
-        shader_light->SetUniform4f("u_Color", 0.5f, 0.0f, 1.0f, 1.0f);
-        sphere.Draw(camera, *shader_light);
+        //shader_floor->SetUniform1i("u_Diffuse0", 0);
+        //diffuse_tex0->Bind(0);
+        //shader_floor->SetUniform1i("u_Specular0", 1);
+        //specular_tex0->Bind(1);
 
-		shader_light->SetUniform4f("u_Color", 1.0f, 0.5f, 0.0f, 1.0f);
-        cylinder.Draw(camera, *shader_light);
-
-		shader_basic->Bind();
-        shader_basic->SetUniform4f("u_Color", 1.0f, 0.0f, 0.0f, 1.0f);
-        cube.Draw(camera, *shader_basic);
+        plane.Draw(camera, *shader_floor);
 
         /* Unbind the frame buffer so that ImGui can do its thing */
         GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
@@ -334,6 +326,8 @@ int main(void)
             else m_mode = "UI";
                 
             ImGui::Text("Mouse Mode: %s", m_mode.c_str());
+
+            ImGui::SliderFloat3("Light Position", &light.position[0], -2.0f, 2.0f);
         }
         ImGui::End();
         
@@ -357,9 +351,10 @@ int main(void)
     /* ====================== */
     /* ====== CLEAN UP ====== */
     /* ======================= */
-    delete(shader_basic);
+    //delete(shader_basic);
     delete(shader_world);
-    //delete(texture);
+    delete(shader_floor);
+    for (auto& tex : floorTextures) delete(tex);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
