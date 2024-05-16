@@ -18,6 +18,7 @@
 #include "Mesh.h"
 #include "Object.h"
 #include "Light.h"
+#include "Framebuffer.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -101,7 +102,6 @@ int main(void)
     GLCall(glEnable(GL_BLEND));
     GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
     
-    ///* This causes problems, probably because my faces are wrong... */
     //GLCall(glEnable(GL_CULL_FACE));
     //GLCall(glCullFace(GL_FRONT));
     //GLCall(glFrontFace(GL_CCW));
@@ -120,6 +120,7 @@ int main(void)
 	//Shader* shader_light = new Shader("res/shaders/Light.shader");
     Shader* shader_floor = new Shader("res/shaders/Floor.shader");
     
+    Shader* shader_ray_tracer = new Shader("res/shaders/RayTracer.shader");
 
     /* ====== Textures ====== */
     std::vector<Texture*> floorTextures = {
@@ -132,8 +133,8 @@ int main(void)
     Object groundGrid = Object(CreateGroundPlaneGrid(101, 101, 50.0, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)));
 
     Object plane = Object(CreatePlane(), floorTextures);
-    plane.Scale(2.0f);
 
+    Mesh raytraced_plane = CreatePlane();
 
     /* ====== Light ====== */
     Light light = Light(glm::vec3(0.0f, 0.0f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f));
@@ -162,51 +163,11 @@ int main(void)
     // TODO?
 
 
-    /* ========================= */
-    /* ====== Framebuffer ====== */
-    /* ========================= */
-
-    /* Following: https://www.opengl-tutorial.org/intermediate-tutorials/tutorial-14-render-to-texture/ */
-
-    GLuint FramebufferName = 0;
-    GLCall(glGenFramebuffers(1, &FramebufferName));
-    GLCall(glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName));
-
-    /* The texture we're going to render to */
-	GLuint renderedTexture;
-    GLCall(glGenTextures(1, &renderedTexture));
-
-    /* "Bind" the newly created texture: all future texture functions will modify this texture until we unbind it */
-    GLCall(glBindTexture(GL_TEXTURE_2D, renderedTexture));
-
-    /* Give an empty image to OpenGL (the last "0") */
-    GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GLsizei(framebuffer_scale*viewport_width), GLsizei(framebuffer_scale*viewport_height), 0, GL_RGB, GL_UNSIGNED_BYTE, 0));
-
-    /* Needed due to poor filtering */
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-    GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-
-	/* Setup the depth buffer */
-	GLuint depthrenderbuffer;
-	GLCall(glGenRenderbuffers(1, &depthrenderbuffer));
-	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer));
-	GLCall(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, GLsizei(framebuffer_scale * viewport_width), GLsizei(framebuffer_scale * viewport_height)));
-	GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer));
-
-    /* Set "renderedTexture" as our color attachment #0 */
-    GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0));
-
-    /* Set the list of draw buffers. */
-    GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-    GLCall(glDrawBuffers(1, DrawBuffers)); // "1" is the size of DrawBuffers
-
-    /* Always check that our framebuffer is ok */
-    GLCall(if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) return -1);
-
-    /* Unbind the frame buffer and texture */
-    GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-    GLCall(glBindTexture(GL_TEXTURE_2D, 0));
-
+    /* ========================== */
+    /* ====== Framebuffers ====== */
+    /* ========================== */
+    Framebuffer rasterized_framebuffer = Framebuffer(viewport_width, viewport_height, framebuffer_scale);
+    Framebuffer raytraced_framebuffer = Framebuffer(viewport_width, viewport_height, framebuffer_scale);
 
     /* ========================= */
     /* ====== ImGui SETUP ====== */
@@ -250,43 +211,14 @@ int main(void)
             camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
         }
 
-        /* ============================= */
-        /* ==== Non-ImGui Rendering ==== */
-        /* ============================= */
-
-        /* Bind our frame buffer so that we render to it instead of the default viewport */
-        GLCall(glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName));
-
-        GLCall(glClearColor(0.1f, 0.1f, 0.2f, 1.0f));
-        GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-
-        groundGrid.Draw(camera, *shader_world);
-
-		shader_floor->Bind();
-        shader_floor->SetUniform3f("u_LightPosition", light.position.x, light.position.y, light.position.z);
-        shader_floor->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
-
-        //shader_floor->SetUniform1i("u_Diffuse0", 0);
-        //diffuse_tex0->Bind(0);
-        //shader_floor->SetUniform1i("u_Specular0", 1);
-        //specular_tex0->Bind(1);
-
-        plane.Draw(camera, *shader_floor);
-
-        /* Unbind the frame buffer so that ImGui can do its thing */
-        GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-
-        /* ============================= */
-        /* ====== ImGui Rendering ====== */
-        /* ============================= */
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
-		ImGui::Begin("Viewport");
+		ImGui::Begin("Rasterized Viewport");
 		{
-			ImGui::BeginChild("GameRender");
+			ImGui::BeginChild("Rasterized");
 
 			ImVec2 wsize = ImGui::GetWindowSize();
 
@@ -296,17 +228,70 @@ int main(void)
 			    viewport_width = (unsigned int)wsize.x;
 			    viewport_height = (unsigned int)wsize.y;
 
-                GLCall(glBindTexture(GL_TEXTURE_2D, renderedTexture));
-		        GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GLsizei(framebuffer_scale * viewport_width), GLsizei(framebuffer_scale * viewport_height), 0, GL_RGB, GL_UNSIGNED_BYTE, 0));
-                GLCall(glViewport(0, 0, GLsizei(framebuffer_scale * viewport_width), GLsizei(framebuffer_scale * viewport_height)));
-			    GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+                rasterized_framebuffer.UpdateFramebufferSizeAndScale(viewport_width, viewport_height, framebuffer_scale);
+            }
 
-				glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
-				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, GLsizei(framebuffer_scale * viewport_width), GLsizei(framebuffer_scale * viewport_height));
+            /* Draw scene... */
+            if (ImGui::IsWindowFocused())
+            {
+				/* Bind our frame buffer so that we render to it instead of the default viewport */
+				rasterized_framebuffer.Bind();
+
+				GLCall(glClearColor(0.1f, 0.1f, 0.2f, 1.0f));
+				GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+				groundGrid.Draw(camera, *shader_world);
+
+				shader_floor->Bind();
+				shader_floor->SetUniform3f("u_LightPosition", light.position.x, light.position.y, light.position.z);
+				shader_floor->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
+
+				plane.Draw(camera, *shader_floor);
+
+				/* Unbind the frame buffer so that ImGui can do its thing */
+				rasterized_framebuffer.Unbind();
             }
 
 			/* Note: We invert the V axis for the texture returned by OpenGL */
-			ImGui::Image((ImTextureID)renderedTexture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+			ImGui::Image((ImTextureID)rasterized_framebuffer.GetTexture(), wsize, ImVec2(0, 1), ImVec2(1, 0));
+
+			ImGui::EndChild();
+		}
+		ImGui::End();
+
+		ImGui::Begin("Ray Traced Viewport");
+		{
+			ImGui::BeginChild("Ray Traced");
+
+			ImVec2 wsize = ImGui::GetWindowSize();
+
+			/* Handle resizing of the viewport */
+			if (wsize.x != viewport_width || wsize.y != viewport_height)
+			{
+				viewport_width = (unsigned int)wsize.x;
+				viewport_height = (unsigned int)wsize.y;
+
+				raytraced_framebuffer.UpdateFramebufferSizeAndScale(viewport_width, viewport_height, framebuffer_scale);
+			}
+
+			if (ImGui::IsWindowFocused())
+            {
+                raytraced_framebuffer.Bind();
+
+				GLCall(glClearColor(0.1f, 0.1f, 0.2f, 1.0f));
+				GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+                shader_ray_tracer->Bind();
+                shader_ray_tracer->SetUniform2f("u_ViewportSize", viewport_width, viewport_height);
+
+                raytraced_plane.va->Bind();
+                GLCall(glDrawElements(GL_TRIANGLES, raytraced_plane.ib->GetCount(), GL_UNSIGNED_INT, nullptr));
+
+                raytraced_framebuffer.Unbind();
+            }
+
+			/* Note: We invert the V axis for the texture returned by OpenGL */
+			ImGui::Image((ImTextureID)raytraced_framebuffer.GetTexture(), wsize, ImVec2(0, 1), ImVec2(1, 0));
 
 			ImGui::EndChild();
 		}

@@ -81,6 +81,9 @@
     <ClCompile Include="src\Light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Framebuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shaders\Basic.shader" />
@@ -503,6 +506,7 @@
     <None Include="res\shaders\Default.shader" />
     <None Include="res\shaders\Light.shader" />
     <None Include="res\shaders\Floor.shader" />
+    <None Include="res\shaders\RayTracer.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">
@@ -1436,6 +1440,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Light.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framebuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
