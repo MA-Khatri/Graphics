@@ -504,9 +504,9 @@
     </None>
     <None Include="res\shaders\World.shader" />
     <None Include="res\shaders\Default.shader" />
-    <None Include="res\shaders\Light.shader" />
     <None Include="res\shaders\Floor.shader" />
-    <None Include="res\shaders\RayTracer.shader" />
+    <None Include="res\shaders\DrawTextureToFullScreen.shader" />
+    <None Include="res\shaders\RayTrace.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Renderer.h">

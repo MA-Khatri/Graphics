@@ -62,9 +62,9 @@ int main(void)
     if (!glfwInit())
         return -1;
 
-    /* Specify OpenGL version to 3.3 core */
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    /* Specify OpenGL version to 4.6 core */
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     /* Create a windowed mode window and its OpenGL context */
@@ -119,8 +119,9 @@ int main(void)
 	//Shader* shader_basic = new Shader("res/shaders/Basic.shader");
 	//Shader* shader_light = new Shader("res/shaders/Light.shader");
     Shader* shader_floor = new Shader("res/shaders/Floor.shader");
-    
-    Shader* shader_ray_tracer = new Shader("res/shaders/RayTracer.shader");
+    Shader* shader_raytrace = new Shader("res/shaders/RayTrace.shader");
+
+    //Shader* shader_texture_fullscreen = new Shader("res/shaders/DrawTextureToFullScreen.shader");
 
     /* ====== Textures ====== */
     std::vector<Texture*> floorTextures = {
@@ -189,7 +190,7 @@ int main(void)
     //ImGui::StyleColorsClassic();
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 130");
+    ImGui_ImplOpenGL3_Init("#version 460");
 
 
     /* ======================= */
@@ -237,7 +238,7 @@ int main(void)
 				/* Bind our frame buffer so that we render to it instead of the default viewport */
 				rasterized_framebuffer.Bind();
 
-				GLCall(glClearColor(0.1f, 0.1f, 0.2f, 1.0f));
+                GLCall(glClearColor(0.075f, 0.133f, 0.173f, 1.0f));
 				GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 				groundGrid.Draw(camera, *shader_world);
@@ -277,12 +278,12 @@ int main(void)
 			if (ImGui::IsWindowFocused())
             {
                 raytraced_framebuffer.Bind();
-
-				GLCall(glClearColor(0.1f, 0.1f, 0.2f, 1.0f));
+                GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
 				GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-                shader_ray_tracer->Bind();
-                shader_ray_tracer->SetUniform2f("u_ViewportSize", viewport_width, viewport_height);
+                shader_raytrace->Bind();
+                shader_raytrace->SetUniform2f("u_ViewportSize", viewport_width, viewport_height);
+                shader_raytrace->SetUniformMat4f("u_CameraMatrix", camera.matrix);
 
                 raytraced_plane.va->Bind();
                 GLCall(glDrawElements(GL_TRIANGLES, raytraced_plane.ib->GetCount(), GL_UNSIGNED_INT, nullptr));
