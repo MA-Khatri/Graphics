@@ -24,11 +24,11 @@ void main()
     vec2 viewport_posn = (gl_FragCoord.xy - u_ViewportSize) / u_ViewportSize;
     
     float fov = 45.0;
-    vec4 cam_o = u_CameraMatrix * vec4(tan(fov / 2.0), 0.0, 0.0, 1.0);
-    vec4 ray_o = u_CameraMatrix * vec4(0.0, viewport_posn, 1.0);
-    vec4 ray_d = u_CameraMatrix * normalize(ray_o - cam_o);
+    vec4 cam_o = vec4(-tan(fov / 2.0), 0.0, 0.0, 1.0);
+    vec4 ray_o = vec4(0.0, viewport_posn, 1.0);
+    vec4 ray_d = normalize(ray_o - cam_o);
     
-    vec3 sphere_c = vec3(0.0, 0.0, 0.0);
+    vec3 sphere_c = vec3(-2.0, 0.0, 0.0);
     float sphere_r = 1.0;
     
     vec3 o_c = ray_o.xyz - sphere_c;

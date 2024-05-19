@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33723.286
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenGL", "OpenGL.vcxproj", "{26B44D79-57EE-42DA-BAA2-9479284AC2E3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenGL", "OpenGL\OpenGL.vcxproj", "{26B44D79-57EE-42DA-BAA2-9479284AC2E3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracer", "RayTracer\RayTracer.vcxproj", "{A7B147EE-E8B2-4E22-AA4D-5651E3954D57}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,14 @@ Global
 		{26B44D79-57EE-42DA-BAA2-9479284AC2E3}.Release|x64.Build.0 = Release|x64
 		{26B44D79-57EE-42DA-BAA2-9479284AC2E3}.Release|x86.ActiveCfg = Release|Win32
 		{26B44D79-57EE-42DA-BAA2-9479284AC2E3}.Release|x86.Build.0 = Release|Win32
+		{A7B147EE-E8B2-4E22-AA4D-5651E3954D57}.Debug|x64.ActiveCfg = Debug|x64
+		{A7B147EE-E8B2-4E22-AA4D-5651E3954D57}.Debug|x64.Build.0 = Debug|x64
+		{A7B147EE-E8B2-4E22-AA4D-5651E3954D57}.Debug|x86.ActiveCfg = Debug|Win32
+		{A7B147EE-E8B2-4E22-AA4D-5651E3954D57}.Debug|x86.Build.0 = Debug|Win32
+		{A7B147EE-E8B2-4E22-AA4D-5651E3954D57}.Release|x64.ActiveCfg = Release|x64
+		{A7B147EE-E8B2-4E22-AA4D-5651E3954D57}.Release|x64.Build.0 = Release|x64
+		{A7B147EE-E8B2-4E22-AA4D-5651E3954D57}.Release|x86.ActiveCfg = Release|Win32
+		{A7B147EE-E8B2-4E22-AA4D-5651E3954D57}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

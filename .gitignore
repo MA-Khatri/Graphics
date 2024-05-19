@@ -365,5 +365,5 @@ FodyWeavers.xsd
 
 
 # Force include back in some directories
-!res/**
-!dependencies/**
+!OpenGL/res/**
+!OpenGL/dependencies/**
