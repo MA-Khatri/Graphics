@@ -1,6 +1,6 @@
 #pragma once
 
-#include "glUtils.h"
+#include "gl_utils.h"
 
 class Framebuffer
 {

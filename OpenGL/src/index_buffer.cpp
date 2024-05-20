@@ -1,5 +1,5 @@
-#include "IndexBuffer.h"
-#include "glUtils.h"
+#include "index_buffer.h"
+#include "gl_utils.h"
 
 IndexBuffer::IndexBuffer(const unsigned int* data, unsigned int count)
     :m_Count(count)

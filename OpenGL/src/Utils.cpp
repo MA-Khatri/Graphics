@@ -1,4 +1,4 @@
-#include "Utils.h"
+#include "utils.h"
 
 // Boolean to determine if "P" key has already been pressed
 // Used to prevent continuous switching between modes when "P" is pressed

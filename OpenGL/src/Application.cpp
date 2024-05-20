@@ -6,19 +6,19 @@
 #include <string>
 #include <sstream>
 
-#include "Renderer.h"
-#include "VertexBuffer.h"
-#include "VertexBufferLayout.h"
-#include "IndexBuffer.h"
-#include "VertexArray.h"
-#include "Shader.h"
-#include "Texture.h"
-#include "Camera.h"
-#include "Utils.h"
-#include "Mesh.h"
-#include "Object.h"
-#include "Light.h"
-#include "Framebuffer.h"
+#include "renderer.h"
+#include "vertex_buffer.h"
+#include "vertex_buffer_layout.h"
+#include "index_buffer.h"
+#include "vertex_array.h"
+#include "shader.h"
+#include "texture.h"
+#include "camera.h"
+#include "utils.h"
+#include "mesh.h"
+#include "object.h"
+#include "light.h"
+#include "framebuffer.h"
 
 #include "RayTracer/src/ray_tracer.h"
 
@@ -301,7 +301,7 @@ int main(void)
 				*/
 
 				/* TODO: Any calls to updated the ray traced image... */
-				image = RayTrace(wsize.x, wsize.y, 45.0f);
+				image = RayTrace((unsigned int)wsize.x, (unsigned int)wsize.y, 45.0f);
 				RayTracedImage->Update(&image[0], wsize.x, wsize.y);
 
 				ImGui::Image((ImTextureID)RayTracedImage->GetTexture(), wsize, ImVec2(0, 1), ImVec2(1, 0));

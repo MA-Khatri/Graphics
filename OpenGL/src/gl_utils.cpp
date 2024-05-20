@@ -1,4 +1,4 @@
-#include "glUtils.h"
+#include "gl_utils.h"
 #include <iostream>
 
 void GLClearError() // we make GL capital here to note that we wrote the function!

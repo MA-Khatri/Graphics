@@ -1,4 +1,4 @@
-#include "Object.h"
+#include "object.h"
 
 Object::Object(Mesh mesh)
 	:va(mesh.va), vb(mesh.vb), ib(mesh.ib), draw_mode(mesh.draw_mode)

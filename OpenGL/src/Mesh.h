@@ -2,10 +2,10 @@
 
 #include "glm/glm.hpp"
 
-#include "VertexArray.h"
-#include "VertexBuffer.h"
-#include "VertexBufferLayout.h"
-#include "IndexBuffer.h"
+#include "vertex_array.h"
+#include "vertex_buffer.h"
+#include "vertex_buffer_layout.h"
+#include "index_buffer.h"
 
 struct Mesh
 {

@@ -2,15 +2,15 @@
 
 #include <vector>
 
-#include "VertexArray.h"
-#include "VertexBuffer.h"
-#include "IndexBuffer.h"
-#include "Texture.h"
-#include "Camera.h"
-#include "Mesh.h"
+#include "vertex_array.h"
+#include "vertex_buffer.h"
+#include "index_buffer.h"
+#include "texture.h"
+#include "camera.h"
+#include "mesh.h"
 
 #include "glm/glm.hpp"
-#include "glUtils.h"
+#include "gl_utils.h"
 
 class Object 
 {

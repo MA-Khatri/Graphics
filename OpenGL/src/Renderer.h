@@ -1,10 +1,10 @@
 #pragma once
 
-#include "VertexArray.h"
-#include "IndexBuffer.h"
-#include "Shader.h"
-#include "glUtils.h"
-#include "Object.h"
+#include "vertex_array.h"
+#include "index_buffer.h"
+#include "shader.h"
+#include "gl_utils.h"
+#include "object.h"
 
 class Renderer
 {

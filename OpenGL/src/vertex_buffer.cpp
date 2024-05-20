@@ -1,5 +1,5 @@
-#include "VertexBuffer.h"
-#include "glUtils.h"
+#include "vertex_buffer.h"
+#include "gl_utils.h"
 
 VertexBuffer::VertexBuffer(const void* data, unsigned int size)
 {

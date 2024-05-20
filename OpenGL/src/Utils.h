@@ -5,7 +5,7 @@
 #include <string>
 #include <sstream>
 
-#include "glUtils.h"
+#include "gl_utils.h"
 
 // External globals set in Application.cpp
 extern unsigned int window_width;

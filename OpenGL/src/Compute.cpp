@@ -1,4 +1,4 @@
-#include "Compute.h"
+#include "compute.h"
 #include <iostream>
 #include <fstream>
 #include <string>

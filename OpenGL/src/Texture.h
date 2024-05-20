@@ -1,7 +1,7 @@
 #pragma once
 
-#include "glUtils.h"
-#include "Shader.h"
+#include "gl_utils.h"
+#include "shader.h"
 #include <iostream>
 
 class Texture

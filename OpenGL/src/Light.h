@@ -3,7 +3,7 @@
 #include <string>
 #include "glm/glm.hpp"
 
-#include "Shader.h"
+#include "shader.h"
 
 class Light
 {

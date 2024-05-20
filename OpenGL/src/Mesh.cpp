@@ -2,7 +2,7 @@
 
 #include "OBJ-Loader.h"
 
-#include "Mesh.h"
+#include "mesh.h"
 
 #include <cmath>
 #include <iostream>
