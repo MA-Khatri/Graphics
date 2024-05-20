@@ -15,8 +15,33 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="RayTracer.cpp">
+    <ClCompile Include="src\vendor\glm\detail\glm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ray_tracer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
-</Project>
+     <ClInclude Include="src\ray_tracer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\color.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vec3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  </Project>
