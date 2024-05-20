@@ -25,12 +25,14 @@
   <ItemGroup>
     <ClInclude Include="src\color.h" />
     <ClInclude Include="src\common.h" />
+    <ClInclude Include="src\interaction.h" />
     <ClInclude Include="src\ray.h" />
     <ClInclude Include="src\ray_tracer.h" />
+    <ClInclude Include="src\shapes.h" />
     <ClInclude Include="src\utils.h" />
     <ClInclude Include="src\vec3.h" />
   </ItemGroup>
-   <PropertyGroup Label="Globals">
+  <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{a7b147ee-e8b2-4e22-aa4d-5651e3954d57}</ProjectGuid>

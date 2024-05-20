@@ -1,10 +1,5 @@
 #pragma once
 
-#include <cmath>
-#include <iostream>
-
-using std::sqrt;
-
 class Vec3 {
 public:
 	double e[3];
@@ -38,11 +33,11 @@ public:
 		return *this *= 1 / t;
 	}
 
-	double length() const {
-		return sqrt(lengthSquared());
+	double Length() const {
+		return sqrt(LengthSquared());
 	}
 
-	double lengthSquared() const {
+	double LengthSquared() const {
 		return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
 	}
 };
@@ -81,18 +76,18 @@ inline Vec3 operator/(const Vec3& v, double t) {
 	return (1 / t) * v;
 }
 
-inline double dot(const Vec3& u, const Vec3& v) {
+inline double Dot(const Vec3& u, const Vec3& v) {
 	return u.e[0] * v.e[0]
 		+ u.e[1] * v.e[1]
 		+ u.e[2] * v.e[2];
 }
 
-inline Vec3 cross(const Vec3& u, const Vec3& v) {
+inline Vec3 Cross(const Vec3& u, const Vec3& v) {
 	return Vec3(u.e[1] * v.e[2] - u.e[2] * v.e[1],
 		u.e[2] * v.e[0] - u.e[0] * v.e[2],
 		u.e[0] * v.e[1] - u.e[1] * v.e[0]);
 }
 
-inline Vec3 normalize(const Vec3& v) {
-	return v / v.length();
+inline Vec3 Normalize(const Vec3& v) {
+	return v / v.Length();
 }
