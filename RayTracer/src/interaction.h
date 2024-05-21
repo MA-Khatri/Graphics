@@ -4,14 +4,15 @@
 
 #include <vector>
 
+namespace RayTracer {
 
 class Interaction
 {
 public:
 	Point3 posn;
 	Vec3 normal;
-	double t;
-	bool frontFace;
+	double t = 0.0;
+	bool frontFace = false;
 
 	void SetFaceNormal(const Ray& ray, const Vec3& outwardNormal)
 	{
@@ -23,3 +24,5 @@ public:
 	}
 
 };
+
+} /* namespace */

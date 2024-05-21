@@ -2,12 +2,14 @@
 
 #include "interaction.h"
 
+namespace RayTracer {
+
 class Shape
 {
 public:
 	virtual ~Shape() = default;
 
-	virtual bool Intersect(const Ray& ray, double tMin, double tMax, Interaction& interaction) const = 0;
+	virtual bool Intersect(const Ray& ray, Interval ray_t, Interaction& interaction) const = 0;
 };
 
 class Sphere : public Shape
@@ -15,7 +17,7 @@ class Sphere : public Shape
 public:
 	Sphere(const Point3& center, double radius) : center(center), radius(fmax(0, radius)) {};
 
-	bool Intersect(const Ray& ray, double tMin, double tMax, Interaction& interaction) const override
+	bool Intersect(const Ray& ray, Interval ray_t, Interaction& interaction) const override
 	{
 		Vec3 oc = center - ray.origin;
 		auto a = ray.direction.LengthSquared();
@@ -29,10 +31,10 @@ public:
 
 		/* Find the nearest root that lies in the acceptable range */
 		auto root = (h - sqrtd) / a;
-		if (root <= tMin || tMax <= root)
+		if (!ray_t.Surrounds(root))
 		{
 			root = (h + sqrtd) / a;
-			if (root <= tMin || tMax <= root) return false;
+			if (!ray_t.Surrounds(root)) return false;
 		}
 
 		interaction.t = root;
@@ -64,15 +66,15 @@ public:
 		shapes.push_back(shape);
 	}
 
-	bool Intersect(const Ray& ray, double tMin, double tMax, Interaction& interaction) const override
+	bool Intersect(const Ray& ray, Interval ray_t, Interaction& interaction) const override
 	{
 		Interaction tempInteract;
 		bool hitAnything = false;
-		auto closestSoFar = tMax;
+		auto closestSoFar = ray_t.max;
 
 		for (const auto& shape : shapes)
 		{
-			if (shape->Intersect(ray, tMin, closestSoFar, tempInteract))
+			if (shape->Intersect(ray, Interval(ray_t.min, closestSoFar), tempInteract))
 			{
 				hitAnything = true;
 				closestSoFar = tempInteract.t;
@@ -84,3 +86,5 @@ public:
 	}
 
 };
+
+} /* namespace RayTracer */

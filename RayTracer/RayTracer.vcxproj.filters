@@ -13,5 +13,7 @@
     <ClInclude Include="src\vec3.h" />
     <ClInclude Include="src\interaction.h" />
     <ClInclude Include="src\shapes.h" />
+    <ClInclude Include="src\interval.h" />
+    <ClInclude Include="src\camera.h" />
   </ItemGroup>
 </Project>

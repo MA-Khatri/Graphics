@@ -129,8 +129,8 @@ int main(void)
 		new Texture("res/textures/planks_specular.png", "Specular", GL_RED, GL_UNSIGNED_BYTE)
 	};
 
-	std::vector<unsigned char> image = RayTrace(100, 100, 45.0f);
-	Texture* RayTracedImage = new Texture(&image[0], 100, 100, "Diffuse", GL_RGB, GL_UNSIGNED_BYTE);
+	std::vector<unsigned char> image(4*4*3); /* Initialize to smallest possible empty texture */
+	Texture* RayTracedImage = new Texture(&image[0], 4, 4, "Diffuse", GL_RGB, GL_UNSIGNED_BYTE);
 
 	/* ====== Objects ====== */
 	Object groundGrid = Object(CreateGroundPlaneGrid(101, 101, 50.0, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)));
@@ -301,10 +301,10 @@ int main(void)
 				*/
 
 				/* TODO: Any calls to updated the ray traced image... */
-				image = RayTrace((unsigned int)wsize.x, (unsigned int)wsize.y, 45.0f);
+				image = RayTracer::RayTrace((unsigned int)wsize.x, (unsigned int)wsize.y, 45.0f);
 				RayTracedImage->Update(&image[0], wsize.x, wsize.y);
 
-				ImGui::Image((ImTextureID)RayTracedImage->GetTexture(), wsize, ImVec2(0, 1), ImVec2(1, 0));
+				ImGui::Image((ImTextureID)RayTracedImage->GetTexture(), wsize);
 			}
 
 			ImGui::EndChild();
@@ -314,7 +314,8 @@ int main(void)
 
 		ImGui::Begin("Info");
 		{                
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			//ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); /* use built-in frame rate (average of 120 frames) */
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", ImGui::GetIO().DeltaTime, 1.0f / ImGui::GetIO().DeltaTime);
 			ImGui::Text("Window size\n  Width: %.1i  Height: %.1i", window_width, window_height);
 			ImGui::Text("Viewport size\n  Width: %.1i  Height: %.1i", viewport_width, viewport_height);
 			ImGui::Text("Field of View (Y):  %.1f deg", yfov);

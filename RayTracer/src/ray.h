@@ -2,6 +2,8 @@
 
 #include "vec3.h"
 
+namespace RayTracer {
+
 class Ray {
 public:
 	Ray() {}
@@ -16,3 +18,5 @@ public:
 	Point3 origin;
 	Vec3 direction;
 };
+
+} /* namespace RayTracer */

@@ -1,5 +1,7 @@
 #pragma once
 
+namespace RayTracer {
+
 class Vec3 {
 public:
 	double e[3];
@@ -91,3 +93,5 @@ inline Vec3 Cross(const Vec3& u, const Vec3& v) {
 inline Vec3 Normalize(const Vec3& v) {
 	return v / v.Length();
 }
+
+} /* namespace RayTracer */

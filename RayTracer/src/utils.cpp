@@ -2,6 +2,8 @@
 
 #include <fstream>
 
+namespace RayTracer {
+
 std::vector<unsigned char> FlipImage(std::vector<unsigned char> image, unsigned int width, unsigned int height)
 {
 	std::vector<unsigned char> flipped;
@@ -30,7 +32,7 @@ int DumpPPM(std::vector<unsigned char> image, unsigned int width, unsigned int h
 		for (int i = 0; i < (int)width; i++) {
 			int pixel = 3 * (j * width + i);
 			unsigned char r = image[pixel + 0];
-			unsigned char g = image[pixel + 1];
+			unsigned char g = image[pixel + 1] ;
 			unsigned char b = image[pixel + 2];
 
 			fout << r << ' ' << g << ' ' << b << '\n';
@@ -41,3 +43,4 @@ int DumpPPM(std::vector<unsigned char> image, unsigned int width, unsigned int h
 	return 0;
 }
 
+} /* namespace RayTracer */
