@@ -130,7 +130,7 @@ int main(void)
 	};
 
 	std::vector<unsigned char> image(4*4*3); /* Initialize to smallest possible empty texture */
-	Texture* RayTracedImage = new Texture(&image[0], 4, 4, "Diffuse", GL_RGB, GL_UNSIGNED_BYTE);
+	Texture* rayTracedTexture = new Texture(&image[0], 4, 4, "Diffuse", GL_RGB, GL_UNSIGNED_BYTE);
 
 	/* ====== Objects ====== */
 	Object groundGrid = Object(CreateGroundPlaneGrid(101, 101, 50.0, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)));
@@ -162,6 +162,10 @@ int main(void)
 	*/
 	camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
 
+	/* Ray tracer camera */
+	RayTracer::Camera ray_camera;
+
+
 	/* ====== Local Variables ====== */
 	unsigned char r = 0;
 
@@ -170,7 +174,6 @@ int main(void)
 	/* ====== Framebuffers ====== */
 	/* ========================== */
 	Framebuffer rasterized_framebuffer = Framebuffer(viewport_width, viewport_height, framebuffer_scale);
-	Framebuffer raytraced_framebuffer = Framebuffer(viewport_width, viewport_height, framebuffer_scale);
 
 	/* ========================= */
 	/* ====== ImGui SETUP ====== */
@@ -214,8 +217,10 @@ int main(void)
 			camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
 		}
 
+		/* Update local vars */
 		r += 1;
 
+		/* ====== IMGUI ====== */
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -265,52 +270,32 @@ int main(void)
 		}
 		ImGui::End();
 
+
 		ImGui::Begin("Ray Traced Viewport");
 		{
 			ImGui::BeginChild("Ray Traced");
 
-			ImVec2 wsize = ImGui::GetWindowSize();
-
-			/* Handle resizing of the viewport */
-			if (wsize.x != viewport_width || wsize.y != viewport_height)
+			if (ImGui::IsWindowFocused())
 			{
+				ImVec2 wsize = ImGui::GetWindowSize();
 				viewport_width = (unsigned int)wsize.x;
 				viewport_height = (unsigned int)wsize.y;
 
-				raytraced_framebuffer.UpdateFramebufferSizeAndScale(viewport_width, viewport_height, framebuffer_scale);
-			}
+				ray_camera.Initialize(viewport_width, viewport_height);
+				image = RayTracer::RayTrace(&ray_camera);
 
-			if (ImGui::IsWindowFocused())
-			{
-				/*
-				raytraced_framebuffer.Bind();
-				GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-				GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+				//rayTracedTexture->Bind(); /* This doesn't do anything here? */
+				rayTracedTexture->Update(&image[0], viewport_width, viewport_height);
 
-				//shader_raytrace->Bind();
-				//shader_raytrace->SetUniform2f("u_ViewportSize", viewport_width, viewport_height);
-				//shader_raytrace->SetUniformMat4f("u_CameraMatrix", camera.matrix);
-
-				shader_texture_fullscreen->Bind();
-				shader_texture_fullscreen->SetUniform1i()
-
-				raytraced_plane.va->Bind();
-				GLCall(glDrawElements(GL_TRIANGLES, raytraced_plane.ib->GetCount(), GL_UNSIGNED_INT, nullptr));
-
-				raytraced_framebuffer.Unbind();
-				*/
-
-				/* TODO: Any calls to updated the ray traced image... */
-				image = RayTracer::RayTrace((unsigned int)wsize.x, (unsigned int)wsize.y, 45.0f);
-				RayTracedImage->Update(&image[0], wsize.x, wsize.y);
-
-				ImGui::Image((ImTextureID)RayTracedImage->GetTexture(), wsize);
+				ImGui::Image((ImTextureID)rayTracedTexture->GetTexture(), wsize);
 			}
 
 			ImGui::EndChild();
 		}
 		ImGui::End();
-		ImGui::PopStyleVar(); /* Add back in padding for non-viewport ImGui */
+
+		/* Add back in padding for non-viewport ImGui */
+		ImGui::PopStyleVar();
 
 		ImGui::Begin("Info");
 		{                
@@ -321,6 +306,7 @@ int main(void)
 			ImGui::Text("Field of View (Y):  %.1f deg", yfov);
 			ImGui::Text("Camera Position:    X=%.3f, Y=%.3f, Z=%.3f", camera.position.x, camera.position.y, camera.position.z);
 			ImGui::Text("Camera Orientation: X=%.3f, Y=%.3f, Z=%.3f", camera.orientation.x, camera.orientation.y, camera.orientation.z);
+			ImGui::Text("Current Sample Count: %.1i", ray_camera.GetSampleCount());
 			   
 			std::string m_mode; // Mouse mode
 			if (ui_mode > 0) m_mode = "Camera";

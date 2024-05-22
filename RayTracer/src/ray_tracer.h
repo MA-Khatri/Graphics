@@ -9,6 +9,6 @@
 
 namespace RayTracer {
 
-std::vector<unsigned char> RayTrace(unsigned int width, unsigned int height, float yfov); /* TODO: scene, also replace with camera class that stores width, height, yfov? */
+std::vector<unsigned char> RayTrace(Camera* camera); /* TODO: scene, also replace with camera class that stores width, height, yfov? */
 
 } /* namespace RayTracer */

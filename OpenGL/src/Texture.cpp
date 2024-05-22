@@ -48,10 +48,12 @@ void Texture::Update()
 
 void Texture::Update(unsigned char* bytes, int width, int height)
 {
+	/* Used only for updating ray-traced image texture */
 	m_Width = width;
 	m_Height = height;
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
-	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, m_PixelFormat, m_PixelType, bytes));
+	//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, m_PixelFormat, m_PixelType, bytes));
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width-1, height-1, 0, GL_RGB, GL_UNSIGNED_BYTE, bytes));
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0)); // unbind
 }
 
