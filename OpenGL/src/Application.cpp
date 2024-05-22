@@ -284,7 +284,6 @@ int main(void)
 				ray_camera.Initialize(viewport_width, viewport_height);
 				image = RayTracer::RayTrace(&ray_camera);
 
-				//rayTracedTexture->Bind(); /* This doesn't do anything here? */
 				rayTracedTexture->Update(&image[0], viewport_width, viewport_height);
 
 				ImGui::Image((ImTextureID)rayTracedTexture->GetTexture(), wsize);

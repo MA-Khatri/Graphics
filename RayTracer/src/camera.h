@@ -19,7 +19,7 @@ public:
 		/* Initialize the image that will be returned */
 		std::vector<unsigned char> image(image_width * image_height * 3);
 
-#define MULTI false
+#define MULTI true
 #if MULTI
 		/* Main (parallelized) ray tracing loop */
 		std::for_each(std::execution::par, vertical_iter.begin(), vertical_iter.end(), [this, &world, &image](unsigned int j) {
