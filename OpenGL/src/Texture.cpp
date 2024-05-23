@@ -18,9 +18,13 @@ Texture::Texture(unsigned char* bytes, int width, int height, const std::string 
 	GLenum min_filter /*= GL_NEAREST*/, GLenum mag_filter /*= GL_NEAEREST*/, GLenum wrap_s /*= GL_CLAMP_TO_EDGE*/, GLenum wrap_t /*= GL_CLAMP_TO_EDGE*/)
 	: m_RendererID(0), m_LocalBuffer(bytes), m_Width(width), m_Height(height), m_BPP(0), m_TextureType(texture_type), m_PixelFormat(pixel_format), m_PixelType(pixel_type)
 {
+	GLCall(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 	CreateTexture(min_filter, mag_filter, wrap_s, wrap_t);
+	GLCall(glPixelStorei(GL_UNPACK_ALIGNMENT, 4));
 
-	/* !! WARNING: m_LocalBuffer is not freed !! */
+	/* Trying to free this causes bugs? -- Might be better to eventually pass in the bytes directly to CreateTexture */
+	//if (m_LocalBuffer)
+	//	free(m_LocalBuffer);
 }
 
 Texture::~Texture()
@@ -53,7 +57,9 @@ void Texture::Update(unsigned char* bytes, int width, int height)
 	m_Height = height;
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
 	//GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, m_PixelFormat, m_PixelType, bytes));
-	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width-1, height-1, 0, GL_RGB, GL_UNSIGNED_BYTE, bytes));
+	GLCall(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, bytes));
+	GLCall(glPixelStorei(GL_UNPACK_ALIGNMENT, 4));
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0)); // unbind
 }
 

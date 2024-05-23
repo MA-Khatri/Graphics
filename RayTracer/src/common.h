@@ -42,6 +42,18 @@ inline double RandomDouble(double min, double max)
 	return distribution(generator);
 }
 
+inline unsigned int RoundUpPower2(unsigned int x)
+{
+	/* Returns the next power of two that is greater than or equal to x */
+	--x;
+	x |= x >> 1;
+	x |= x >> 2;
+	x |= x >> 4;
+	x |= x >> 8;
+	x |= x >> 16;
+	return x + 1;
+}
+
 } /* namespace RayTracer */
 
 /* Common Headers */

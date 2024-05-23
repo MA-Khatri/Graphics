@@ -1,6 +1,7 @@
 #pragma once
 
 #include "shapes.h"
+#include "common.h"
 
 #include <algorithm>
 #include <execution>
@@ -16,47 +17,14 @@ public:
 
 	std::vector<unsigned char> Render(const Shape& world)
 	{
-		/* Initialize the image that will be returned */
-		std::vector<unsigned char> image(image_width * image_height * 3);
-
 #define MULTI true
 #if MULTI
 		/* Main (parallelized) ray tracing loop */
-		std::for_each(std::execution::par, vertical_iter.begin(), vertical_iter.end(), [this, &world, &image](unsigned int j) {
-			std::for_each(std::execution::par, horizontal_iter.begin(), horizontal_iter.end(), [this, &world, &image, j](unsigned int i) {
+		std::for_each(std::execution::par, vertical_iter.begin(), vertical_iter.end(), [this, &world](unsigned int j) {
+			std::for_each(std::execution::par, horizontal_iter.begin(), horizontal_iter.end(), [this, &world, j](unsigned int i) {
 				
-				/* Determine the index to start of this pixel */
-				unsigned int pixel = 3 * (j * image_width + i);
+				TracePixel(i, j, world);
 
-				/* Create a ray with a random offset within the pixel */
-				Ray ray = GetRay(i, j);
-
-				/* Trace ray and determine new color */
-				Color pixel_color = RayColor(ray, world);
-				auto r = pixel_color.x();
-				auto g = pixel_color.y();
-				auto b = pixel_color.z();
-
-				/* Extract accumulated color */
-				double cr = image_accumulator[pixel + 0];
-				double cg = image_accumulator[pixel + 1];
-				double cb = image_accumulator[pixel + 2];
-
-				/* Determine the new accumulated color */
-				r = (r + current_samples * cr) / (current_samples + 1);
-				g = (g + current_samples * cg) / (current_samples + 1);
-				b = (b + current_samples * cb) / (current_samples + 1);
-
-				/* Set the new accumulated values in the accumulator */
-				image_accumulator[pixel + 0] = r;
-				image_accumulator[pixel + 1] = g;
-				image_accumulator[pixel + 2] = b;
-
-				/* Clamp the color from 0-255 and set the pixel values to return */
-				static const Interval intensity(0.000, 0.999);
-				image[pixel + 0] = (unsigned char)(256 * intensity.Clamp(r));
-				image[pixel + 1] = (unsigned char)(256 * intensity.Clamp(g));
-				image[pixel + 2] = (unsigned char)(256 * intensity.Clamp(b));
 			});
 		});
 #else
@@ -64,38 +32,7 @@ public:
 		{
 			for (unsigned int i = 0; i < image_width; i++)
 			{
-				/* Determine the index to start of this pixel */
-				unsigned int pixel = 3 * (j * image_width + i);
-
-				/* Create a ray with a random offset within the pixel */
-				Ray ray = GetRay(i, j);
-
-				/* Trace ray and determine new color */
-				Color pixel_color = RayColor(ray, world);
-				auto r = pixel_color.x();
-				auto g = pixel_color.y();
-				auto b = pixel_color.z();
-
-				/* Extract accumulated color */
-				double cr = image_accumulator[pixel + 0];
-				double cg = image_accumulator[pixel + 1];
-				double cb = image_accumulator[pixel + 2];
-
-				/* Determine the new accumulated color */
-				r = (r + current_samples * cr) / (current_samples + 1);
-				g = (g + current_samples * cg) / (current_samples + 1);
-				b = (b + current_samples * cb) / (current_samples + 1);
-
-				/* Set the new accumulated values in the accumulator */
-				image_accumulator[pixel + 0] = r;
-				image_accumulator[pixel + 1] = g;
-				image_accumulator[pixel + 2] = b;
-
-				/* Clamp the color from 0-255 and set the pixel values to return */
-				static const Interval intensity(0.000, 0.999);
-				image[pixel + 0] = (unsigned char)(256 * intensity.Clamp(r));
-				image[pixel + 1] = (unsigned char)(256 * intensity.Clamp(g));
-				image[pixel + 2] = (unsigned char)(256 * intensity.Clamp(b));
+				TracePixel(i, j, world);
 			}
 		}
 #endif
@@ -103,7 +40,7 @@ public:
 		/* Iterate the sample count */
 		current_samples++;
 
-		return image;
+		return rendered_image;
 	}
 
 	void Initialize(unsigned int width, unsigned int height)
@@ -115,6 +52,7 @@ public:
 
 			/* Resize and reset the image_accumulator */
 			image_accumulator = std::vector<double>(image_width * image_height * 3);
+			rendered_image = std::vector<unsigned char>(image_width * image_height * 3);
 			current_samples = 0;
 		}
 
@@ -163,6 +101,8 @@ private:
 	unsigned int current_samples; /* Used to determine previous sample contributions to the accumulated image */
 	std::vector<double> image_accumulator; /* Stores results from all previous samples */
 
+	std::vector<unsigned char> rendered_image; /* Holds the final result that is returned by Render() */
+
 
 	Ray GetRay(unsigned int i, unsigned int j)
 	{
@@ -179,6 +119,7 @@ private:
 	Vec3 SampleSquare() const
 	{
 		/* Returns the vector to a random point in the [-0.5, -0.5] to [0.5, 0.5] unit square */
+		/* WARNING! The standard random number generation in C++ is *very* expensive! */
 		return Vec3(RandomDouble() - 0.5, RandomDouble() - 0.5, 0.0);
 	}
 
@@ -195,6 +136,42 @@ private:
 		Vec3 unit_direction = Normalize(ray.direction);
 		auto a = 0.5 * (unit_direction.y() + 1.0);
 		return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
+	}
+
+	void TracePixel(unsigned int i, unsigned int j, const Shape& world)
+	{
+		/* Determine the index to start of this pixel */
+		unsigned int pixel = 3 * (j * image_width + i);
+
+		/* Create a ray with a random offset within the pixel */
+		Ray ray = GetRay(i, j);
+
+		/* Trace ray and determine new color */
+		Color pixel_color = RayColor(ray, world);
+		auto r = pixel_color.x();
+		auto g = pixel_color.y();
+		auto b = pixel_color.z();
+
+		/* Extract accumulated color */
+		double cr = image_accumulator[pixel + 0];
+		double cg = image_accumulator[pixel + 1];
+		double cb = image_accumulator[pixel + 2];
+
+		/* Determine the new accumulated color */
+		r = (r + current_samples * cr) / (current_samples + 1);
+		g = (g + current_samples * cg) / (current_samples + 1);
+		b = (b + current_samples * cb) / (current_samples + 1);
+
+		/* Set the new accumulated values in the accumulator */
+		image_accumulator[pixel + 0] = r;
+		image_accumulator[pixel + 1] = g;
+		image_accumulator[pixel + 2] = b;
+
+		/* Clamp the color from 0-255 and set the pixel values to return */
+		static const Interval intensity(0.000, 0.999);
+		rendered_image[pixel + 0] = (unsigned char)(256 * intensity.Clamp(r));
+		rendered_image[pixel + 1] = (unsigned char)(256 * intensity.Clamp(g));
+		rendered_image[pixel + 2] = (unsigned char)(256 * intensity.Clamp(b));
 	}
 };
 
