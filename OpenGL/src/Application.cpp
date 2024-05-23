@@ -121,7 +121,7 @@ int main(void)
 	//Shader* shader_light = new Shader("res/shaders/Light.shader");
 	Shader* shader_floor = new Shader("res/shaders/Floor.shader");
 	//Shader* shader_raytrace = new Shader("res/shaders/RayTrace.shader");
-	Shader* shader_texture_fullscreen = new Shader("res/shaders/DrawTextureToFullScreen.shader");
+	//Shader* shader_texture_fullscreen = new Shader("res/shaders/DrawTextureToFullScreen.shader");
 
 	/* ====== Textures ====== */
 	std::vector<Texture*> floorTextures = {
@@ -134,10 +134,8 @@ int main(void)
 
 	/* ====== Objects ====== */
 	Object groundGrid = Object(CreateGroundPlaneGrid(101, 101, 50.0, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)));
-
 	Object plane = Object(CreatePlane(), floorTextures);
 
-	Mesh raytraced_plane = CreatePlane();
 
 	/* ====== Light ====== */
 	Light light = Light(glm::vec3(0.0f, 0.0f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f));

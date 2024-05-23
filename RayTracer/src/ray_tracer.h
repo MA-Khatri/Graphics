@@ -5,6 +5,7 @@
 #include "camera.h"
 #include "interaction.h"
 #include "shapes.h"
+#include "material.h"
 #include "utils.h"
 
 namespace RayTracer {

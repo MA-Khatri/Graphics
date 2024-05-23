@@ -7,6 +7,7 @@ public:
 	double e[3];
 
 	Vec3() : e{ 0,0,0 } {}
+	Vec3(double e0) : e{ e0, e0, e0 } {}
 	Vec3(double e0, double e1, double e2) : e{ e0, e1, e2 } {}
 
 	double x() const { return e[0]; }
@@ -42,14 +43,32 @@ public:
 	double LengthSquared() const {
 		return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
 	}
+
+	double NearZero() const
+	{
+		/* Return true if the vector is close to zero in all dimensions */
+		double s = 1e-8;
+		return ((fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s));
+	}
+
+	static Vec3 Random()
+	{
+		return Vec3(RandomDouble(), RandomDouble(), RandomDouble());
+	}
+
+	static Vec3 Random(double min, double max)
+	{
+		return Vec3(RandomDouble(min, max), RandomDouble(min, max), RandomDouble(min, max));
+	}
 };
 
-// Point3 is just an alias for Vec3, but useful for geometric clarity in the code.
+
+/* Point3 is just an alias for Vec3, but useful for geometric clarity in the code. */
 using Point3 = Vec3;
 
 
-// Vector Utility Functions
 
+/* Vector Utility Functions */
 inline std::ostream& operator<<(std::ostream& out, const Vec3& v) {
 	return out << v.e[0] << ' ' << v.e[1] << ' ' << v.e[2];
 }
@@ -92,6 +111,34 @@ inline Vec3 Cross(const Vec3& u, const Vec3& v) {
 
 inline Vec3 Normalize(const Vec3& v) {
 	return v / v.Length();
+}
+
+inline Vec3 RandomInUnitSphere()
+{
+	while (true)
+	{
+		auto p = Vec3::Random(-1, 1);
+		if (p.LengthSquared() < 1) return p;
+	}
+}
+
+inline Vec3 RandomUnitVector()
+{
+	return Normalize(RandomInUnitSphere());
+}
+
+inline Vec3 RandomOnHemisphere(const Vec3& normal)
+{
+	Vec3 on_unit_sphere = RandomUnitVector();
+
+	/* In the same hemisphere as the normal? */
+	if (Dot(on_unit_sphere, normal) > 0.0) return on_unit_sphere;
+	else return -on_unit_sphere;
+}
+
+inline Vec3 Reflect(const Vec3& v, const Vec3& n)
+{
+	return v - 2 * Dot(v, n) * n;
 }
 
 } /* namespace RayTracer */

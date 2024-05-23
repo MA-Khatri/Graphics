@@ -15,5 +15,6 @@
     <ClInclude Include="src\shapes.h" />
     <ClInclude Include="src\interval.h" />
     <ClInclude Include="src\camera.h" />
+    <ClInclude Include="src\material.h" />
   </ItemGroup>
 </Project>

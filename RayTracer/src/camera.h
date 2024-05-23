@@ -1,7 +1,8 @@
 #pragma once
 
-#include "shapes.h"
 #include "common.h"
+#include "shapes.h"
+#include "material.h"
 
 #include <algorithm>
 #include <execution>
@@ -14,6 +15,8 @@ public:
 
 	unsigned int image_width = 100;
 	unsigned int image_height = 100;
+	int max_depth = 10;
+	bool gamma_correct = false;
 
 	std::vector<unsigned char> Render(const Shape& world)
 	{
@@ -119,22 +122,30 @@ private:
 	Vec3 SampleSquare() const
 	{
 		/* Returns the vector to a random point in the [-0.5, -0.5] to [0.5, 0.5] unit square */
-		/* WARNING! The standard random number generation in C++ is *very* expensive! */
 		return Vec3(RandomDouble() - 0.5, RandomDouble() - 0.5, 0.0);
 	}
 
 
-	Color RayColor(const Ray& ray, const Shape& world) const
+	Color RayColor(const Ray& ray_in, int depth, const Shape& world) const
 	{
+		/* If we exceed the ray bounce limit, no more light is gathered */
+		if (depth <= 0) return Color(0, 0, 0);
+
 		Interaction interaction;
-		if (world.Intersect(ray, Interval(0.0, infinity), interaction))
+		if (world.Intersect(ray_in, Interval(1e-8, infinity), interaction))
 		{
-			return 0.5 * (interaction.normal + Color(1.0, 1.0, 1.0));
+			Ray ray_out;
+			Color attenuation;
+			if (interaction.material->Scatter(ray_in, interaction, attenuation, ray_out))
+			{
+				return attenuation * RayColor(ray_out, depth - 1, world);
+			}
+			return Color(0.0, 0.0, 0.0);
 		}
 
 		/* Default sky background */
-		Vec3 unit_direction = Normalize(ray.direction);
-		auto a = 0.5 * (unit_direction.y() + 1.0);
+		Vec3 unit_direction = Normalize(ray_in.direction);
+		double a = 0.5 * (unit_direction.y() + 1.0);
 		return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
 	}
 
@@ -147,7 +158,7 @@ private:
 		Ray ray = GetRay(i, j);
 
 		/* Trace ray and determine new color */
-		Color pixel_color = RayColor(ray, world);
+		Color pixel_color = RayColor(ray, max_depth, world);
 		auto r = pixel_color.x();
 		auto g = pixel_color.y();
 		auto b = pixel_color.z();
@@ -169,9 +180,15 @@ private:
 
 		/* Clamp the color from 0-255 and set the pixel values to return */
 		static const Interval intensity(0.000, 0.999);
-		rendered_image[pixel + 0] = (unsigned char)(256 * intensity.Clamp(r));
-		rendered_image[pixel + 1] = (unsigned char)(256 * intensity.Clamp(g));
-		rendered_image[pixel + 2] = (unsigned char)(256 * intensity.Clamp(b));
+		rendered_image[pixel + 0] = (unsigned char)(256 * intensity.Clamp(gamma_correct ? LinearToGamma(r) : r));
+		rendered_image[pixel + 1] = (unsigned char)(256 * intensity.Clamp(gamma_correct ? LinearToGamma(g) : g));
+		rendered_image[pixel + 2] = (unsigned char)(256 * intensity.Clamp(gamma_correct ? LinearToGamma(b) : b));
+	}
+
+	inline double LinearToGamma(double linear_component)
+	{
+		if (linear_component > 0) return sqrt(linear_component);
+		return 0;
 	}
 };
 

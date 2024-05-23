@@ -28,6 +28,7 @@
     <ClInclude Include="src\common.h" />
     <ClInclude Include="src\interaction.h" />
     <ClInclude Include="src\interval.h" />
+    <ClInclude Include="src\material.h" />
     <ClInclude Include="src\ray.h" />
     <ClInclude Include="src\ray_tracer.h" />
     <ClInclude Include="src\shapes.h" />

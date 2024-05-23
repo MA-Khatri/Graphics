@@ -15,7 +15,8 @@ public:
 class Sphere : public Shape
 {
 public:
-	Sphere(const Point3& center, double radius) : center(center), radius(fmax(0, radius)) {};
+	Sphere(const Point3& center, double radius, shared_ptr<Material> material) 
+		: center(center), radius(fmax(0, radius)), material(material) {}
 
 	bool Intersect(const Ray& ray, Interval ray_t, Interaction& interaction) const override
 	{
@@ -41,13 +42,15 @@ public:
 		interaction.posn = ray.At(interaction.t);
 		Vec3 outwardNormal = (interaction.posn - center) / radius;
 		interaction.SetFaceNormal(ray, outwardNormal);
+		interaction.material = material;
 
 		return true;
 	};
 
-public:
+private:
 	Point3 center;
 	double radius;
+	shared_ptr<Material> material;
 };
 
 

@@ -6,23 +6,26 @@
 
 namespace RayTracer {
 
+class Material;
+
 class Interaction
 {
 public:
 	Point3 posn;
 	Vec3 normal;
 	double t = 0.0;
-	bool frontFace = false;
+	shared_ptr<Material> material;
+	bool front_face = false;
 
-	void SetFaceNormal(const Ray& ray, const Vec3& outwardNormal)
+	void SetFaceNormal(const Ray& ray, const Vec3& outward_normal)
 	{
 		/* Sets the interaction normal vector */
-		/* Note: the parameter `outwardNormal` is assumed to have unit length */
+		/* Note: the parameter `outward_normal` is assumed to have unit length */
 
-		frontFace = Dot(ray.direction, outwardNormal) < 0;
-		normal = frontFace ? outwardNormal : -outwardNormal;
+		front_face = Dot(ray.direction, outward_normal) < 0;
+		normal = front_face ? outward_normal : -outward_normal;
 	}
 
 };
 
-} /* namespace */
+} /* namespace RayTracer */
