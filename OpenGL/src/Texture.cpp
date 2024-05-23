@@ -22,7 +22,7 @@ Texture::Texture(unsigned char* bytes, int width, int height, const std::string 
 	CreateTexture(min_filter, mag_filter, wrap_s, wrap_t);
 	GLCall(glPixelStorei(GL_UNPACK_ALIGNMENT, 4));
 
-	/* Trying to free this causes bugs? -- Might be better to eventually pass in the bytes directly to CreateTexture */
+	/* Trying to free this causes bugs? -- Might be better to eventually pass in the bytes directly to CreateTexture (and not store m_Localbuffer?) */
 	//if (m_LocalBuffer)
 	//	free(m_LocalBuffer);
 }
