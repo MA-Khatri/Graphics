@@ -2,7 +2,7 @@
 
 #include "interaction.h"
 
-namespace RayTracer {
+namespace RT {
 
 class Shape
 {
@@ -90,4 +90,4 @@ public:
 
 };
 
-} /* namespace RayTracer */
+} /* namespace RT */

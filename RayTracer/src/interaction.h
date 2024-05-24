@@ -4,7 +4,7 @@
 
 #include <vector>
 
-namespace RayTracer {
+namespace RT {
 
 class Material;
 
@@ -28,4 +28,4 @@ public:
 
 };
 
-} /* namespace RayTracer */
+} /* namespace RT */

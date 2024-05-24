@@ -3,8 +3,8 @@
 #include "interval.h"
 #include "vec3.h"
 
-namespace RayTracer {
+namespace RT {
 
 using Color = Vec3;
 
-} /* namespace RayTracer */
+} /* namespace RT */

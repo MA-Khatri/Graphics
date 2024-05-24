@@ -8,8 +8,8 @@
 #include "material.h"
 #include "utils.h"
 
-namespace RayTracer {
+namespace RT {
 
-std::vector<unsigned char> RayTrace(Camera* camera); /* TODO: scene, also replace with camera class that stores width, height, yfov? */
+std::vector<unsigned char> RayTrace(Camera* camera, ShapesList* world);
 
-} /* namespace RayTracer */
+} /* namespace RT */

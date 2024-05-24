@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-namespace RayTracer {
+namespace RT {
 
 std::vector<unsigned char> FlipImage(std::vector<unsigned char> image, unsigned int width, unsigned int height)
 {
@@ -43,4 +43,4 @@ int DumpPPM(std::vector<unsigned char> image, unsigned int width, unsigned int h
 	return 0;
 }
 
-} /* namespace RayTracer */
+} /* namespace RT */

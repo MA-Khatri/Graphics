@@ -7,16 +7,28 @@
 #include <algorithm>
 #include <execution>
 
-namespace RayTracer {
+namespace RT {
 
 class Camera
 {
 public:
 
+	/* Image dimensions */
 	unsigned int image_width = 100;
 	unsigned int image_height = 100;
-	int max_depth = 10;
-	bool gamma_correct = false;
+
+	/* View parameters */
+	double vfov = 90.0; /* Vertical field of view */
+	Point3 origin = Point3(0.0, 0.0, 0.0); /* Point the camera is looking from */
+	Point3 look_at = Point3(0.0, 0.0, -1.0); /* Point the camera is looking at */
+	Vec3 up = Vec3(0.0, 1.0, 0.0); /* Camera-relative "up" vector */
+
+	/* Ray tracing params */
+	int max_depth = 10; /* Maximum number of bounces per ray */
+	
+	/* Post-process params */
+	bool gamma_correct = false; /* OpenGL gamma corrects for us so this is optional */
+
 
 	std::vector<unsigned char> Render(const Shape& world)
 	{
@@ -48,10 +60,17 @@ public:
 
 	void Initialize(unsigned int width, unsigned int height)
 	{
-		if (image_width != width || image_height != height)
+		if (image_width != width || image_height != height || !Equal(old_origin, origin) || !Equal(old_look_at, look_at) || !Equal(old_up, up) || old_vfov != vfov)
 		{
+			/* Reset the image size*/
 			image_width = width;
 			image_height = height;
+
+			/* Update the stored "prior" camera view params */
+			old_origin = origin;
+			old_look_at = look_at;
+			old_up = up;
+			old_vfov = vfov;
 
 			/* Resize and reset the image_accumulator */
 			image_accumulator = std::vector<double>(image_width * image_height * 3);
@@ -65,27 +84,35 @@ public:
 		for (unsigned int i = 0; i < image_width; i++) horizontal_iter[i] = i;
 		for (unsigned int i = 0; i < image_height; i++) vertical_iter[i] = i;
 
-		/* Determine aspect ratio of image -- Note: not currently used */
+		/* Determine aspect ratio of the image given its dimensions */
 		aspect_ratio = double(image_width) / double(image_height);
 
-		/* Set camera origin to world origin (for now) */
-		camera_center = Point3(0.0, 0.0, 0.0);
+		/* Set camera origin */
+		camera_center = origin;
 
 		/* Determine viewport dimensions */
-		double focal_length = 1.0;
-		double viewport_height = 2.0;
+		double focal_length = (camera_center - look_at).Length();
+		double theta = DegreesToRadians(vfov);
+		double h = std::tan(theta / 2.0);
+		double viewport_height = 2.0 * h * focal_length;
 		double viewport_width = viewport_height * aspect_ratio;
 
+		/* Calculate the orthonormal basis vectors for the camera coordinate frame */
+		/* Note: using right hand coordinates! */
+		w = Normalize(origin - look_at);
+		u = Normalize(Cross(up, w));
+		v = Cross(w, u);
+
 		/* Calculate the vectors across the horizontal and down the vertical viewport edges. */
-		auto viewport_u = Vec3(viewport_width, 0.0, 0.0);
-		auto viewport_v = Vec3(0.0, -viewport_height, 0.0);
+		auto viewport_u = viewport_width * u;
+		auto viewport_v = viewport_height * -v;
 
 		/* Calculate the horizontal and vertical delta vectors from pixel to pixel. */
 		pixel_delta_u = viewport_u / double(image_width);
 		pixel_delta_v = viewport_v / double(image_height);
 
 		/* Calculate the location of the upper left pixel. */
-		auto viewport_upper_left = camera_center - Vec3(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+		auto viewport_upper_left = camera_center - (focal_length * w) - viewport_u / 2.0 - viewport_v / 2.0;
 		pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 	}
 
@@ -97,6 +124,10 @@ private:
 	Point3 pixel00_loc; /* Location of pixel (0, 0) */
 	Vec3 pixel_delta_u; /* Horizontal per-pixel offset */
 	Vec3 pixel_delta_v; /* Vertical per-pixel offset */
+	Vec3 u, v, w; /* Camera frame orthonormal basis vectors */
+
+	Vec3 old_origin, old_look_at, old_up; /* Store the previous sample's camera view params */
+	double old_vfov; /* Store the previous sample's vfov */
 
 	std::vector<unsigned int> horizontal_iter; /* Horizontal iterator used for std::for_each */
 	std::vector<unsigned int> vertical_iter; /* Vertical iterator used for std::for_each */
@@ -192,4 +223,4 @@ private:
 	}
 };
 
-} /* namespace RayTracer */
+} /* namespace RT */

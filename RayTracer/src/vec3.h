@@ -1,6 +1,6 @@
 #pragma once
 
-namespace RayTracer {
+namespace RT {
 
 class Vec3 {
 public:
@@ -37,7 +37,7 @@ public:
 	}
 
 	double Length() const {
-		return sqrt(LengthSquared());
+		return std::sqrt(LengthSquared());
 	}
 
 	double LengthSquared() const {
@@ -48,7 +48,7 @@ public:
 	{
 		/* Return true if the vector is close to zero in all dimensions */
 		double s = 1e-8;
-		return ((fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s));
+		return ((std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) && (std::fabs(e[2]) < s));
 	}
 
 	static Vec3 Random()
@@ -97,6 +97,11 @@ inline Vec3 operator/(const Vec3& v, double t) {
 	return (1 / t) * v;
 }
 
+inline bool Equal(const Vec3& u, const Vec3& v)
+{
+	return ((u.e[0] == v.e[0]) && (u.e[1] == v.e[1]) && (u.e[2] == v.e[2]));
+}
+
 inline double Dot(const Vec3& u, const Vec3& v) {
 	return u.e[0] * v.e[0]
 		+ u.e[1] * v.e[1]
@@ -141,4 +146,12 @@ inline Vec3 Reflect(const Vec3& v, const Vec3& n)
 	return v - 2 * Dot(v, n) * n;
 }
 
-} /* namespace RayTracer */
+inline Vec3 Refract(const Vec3& incident_dir, const Vec3& normal, double eta_in_over_out)
+{
+	double cos_theta = std::fmin(Dot(-incident_dir, normal), 1.0);
+	Vec3 r_out_perp = eta_in_over_out * (incident_dir + cos_theta * normal);
+	Vec3 r_out_parallel = -std::sqrt(std::fabs(1.0 - r_out_perp.LengthSquared())) * normal;
+	return r_out_perp + r_out_parallel;
+}
+
+} /* namespace RT */

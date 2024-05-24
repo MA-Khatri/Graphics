@@ -2,7 +2,7 @@
 
 #include "vec3.h"
 
-namespace RayTracer {
+namespace RT {
 
 class Ray {
 public:
@@ -19,4 +19,4 @@ public:
 	Vec3 direction;
 };
 
-} /* namespace RayTracer */
+} /* namespace RT */

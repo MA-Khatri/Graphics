@@ -16,6 +16,8 @@ Camera::~Camera()
 
 void Camera::Update(float FOVdeg, float nearPlane, float farPlane, int inWidth, int inHeight)
 {
+	vfov = FOVdeg;
+
 	// Initialize the view and projection matrices to the identity matrix
 	glm::mat4 view = glm::mat4(1.0f);
 	glm::mat4 projection = glm::mat4(1.0f);

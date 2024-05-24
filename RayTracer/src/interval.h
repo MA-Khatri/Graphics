@@ -1,6 +1,6 @@
 #pragma once
 
-namespace RayTracer {
+namespace RT {
 
 class Interval
 {
@@ -27,4 +27,4 @@ public:
 //const Interval Interval::empty = Interval(+infinity, -infinity);
 //const Interval Interval::universe = Interval(-infinity, +infinity);
 
-} /* namespace RayTracer */
+} /* namespace RT */

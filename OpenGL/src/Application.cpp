@@ -161,7 +161,7 @@ int main(void)
 	camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
 
 	/* Ray tracer camera */
-	RayTracer::Camera ray_camera;
+	RT::Camera ray_camera;
 
 
 	/* ====== Local Variables ====== */
@@ -279,8 +279,30 @@ int main(void)
 				viewport_width = (unsigned int)wsize.x;
 				viewport_height = (unsigned int)wsize.y;
 
+				/* RayTracer camera setup */
+				ray_camera.vfov = camera.vfov;
+				ray_camera.origin = RT::Point3(camera.position.x, camera.position.y, camera.position.z);
+				glm::vec3 look_at = camera.position + camera.orientation;
+				ray_camera.look_at = RT::Point3(look_at.x, look_at.y, look_at.z);
+				ray_camera.up = RT::Vec3(camera.up.x, camera.up.y, camera.up.z);
 				ray_camera.Initialize(viewport_width, viewport_height);
-				image = RayTracer::RayTrace(&ray_camera);
+
+				/* RayTracer materials */
+				auto material_default = std::make_shared<RT::Lambertian>(RT::Color(0.5, 0.5, 0.5));
+				auto material_ground = std::make_shared<RT::Lambertian>(RT::Color(0.8, 0.8, 0.0));
+				auto material_center = std::make_shared<RT::Lambertian>(RT::Color(0.1, 0.2, 0.5));
+				auto material_left = std::make_shared<RT::Dielectric>(1.5);
+				auto material_right = std::make_shared<RT::Metal>(RT::Color(0.8, 0.6, 0.2), 1.0);
+
+				/* RayTracer scene */
+				RT::ShapesList world;
+				world.Add(std::make_shared<RT::Sphere>(RT::Point3(0.0, 0.0, -100.5), 100.0, material_ground));
+				world.Add(std::make_shared<RT::Sphere>(RT::Point3(0.0, -1.2, 0.0), 0.5, material_center));
+				world.Add(std::make_shared<RT::Sphere>(RT::Point3(-1.0, -1.0, 0.0), 0.5, material_left));
+				world.Add(std::make_shared<RT::Sphere>(RT::Point3(1.0, 1.0, 0.0), 0.5, material_right));
+
+
+				image = RT::RayTrace(&ray_camera, &world);
 
 				rayTracedTexture->Update(&image[0], viewport_width, viewport_height);
 

@@ -7,7 +7,7 @@
 #include <memory>
 
 
-namespace RayTracer {
+namespace RT {
 
 /* C++ Std Usings */
 using std::fabs;
@@ -54,7 +54,7 @@ inline unsigned int RoundUpPower2(unsigned int x)
 	return x + 1;
 }
 
-} /* namespace RayTracer */
+} /* namespace RT */
 
 /* Common Headers */
 #include "color.h"
