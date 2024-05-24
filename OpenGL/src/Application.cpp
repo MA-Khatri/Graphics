@@ -280,6 +280,8 @@ int main(void)
 				viewport_height = (unsigned int)wsize.y;
 
 				/* RayTracer camera setup */
+				ray_camera.decofus_angle = 2.0;
+				ray_camera.focus_distance = 5.0;
 				ray_camera.vfov = camera.vfov;
 				ray_camera.origin = RT::Point3(camera.position.x, camera.position.y, camera.position.z);
 				glm::vec3 look_at = camera.position + camera.orientation;

@@ -23,6 +23,9 @@ public:
 	Point3 look_at = Point3(0.0, 0.0, -1.0); /* Point the camera is looking at */
 	Vec3 up = Vec3(0.0, 1.0, 0.0); /* Camera-relative "up" vector */
 
+	double decofus_angle = 0.0; /* Variation angle of rays through each pixel */
+	double focus_distance = 10.0; /* Distance from the camera origin to plane of perfect focus */
+
 	/* Ray tracing params */
 	int max_depth = 10; /* Maximum number of bounces per ray */
 	
@@ -91,10 +94,11 @@ public:
 		camera_center = origin;
 
 		/* Determine viewport dimensions */
-		double focal_length = (camera_center - look_at).Length();
+		//double focal_length = (camera_center - look_at).Length();
 		double theta = DegreesToRadians(vfov);
 		double h = std::tan(theta / 2.0);
-		double viewport_height = 2.0 * h * focal_length;
+		//double viewport_height = 2.0 * h * focal_length;
+		double viewport_height = 2.0 * h * focus_distance;
 		double viewport_width = viewport_height * aspect_ratio;
 
 		/* Calculate the orthonormal basis vectors for the camera coordinate frame */
@@ -112,8 +116,14 @@ public:
 		pixel_delta_v = viewport_v / double(image_height);
 
 		/* Calculate the location of the upper left pixel. */
-		auto viewport_upper_left = camera_center - (focal_length * w) - viewport_u / 2.0 - viewport_v / 2.0;
+		//auto viewport_upper_left = camera_center - (focal_length * w) - viewport_u / 2.0 - viewport_v / 2.0;
+		Vec3 viewport_upper_left = camera_center - (focus_distance * w) - viewport_u / 2.0 - viewport_v / 2.0;
 		pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+		/* Calculate the camera defocus disk basis vectors */
+		double defocus_radius = focus_distance * std::tan(DegreesToRadians(decofus_angle / 2.0));
+		defocus_disk_u = u * defocus_radius;
+		defocus_disk_v = v * defocus_radius;
 	}
 
 	inline unsigned int GetSampleCount() const { return current_samples; }
@@ -125,6 +135,8 @@ private:
 	Vec3 pixel_delta_u; /* Horizontal per-pixel offset */
 	Vec3 pixel_delta_v; /* Vertical per-pixel offset */
 	Vec3 u, v, w; /* Camera frame orthonormal basis vectors */
+	Vec3 defocus_disk_u; /* Defocus disk horizontal radius */
+	Vec3 defocus_disk_v; /* Defocus disk vertical radius */
 
 	Vec3 old_origin, old_look_at, old_up; /* Store the previous sample's camera view params */
 	double old_vfov; /* Store the previous sample's vfov */
@@ -140,11 +152,20 @@ private:
 
 	Ray GetRay(unsigned int i, unsigned int j)
 	{
-		/* Generate a camera ray from the origin to a randomly sampled point around the pixel location i, j */
+		///* Generate a camera ray from the origin to a randomly sampled point around the pixel location i, j */
+		//Vec3 offset = SampleSquare();
+		//auto pixel_sample = pixel00_loc + (((double)i + offset.x()) * pixel_delta_u) + (((double)j + offset.y()) * pixel_delta_v);
+
+		//auto origin = camera_center;
+		//auto direction = pixel_sample - origin;
+
+		//return Ray(origin, direction);
+
+		/* Generate a camera ray originating from the defocus disk and directed at a randomly sampled point around the pixel location i, j */
 		Vec3 offset = SampleSquare();
 		auto pixel_sample = pixel00_loc + (((double)i + offset.x()) * pixel_delta_u) + (((double)j + offset.y()) * pixel_delta_v);
 
-		auto origin = camera_center;
+		auto origin = (decofus_angle <= 0) ? camera_center : DefocusDiskSample();
 		auto direction = pixel_sample - origin;
 
 		return Ray(origin, direction);
@@ -156,6 +177,12 @@ private:
 		return Vec3(RandomDouble() - 0.5, RandomDouble() - 0.5, 0.0);
 	}
 
+	Point3 DefocusDiskSample()
+	{
+		/* Returns a random point in the camera defocus disk */
+		Vec3 p = RandomInUnitDisk();
+		return camera_center + (p[0] * defocus_disk_u) + (p[1] * defocus_disk_v);
+	}
 
 	Color RayColor(const Ray& ray_in, int depth, const Shape& world) const
 	{
