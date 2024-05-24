@@ -1,6 +1,6 @@
 #include "ray_tracer.h"
 
-namespace RT {
+namespace rt {
 
 std::vector<unsigned char> RayTrace(Camera* camera, ShapesList* world)
 {

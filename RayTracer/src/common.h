@@ -7,7 +7,7 @@
 #include <memory>
 
 
-namespace RT {
+namespace rt {
 
 /* C++ Std Usings */
 using std::fabs;

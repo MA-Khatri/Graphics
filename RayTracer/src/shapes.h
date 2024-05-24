@@ -2,7 +2,7 @@
 
 #include "interaction.h"
 
-namespace RT {
+namespace rt {
 
 class Shape
 {

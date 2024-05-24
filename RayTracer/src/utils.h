@@ -2,7 +2,7 @@
 
 #include <vector>
 
-namespace RT {
+namespace rt {
 
 /* Vertically flips provided image */
 std::vector<unsigned char> FlipImage(std::vector<unsigned char> image, unsigned int width, unsigned int height);

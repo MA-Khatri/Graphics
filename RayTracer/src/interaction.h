@@ -4,7 +4,7 @@
 
 #include <vector>
 
-namespace RT {
+namespace rt {
 
 class Material;
 

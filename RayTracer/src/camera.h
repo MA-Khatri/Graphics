@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <execution>
 
-namespace RT {
+namespace rt {
 
 class Camera
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace RT {
+namespace rt {
 
 class Interval
 {

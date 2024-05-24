@@ -3,7 +3,7 @@
 #include "common.h"
 #include "ray.h"
 
-namespace RT {
+namespace rt {
 
 
 class Interaction;
