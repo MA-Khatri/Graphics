@@ -2,7 +2,8 @@
 
 #include <fstream>
 
-namespace rt {
+namespace rt 
+{
 
 std::vector<unsigned char> FlipImage(std::vector<unsigned char> image, unsigned int width, unsigned int height)
 {

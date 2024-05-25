@@ -4,7 +4,8 @@
 
 #include <vector>
 
-namespace rt {
+namespace rt 
+{
 
 class Material;
 
@@ -14,7 +15,7 @@ public:
 	Point3 posn;
 	Vec3 normal;
 	double t = 0.0;
-	shared_ptr<Material> material;
+	std::shared_ptr<Material> material;
 	bool front_face = false;
 
 	void SetFaceNormal(const Ray& ray, const Vec3& outward_normal)

@@ -3,7 +3,8 @@
 #include "interval.h"
 #include "vec3.h"
 
-namespace rt {
+namespace rt 
+{
 
 using Color = Vec3;
 

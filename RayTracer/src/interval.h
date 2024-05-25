@@ -1,11 +1,12 @@
 #pragma once
 
-namespace rt {
+namespace rt 
+{
 
 class Interval
 {
 public:
-	Interval() : min(+infinity), max(-infinity) {}; /* Default interval is empty */
+	Interval() : min(+Inf), max(-Inf) {}; /* Default interval is empty */
 	Interval(double min, double max) : min(min), max(max) {};
 
 	double Size() const { return max - min; };
@@ -24,7 +25,7 @@ public:
 	static const Interval empty, universe;
 };
 
-//const Interval Interval::empty = Interval(+infinity, -infinity);
-//const Interval Interval::universe = Interval(-infinity, +infinity);
+const Interval Interval::empty = Interval(+Inf, -Inf);
+const Interval Interval::universe = Interval(-Inf, +Inf);
 
 } /* namespace rt */

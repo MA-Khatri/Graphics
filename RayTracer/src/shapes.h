@@ -2,7 +2,8 @@
 
 #include "interaction.h"
 
-namespace rt {
+namespace rt 
+{
 
 class Shape
 {
@@ -15,7 +16,7 @@ public:
 class Sphere : public Shape
 {
 public:
-	Sphere(const Point3& center, double radius, shared_ptr<Material> material) 
+	Sphere(const Point3& center, double radius, std::shared_ptr<Material> material) 
 		: center(center), radius(fmax(0, radius)), material(material) {}
 
 	bool Intersect(const Ray& ray, Interval ray_t, Interaction& interaction) const override
@@ -50,21 +51,21 @@ public:
 private:
 	Point3 center;
 	double radius;
-	shared_ptr<Material> material;
+	std::shared_ptr<Material> material;
 };
 
 
 class ShapesList : public Shape
 {
 public:
-	std::vector<shared_ptr<Shape>> shapes;
+	std::vector<std::shared_ptr<Shape>> shapes;
 
 	ShapesList() {};
-	ShapesList(shared_ptr<Shape> shape) { Add(shape); };
+	ShapesList(std::shared_ptr<Shape> shape) { Add(shape); };
 
 	void Clear() { shapes.clear(); };
 
-	void Add(shared_ptr<Shape> shape)
+	void Add(std::shared_ptr<Shape> shape)
 	{
 		shapes.push_back(shape);
 	}

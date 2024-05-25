@@ -7,7 +7,8 @@
 #include <algorithm>
 #include <execution>
 
-namespace rt {
+namespace rt 
+{
 
 class Camera
 {
@@ -190,7 +191,7 @@ private:
 		if (depth <= 0) return Color(0, 0, 0);
 
 		Interaction interaction;
-		if (world.Intersect(ray_in, Interval(1e-8, infinity), interaction))
+		if (world.Intersect(ray_in, Interval(1e-4, Inf), interaction))
 		{
 			Ray ray_out;
 			Color attenuation;

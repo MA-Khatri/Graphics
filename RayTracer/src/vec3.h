@@ -1,8 +1,10 @@
 #pragma once
 
-namespace rt {
+namespace rt 
+{
 
-class Vec3 {
+class Vec3 
+{
 public:
 	double e[3];
 

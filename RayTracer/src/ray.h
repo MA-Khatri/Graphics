@@ -2,9 +2,11 @@
 
 #include "vec3.h"
 
-namespace rt {
+namespace rt 
+{
 
-class Ray {
+class Ray 
+{
 public:
 	Ray() {}
 

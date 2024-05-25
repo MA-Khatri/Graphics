@@ -130,7 +130,7 @@ int main(void)
 	};
 
 	std::vector<unsigned char> image(4*4*3); /* Initialize to smallest possible empty texture */
-	Texture* rayTracedTexture = new Texture(&image[0], 4, 4, "Diffuse", GL_RGB, GL_UNSIGNED_BYTE);
+	Texture* ray_traced_texture = new Texture(&image[0], 4, 4, "Diffuse", GL_RGB, GL_UNSIGNED_BYTE);
 
 	/* ====== Objects ====== */
 	Object groundGrid = Object(CreateGroundPlaneGrid(101, 101, 50.0, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)));
@@ -306,9 +306,9 @@ int main(void)
 
 				image = rt::RayTrace(&ray_camera, &world);
 
-				rayTracedTexture->Update(&image[0], viewport_width, viewport_height);
+				ray_traced_texture->Update(&image[0], viewport_width, viewport_height);
 
-				ImGui::Image((ImTextureID)rayTracedTexture->GetTexture(), wsize);
+				ImGui::Image((ImTextureID)ray_traced_texture->GetTexture(), wsize);
 			}
 
 			ImGui::EndChild();

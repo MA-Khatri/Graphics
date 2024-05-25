@@ -7,23 +7,17 @@
 #include <memory>
 
 
-namespace rt {
-
-/* C++ Std Usings */
-using std::fabs;
-using std::make_shared;
-using std::shared_ptr;
-using std::sqrt;
-
+namespace rt 
+{
 /* Constants */
-const double infinity = std::numeric_limits<double>::infinity();
-const double pi = 3.1415926535897932385;
+const double Inf = std::numeric_limits<double>::infinity();
+const double Pi = 3.1415926535897932385;
 
 
 /* Utility Functions */
 inline double DegreesToRadians(double degrees)
 {
-	return degrees * pi / 180.0;
+	return degrees * Pi / 180.0;
 }
 
 inline double RandomDouble()
