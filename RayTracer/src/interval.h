@@ -7,13 +7,13 @@ class Interval
 {
 public:
 	Interval() : min(+Inf), max(-Inf) {}; /* Default interval is empty */
-	Interval(double min, double max) : min(min), max(max) {};
+	Interval(float min, float max) : min(min), max(max) {};
 
-	double Size() const { return max - min; };
-	bool Contains(double x) const { return min <= x && x <= max; };
-	bool Surrounds(double x) const { return min < x && x < max; };
+	float Size() const { return max - min; };
+	bool Contains(float x) const { return min <= x && x <= max; };
+	bool Surrounds(float x) const { return min < x && x < max; };
 	
-	double Clamp(double x) const 
+	float Clamp(float x) const 
 	{
 		if (x < min) return min;
 		if (x > max) return max;
@@ -21,7 +21,7 @@ public:
 	}
 
 public:
-	double min, max;
+	float min, max;
 	static const Interval empty, universe;
 };
 

@@ -1,5 +1,10 @@
 #pragma once
 
+#include <cmath>
+
+#include "common.h"
+
+
 namespace rt 
 {
 
@@ -55,12 +60,12 @@ public:
 
 	static Vec3 Random()
 	{
-		return Vec3(RandomDouble(), RandomDouble(), RandomDouble());
+		return Vec3(RandomFloat(), RandomFloat(), RandomFloat());
 	}
 
 	static Vec3 Random(double min, double max)
 	{
-		return Vec3(RandomDouble(min, max), RandomDouble(min, max), RandomDouble(min, max));
+		return Vec3(RandomFloat(min, max), RandomFloat(min, max), RandomFloat(min, max));
 	}
 };
 
@@ -124,7 +129,7 @@ inline Vec3 RandomInUnitDisk()
 {
 	while (true)
 	{
-		Vec3 p = Vec3(RandomDouble(-1.0, 1.0), RandomDouble(-1.0, 1.0), 0.0);
+		Vec3 p = Vec3(RandomFloat(-1.0, 1.0), RandomFloat(-1.0, 1.0), 0.0);
 		if (p.LengthSquared() < 1) return p;
 	}
 }

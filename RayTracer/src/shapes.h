@@ -16,23 +16,23 @@ public:
 class Sphere : public Shape
 {
 public:
-	Sphere(const Point3& center, double radius, std::shared_ptr<Material> material) 
-		: center(center), radius(fmax(0, radius)), material(material) {}
+	Sphere(const Point3& center, float radius, std::shared_ptr<Material> material) 
+		: center(center), radius(fmax(0.0f, radius)), material(material) {}
 
 	bool Intersect(const Ray& ray, Interval ray_t, Interaction& interaction) const override
 	{
 		Vec3 oc = center - ray.origin;
-		auto a = ray.direction.LengthSquared();
-		auto h = Dot(ray.direction, oc);
-		auto c = oc.LengthSquared() - radius * radius;
+		float a = ray.direction.LengthSquared();
+		float h = Dot(ray.direction, oc);
+		float c = oc.LengthSquared() - radius * radius;
 
-		auto discriminant = h * h - a * c;
-		if (discriminant < 0) return false;
+		float discriminant = h * h - a * c;
+		if (discriminant < 0.0f) return false;
 
-		auto sqrtd = sqrt(discriminant);
+		float sqrtd = std::sqrt(discriminant);
 
 		/* Find the nearest root that lies in the acceptable range */
-		auto root = (h - sqrtd) / a;
+		float root = (h - sqrtd) / a;
 		if (!ray_t.Surrounds(root))
 		{
 			root = (h + sqrtd) / a;
@@ -50,7 +50,7 @@ public:
 
 private:
 	Point3 center;
-	double radius;
+	float radius;
 	std::shared_ptr<Material> material;
 };
 
@@ -74,7 +74,7 @@ public:
 	{
 		Interaction tempInteract;
 		bool hitAnything = false;
-		auto closestSoFar = ray_t.max;
+		float closestSoFar = ray_t.max;
 
 		for (const auto& shape : shapes)
 		{

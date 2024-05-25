@@ -9,36 +9,43 @@
 
 namespace rt 
 {
-/* Constants */
-const double Inf = std::numeric_limits<double>::infinity();
-const double Pi = 3.1415926535897932385;
+/* ================= */
+/* === Constants === */
+/* ================= */
+
+const float Inf = std::numeric_limits<float>::infinity();
+const float Pi = 3.1415926535897932385;
 
 
-/* Utility Functions */
-inline double DegreesToRadians(double degrees)
+/* ========================= */
+/* === Utility Functions === */
+/* ========================= */
+
+/* Converts degrees to radians */
+inline float DegreesToRadians(float degrees)
 {
-	return degrees * Pi / 180.0;
+	return degrees * Pi / 180.0f;
 }
 
-inline double RandomDouble()
+/* Returns a random real (float) in [0, 1) */
+inline float RandomFloat()
 {
-	/* Returns a random real in [0, 1) */
-	static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+	static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
 	thread_local static std::mt19937_64 generator;
 	return distribution(generator);
 }
 
-inline double RandomDouble(double min, double max)
+/* Returns a random real (float) in [min, max) */
+inline float RandomFloat(float min, float max)
 {
-	/* Returns a random real in [min, max) */
-	static std::uniform_real_distribution<double> distribution(min, max);
+	static std::uniform_real_distribution<float> distribution(min, max);
 	thread_local static std::mt19937_64 generator;
 	return distribution(generator);
 }
 
+/* Returns the next power of two that is greater than or equal to x */
 inline unsigned int RoundUpPower2(unsigned int x)
 {
-	/* Returns the next power of two that is greater than or equal to x */
 	--x;
 	x |= x >> 1;
 	x |= x >> 2;
@@ -50,7 +57,9 @@ inline unsigned int RoundUpPower2(unsigned int x)
 
 } /* namespace rt */
 
-/* Common Headers */
+/* ====================== */
+/* === Common Headers === */
+/* ====================== */
 #include "color.h"
 #include "ray.h"
 #include "vec3.h"

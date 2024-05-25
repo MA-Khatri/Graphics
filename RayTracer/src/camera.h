@@ -19,13 +19,13 @@ public:
 	unsigned int image_height = 100;
 
 	/* View parameters */
-	double vfov = 90.0; /* Vertical field of view */
-	Point3 origin = Point3(0.0, 0.0, 0.0); /* Point the camera is looking from */
-	Point3 look_at = Point3(0.0, 0.0, -1.0); /* Point the camera is looking at */
-	Vec3 up = Vec3(0.0, 1.0, 0.0); /* Camera-relative "up" vector */
+	float vfov = 90.0f; /* Vertical field of view */
+	Point3 origin = Point3(0.0f, 0.0f, 0.0f); /* Point the camera is looking from */
+	Point3 look_at = Point3(0.0f, 0.0f, -1.0f); /* Point the camera is looking at */
+	Vec3 up = Vec3(0.0f, 1.0f, 0.0f); /* Camera-relative "up" vector */
 
-	double decofus_angle = 0.0; /* Variation angle of rays through each pixel */
-	double focus_distance = 10.0; /* Distance from the camera origin to plane of perfect focus */
+	float decofus_angle = 0.0f; /* Variation angle of rays through each pixel */
+	float focus_distance = 10.0f; /* Distance from the camera origin to plane of perfect focus */
 
 	/* Ray tracing params */
 	int max_depth = 10; /* Maximum number of bounces per ray */
@@ -77,7 +77,7 @@ public:
 			old_vfov = vfov;
 
 			/* Resize and reset the image_accumulator */
-			image_accumulator = std::vector<double>(image_width * image_height * 3);
+			image_accumulator = std::vector<float>(image_width * image_height * 3);
 			rendered_image = std::vector<unsigned char>(image_width * image_height * 3);
 			current_samples = 0;
 		}
@@ -89,18 +89,18 @@ public:
 		for (unsigned int i = 0; i < image_height; i++) vertical_iter[i] = i;
 
 		/* Determine aspect ratio of the image given its dimensions */
-		aspect_ratio = double(image_width) / double(image_height);
+		aspect_ratio = float(image_width) / float(image_height);
 
 		/* Set camera origin */
 		camera_center = origin;
 
 		/* Determine viewport dimensions */
-		//double focal_length = (camera_center - look_at).Length();
-		double theta = DegreesToRadians(vfov);
-		double h = std::tan(theta / 2.0);
-		//double viewport_height = 2.0 * h * focal_length;
-		double viewport_height = 2.0 * h * focus_distance;
-		double viewport_width = viewport_height * aspect_ratio;
+		//float focal_length = (camera_center - look_at).Length();
+		float theta = DegreesToRadians(vfov);
+		float h = std::tan(theta / 2.0f);
+		//float viewport_height = 2.0f * h * focal_length;
+		float viewport_height = 2.0f * h * focus_distance;
+		float viewport_width = viewport_height * aspect_ratio;
 
 		/* Calculate the orthonormal basis vectors for the camera coordinate frame */
 		/* Note: using right hand coordinates! */
@@ -113,16 +113,16 @@ public:
 		auto viewport_v = viewport_height * -v;
 
 		/* Calculate the horizontal and vertical delta vectors from pixel to pixel. */
-		pixel_delta_u = viewport_u / double(image_width);
-		pixel_delta_v = viewport_v / double(image_height);
+		pixel_delta_u = viewport_u / float(image_width);
+		pixel_delta_v = viewport_v / float(image_height);
 
 		/* Calculate the location of the upper left pixel. */
-		//auto viewport_upper_left = camera_center - (focal_length * w) - viewport_u / 2.0 - viewport_v / 2.0;
-		Vec3 viewport_upper_left = camera_center - (focus_distance * w) - viewport_u / 2.0 - viewport_v / 2.0;
+		//auto viewport_upper_left = camera_center - (focal_length * w) - viewport_u / 2.0f - viewport_v / 2.0f;
+		Vec3 viewport_upper_left = camera_center - (focus_distance * w) - viewport_u / 2.0f - viewport_v / 2.0f;
 		pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
 		/* Calculate the camera defocus disk basis vectors */
-		double defocus_radius = focus_distance * std::tan(DegreesToRadians(decofus_angle / 2.0));
+		float defocus_radius = focus_distance * std::tan(DegreesToRadians(decofus_angle / 2.0f));
 		defocus_disk_u = u * defocus_radius;
 		defocus_disk_v = v * defocus_radius;
 	}
@@ -130,7 +130,7 @@ public:
 	inline unsigned int GetSampleCount() const { return current_samples; }
 
 private:
-	double aspect_ratio = 1.0; /* Ratio of image width over image height */
+	float aspect_ratio = 1.0f; /* Ratio of image width over image height */
 	Point3 camera_center; /* I.e., origin of the camera */
 	Point3 pixel00_loc; /* Location of pixel (0, 0) */
 	Vec3 pixel_delta_u; /* Horizontal per-pixel offset */
@@ -140,13 +140,13 @@ private:
 	Vec3 defocus_disk_v; /* Defocus disk vertical radius */
 
 	Vec3 old_origin, old_look_at, old_up; /* Store the previous sample's camera view params */
-	double old_vfov; /* Store the previous sample's vfov */
+	float old_vfov; /* Store the previous sample's vfov */
 
 	std::vector<unsigned int> horizontal_iter; /* Horizontal iterator used for std::for_each */
 	std::vector<unsigned int> vertical_iter; /* Vertical iterator used for std::for_each */
 
 	unsigned int current_samples; /* Used to determine previous sample contributions to the accumulated image */
-	std::vector<double> image_accumulator; /* Stores results from all previous samples */
+	std::vector<float> image_accumulator; /* Stores results from all previous samples */
 
 	std::vector<unsigned char> rendered_image; /* Holds the final result that is returned by Render() */
 
@@ -155,7 +155,7 @@ private:
 	{
 		///* Generate a camera ray from the origin to a randomly sampled point around the pixel location i, j */
 		//Vec3 offset = SampleSquare();
-		//auto pixel_sample = pixel00_loc + (((double)i + offset.x()) * pixel_delta_u) + (((double)j + offset.y()) * pixel_delta_v);
+		//auto pixel_sample = pixel00_loc + (((float)i + offset.x()) * pixel_delta_u) + (((float)j + offset.y()) * pixel_delta_v);
 
 		//auto origin = camera_center;
 		//auto direction = pixel_sample - origin;
@@ -164,9 +164,9 @@ private:
 
 		/* Generate a camera ray originating from the defocus disk and directed at a randomly sampled point around the pixel location i, j */
 		Vec3 offset = SampleSquare();
-		auto pixel_sample = pixel00_loc + (((double)i + offset.x()) * pixel_delta_u) + (((double)j + offset.y()) * pixel_delta_v);
+		auto pixel_sample = pixel00_loc + (((float)i + offset.x()) * pixel_delta_u) + (((float)j + offset.y()) * pixel_delta_v);
 
-		auto origin = (decofus_angle <= 0) ? camera_center : DefocusDiskSample();
+		auto origin = (decofus_angle <= 0.0f) ? camera_center : DefocusDiskSample();
 		auto direction = pixel_sample - origin;
 
 		return Ray(origin, direction);
@@ -174,8 +174,8 @@ private:
 
 	Vec3 SampleSquare() const
 	{
-		/* Returns the vector to a random point in the [-0.5, -0.5] to [0.5, 0.5] unit square */
-		return Vec3(RandomDouble() - 0.5, RandomDouble() - 0.5, 0.0);
+		/* Returns the vector to a random point in the [-0.5f, -0.5f] to [0.5f, 0.5f] unit square */
+		return Vec3(RandomFloat() - 0.5f, RandomFloat() - 0.5f, 0.0f);
 	}
 
 	Point3 DefocusDiskSample()
@@ -188,7 +188,7 @@ private:
 	Color RayColor(const Ray& ray_in, int depth, const Shape& world) const
 	{
 		/* If we exceed the ray bounce limit, no more light is gathered */
-		if (depth <= 0) return Color(0, 0, 0);
+		if (depth <= 0) return Color(0.0f, 0.0f, 0.0f);
 
 		Interaction interaction;
 		if (world.Intersect(ray_in, Interval(1e-4, Inf), interaction))
@@ -199,13 +199,13 @@ private:
 			{
 				return attenuation * RayColor(ray_out, depth - 1, world);
 			}
-			return Color(0.0, 0.0, 0.0);
+			return Color(0.0f, 0.0f, 0.0f);
 		}
 
 		/* Default sky background */
 		Vec3 unit_direction = Normalize(ray_in.direction);
-		double a = 0.5 * (unit_direction.y() + 1.0);
-		return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
+		float a = 0.5f * (unit_direction.y() + 1.0f);
+		return (1.0f - a) * Color(1.0f, 1.0f, 1.0f) + a * Color(0.5f, 0.7f, 1.0f);
 	}
 
 	void TracePixel(unsigned int i, unsigned int j, const Shape& world)
@@ -223,9 +223,9 @@ private:
 		auto b = pixel_color.z();
 
 		/* Extract accumulated color */
-		double cr = image_accumulator[pixel + 0];
-		double cg = image_accumulator[pixel + 1];
-		double cb = image_accumulator[pixel + 2];
+		float cr = image_accumulator[pixel + 0];
+		float cg = image_accumulator[pixel + 1];
+		float cb = image_accumulator[pixel + 2];
 
 		/* Determine the new accumulated color */
 		r = (r + current_samples * cr) / (current_samples + 1);
@@ -238,16 +238,16 @@ private:
 		image_accumulator[pixel + 2] = b;
 
 		/* Clamp the color from 0-255 and set the pixel values to return */
-		static const Interval intensity(0.000, 0.999);
+		static const Interval intensity(0.000f, 0.999f);
 		rendered_image[pixel + 0] = (unsigned char)(256 * intensity.Clamp(gamma_correct ? LinearToGamma(r) : r));
 		rendered_image[pixel + 1] = (unsigned char)(256 * intensity.Clamp(gamma_correct ? LinearToGamma(g) : g));
 		rendered_image[pixel + 2] = (unsigned char)(256 * intensity.Clamp(gamma_correct ? LinearToGamma(b) : b));
 	}
 
-	inline double LinearToGamma(double linear_component)
+	inline float LinearToGamma(float linear_component)
 	{
-		if (linear_component > 0) return sqrt(linear_component);
-		return 0;
+		if (linear_component > 0.0f) return sqrt(linear_component);
+		return 0.0f;
 	}
 };
 

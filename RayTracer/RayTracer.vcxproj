@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\utils.cpp" />
     <ClCompile Include="src\vendor\glm\detail\glm.cpp" />
   </ItemGroup>
   <ItemGroup>

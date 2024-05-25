@@ -47,7 +47,7 @@ private:
 class Metal : public Material
 {
 public:
-	Metal(const Color& albedo, double fuzz) : albedo(albedo), fuzz(fuzz < 1 ? fuzz : 1) {}
+	Metal(const Color& albedo, float fuzz) : albedo(albedo), fuzz(fuzz < 1.0f ? fuzz : 1.0f) {}
 
 	bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const override
 	{
@@ -55,35 +55,35 @@ public:
 		reflected = Normalize(reflected) + (fuzz * RandomUnitVector());
 		ray_out = Ray(interaction.posn, reflected);
 		attenuation = albedo;
-		return (Dot(ray_out.direction, interaction.normal) > 0); /* Ignore if produced ray direction is within the object */
+		return (Dot(ray_out.direction, interaction.normal) > 0.0f); /* Ignore if produced ray direction is within the object */
 	}
 
 private:
 	Color albedo;
-	double fuzz;
+	float fuzz;
 };
 
 
 class Dielectric : public Material
 {
 public:
-	Dielectric(double eta_out, double eta_in) : eta_out(eta_out), eta_in(eta_in) {}
-	Dielectric(double eta_in_over_out) : eta_out(1.0), eta_in(eta_in_over_out) {}
+	Dielectric(float eta_out, float eta_in) : eta_out(eta_out), eta_in(eta_in) {}
+	Dielectric(float eta_in_over_out) : eta_out(1.0f), eta_in(eta_in_over_out) {}
 
 	bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const override
 	{
-		attenuation = Color(1.0, 1.0, 1.0);
-		double eta_in_over_out = eta_in / eta_out;
-		double refraction_index = interaction.front_face ? (1.0 / eta_in_over_out) : eta_in_over_out;
+		attenuation = Color(1.0f, 1.0f, 1.0f);
+		float eta_in_over_out = eta_in / eta_out;
+		float refraction_index = interaction.front_face ? (1.0f / eta_in_over_out) : eta_in_over_out;
 
 		Vec3 unit_direction = Normalize(ray_in.direction);
-		double cos_theta = std::fmin(Dot(-unit_direction, interaction.normal), 1.0);
-		double sin_theta = std::sqrt(1.0 - cos_theta * cos_theta);
+		float cos_theta = std::fmin(Dot(-unit_direction, interaction.normal), 1.0f);
+		float sin_theta = std::sqrt(1.0f - cos_theta * cos_theta);
 
-		bool cannot_refract = refraction_index * sin_theta > 1.0;
+		bool cannot_refract = refraction_index * sin_theta > 1.0f;
 		Vec3 direction;
 
-		if (cannot_refract || Reflectance(cos_theta, refraction_index) > RandomDouble()) direction = Reflect(unit_direction, interaction.normal);
+		if (cannot_refract || Reflectance(cos_theta, refraction_index) > RandomFloat()) direction = Reflect(unit_direction, interaction.normal);
 		else direction = Refract(unit_direction, interaction.normal, refraction_index);
 
 		ray_out = Ray(interaction.posn, direction);
@@ -91,15 +91,15 @@ public:
 	}
 
 private:
-	double eta_out; /* Refractive index of the enclosing media */
-	double eta_in; /* Refractive index of the material */
+	float eta_out; /* Refractive index of the enclosing media */
+	float eta_in; /* Refractive index of the material */
 
-	static double Reflectance(double cosine, double refraction_index)
+	static float Reflectance(float cosine, float refraction_index)
 	{
 		/* Use Schlick's approximation to model reflectance */
-		double r0 = (1 - refraction_index) / (1 + refraction_index);
+		float r0 = (1.0f - refraction_index) / (1.0f + refraction_index);
 		r0 = r0 * r0;
-		return r0 + (1 - r0) * std::pow((1 - cosine), 5);
+		return r0 + (1.0f - r0) * std::pow((1.0f - cosine), 5.0f);
 	}
 };
 
