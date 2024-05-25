@@ -104,13 +104,13 @@ public:
 
 		/* Calculate the orthonormal basis vectors for the camera coordinate frame */
 		/* Note: using right hand coordinates! */
-		w = Normalize(origin - look_at);
-		u = Normalize(Cross(up, w));
-		v = Cross(w, u);
+		w = glm::normalize(origin - look_at);
+		u = glm::normalize(glm::cross(up, w));
+		v = glm::cross(w, u);
 
 		/* Calculate the vectors across the horizontal and down the vertical viewport edges. */
-		auto viewport_u = viewport_width * u;
-		auto viewport_v = viewport_height * -v;
+		Vec3 viewport_u = viewport_width * u;
+		Vec3 viewport_v = viewport_height * -v;
 
 		/* Calculate the horizontal and vertical delta vectors from pixel to pixel. */
 		pixel_delta_u = viewport_u / float(image_width);
@@ -164,10 +164,10 @@ private:
 
 		/* Generate a camera ray originating from the defocus disk and directed at a randomly sampled point around the pixel location i, j */
 		Vec3 offset = SampleSquare();
-		auto pixel_sample = pixel00_loc + (((float)i + offset.x()) * pixel_delta_u) + (((float)j + offset.y()) * pixel_delta_v);
+		Vec3 pixel_sample = pixel00_loc + (((float)i + offset.x) * pixel_delta_u) + (((float)j + offset.y) * pixel_delta_v);
 
-		auto origin = (decofus_angle <= 0.0f) ? camera_center : DefocusDiskSample();
-		auto direction = pixel_sample - origin;
+		Vec3 origin = (decofus_angle <= 0.0f) ? camera_center : DefocusDiskSample();
+		Vec3 direction = pixel_sample - origin;
 
 		return Ray(origin, direction);
 	}
@@ -181,8 +181,8 @@ private:
 	Point3 DefocusDiskSample()
 	{
 		/* Returns a random point in the camera defocus disk */
-		Vec3 p = RandomInUnitDisk();
-		return camera_center + (p[0] * defocus_disk_u) + (p[1] * defocus_disk_v);
+		Vec2 p = RandomInUnitDisk();
+		return camera_center + (p.x * defocus_disk_u) + (p.y * defocus_disk_v);
 	}
 
 	Color RayColor(const Ray& ray_in, int depth, const Shape& world) const
@@ -203,8 +203,8 @@ private:
 		}
 
 		/* Default sky background */
-		Vec3 unit_direction = Normalize(ray_in.direction);
-		float a = 0.5f * (unit_direction.y() + 1.0f);
+		Vec3 unit_direction = glm::normalize(ray_in.direction);
+		float a = 0.5f * (unit_direction.y + 1.0f);
 		return (1.0f - a) * Color(1.0f, 1.0f, 1.0f) + a * Color(0.5f, 0.7f, 1.0f);
 	}
 
@@ -218,9 +218,9 @@ private:
 
 		/* Trace ray and determine new color */
 		Color pixel_color = RayColor(ray, max_depth, world);
-		auto r = pixel_color.x();
-		auto g = pixel_color.y();
-		auto b = pixel_color.z();
+		float r = pixel_color.r;
+		float g = pixel_color.g;
+		float b = pixel_color.b;
 
 		/* Extract accumulated color */
 		float cr = image_accumulator[pixel + 0];

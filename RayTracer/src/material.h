@@ -32,7 +32,7 @@ public:
 		Vec3 scatter_direction = interaction.normal + RandomUnitVector();
 
 		/* Catch degenerate scatter direction */
-		if (scatter_direction.NearZero()) scatter_direction = interaction.normal;
+		if (NearZero(scatter_direction)) scatter_direction = interaction.normal;
 
 		ray_out = Ray(interaction.posn, scatter_direction);
 		attenuation = albedo;
@@ -52,10 +52,10 @@ public:
 	bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const override
 	{
 		Vec3 reflected = Reflect(ray_in.direction, interaction.normal);
-		reflected = Normalize(reflected) + (fuzz * RandomUnitVector());
+		reflected = glm::normalize(reflected) + (fuzz * RandomUnitVector());
 		ray_out = Ray(interaction.posn, reflected);
 		attenuation = albedo;
-		return (Dot(ray_out.direction, interaction.normal) > 0.0f); /* Ignore if produced ray direction is within the object */
+		return (glm::dot(ray_out.direction, interaction.normal) > 0.0f); /* Ignore if produced ray direction is within the object */
 	}
 
 private:
@@ -76,8 +76,8 @@ public:
 		float eta_in_over_out = eta_in / eta_out;
 		float refraction_index = interaction.front_face ? (1.0f / eta_in_over_out) : eta_in_over_out;
 
-		Vec3 unit_direction = Normalize(ray_in.direction);
-		float cos_theta = std::fmin(Dot(-unit_direction, interaction.normal), 1.0f);
+		Vec3 unit_direction = glm::normalize(ray_in.direction);
+		float cos_theta = std::fmin(glm::dot(-unit_direction, interaction.normal), 1.0f);
 		float sin_theta = std::sqrt(1.0f - cos_theta * cos_theta);
 
 		bool cannot_refract = refraction_index * sin_theta > 1.0f;

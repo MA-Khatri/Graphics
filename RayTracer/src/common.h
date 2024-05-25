@@ -14,7 +14,8 @@ namespace rt
 /* ================= */
 
 const float Inf = std::numeric_limits<float>::infinity();
-const float Pi = 3.1415926535897932385;
+const float Pi = 3.1415926535897932385f;
+const float Eps = 1e-8f;
 
 
 /* ========================= */
@@ -60,7 +61,9 @@ inline unsigned int RoundUpPower2(unsigned int x)
 /* ====================== */
 /* === Common Headers === */
 /* ====================== */
-#include "color.h"
+//#include "color.h"
 #include "ray.h"
-#include "vec3.h"
+//#include "vec3.h"
 #include "interval.h"
+
+#include "math.h"

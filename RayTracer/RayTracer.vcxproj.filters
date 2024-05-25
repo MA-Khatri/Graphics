@@ -4,12 +4,10 @@
     <ClCompile Include="src\vendor\glm\detail\glm.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\color.h" />
     <ClInclude Include="src\common.h" />
     <ClInclude Include="src\ray.h" />
     <ClInclude Include="src\ray_tracer.h" />
     <ClInclude Include="src\utils.h" />
-    <ClInclude Include="src\vec3.h" />
     <ClInclude Include="src\interaction.h" />
     <ClInclude Include="src\shapes.h" />
     <ClInclude Include="src\interval.h" />
@@ -303,6 +301,8 @@
     <ClInclude Include="src\vendor\glm\vec3.hpp" />
     <ClInclude Include="src\vendor\glm\vec4.hpp" />
     <ClInclude Include="src\vendor\glm\vector_relational.hpp" />
+    <ClInclude Include="src\math.h" />
+    <ClInclude Include="src\renderer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\vendor\glm\detail\func_common.inl" />

@@ -17,14 +17,14 @@ class Sphere : public Shape
 {
 public:
 	Sphere(const Point3& center, float radius, std::shared_ptr<Material> material) 
-		: center(center), radius(fmax(0.0f, radius)), material(material) {}
+		: center(center), radius(std::fmax(0.0f, radius)), material(material) {}
 
 	bool Intersect(const Ray& ray, Interval ray_t, Interaction& interaction) const override
 	{
 		Vec3 oc = center - ray.origin;
-		float a = ray.direction.LengthSquared();
-		float h = Dot(ray.direction, oc);
-		float c = oc.LengthSquared() - radius * radius;
+		float a = glm::length2(ray.direction);
+		float h = glm::dot(ray.direction, oc);
+		float c = glm::length2(oc) - radius * radius;
 
 		float discriminant = h * h - a * c;
 		if (discriminant < 0.0f) return false;
