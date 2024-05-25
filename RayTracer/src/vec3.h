@@ -163,4 +163,4 @@ inline Vec3 Refract(const Vec3& incident_dir, const Vec3& normal, double eta_in_
 	return r_out_perp + r_out_parallel;
 }
 
-} /* namespace RT */
+} /* namespace rt */

@@ -27,4 +27,4 @@ public:
 //const Interval Interval::empty = Interval(+infinity, -infinity);
 //const Interval Interval::universe = Interval(-infinity, +infinity);
 
-} /* namespace RT */
+} /* namespace rt */

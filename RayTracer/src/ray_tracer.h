@@ -12,4 +12,4 @@ namespace rt {
 
 std::vector<unsigned char> RayTrace(Camera* camera, ShapesList* world);
 
-} /* namespace RT */
+} /* namespace rt */

@@ -8,4 +8,4 @@ std::vector<unsigned char> RayTrace(Camera* camera, ShapesList* world)
 	return camera->Render(*world);
 }
 
-} /* namespace RT */
+} /* namespace rt */

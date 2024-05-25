@@ -54,7 +54,7 @@ inline unsigned int RoundUpPower2(unsigned int x)
 	return x + 1;
 }
 
-} /* namespace RT */
+} /* namespace rt */
 
 /* Common Headers */
 #include "color.h"

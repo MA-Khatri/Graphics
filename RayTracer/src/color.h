@@ -7,4 +7,4 @@ namespace rt {
 
 using Color = Vec3;
 
-} /* namespace RT */
+} /* namespace rt */

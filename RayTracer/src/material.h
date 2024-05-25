@@ -102,4 +102,4 @@ private:
 	}
 };
 
-} /* namespace RT */
+} /* namespace rt */

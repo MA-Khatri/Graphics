@@ -43,4 +43,4 @@ int DumpPPM(std::vector<unsigned char> image, unsigned int width, unsigned int h
 	return 0;
 }
 
-} /* namespace RT */
+} /* namespace rt */

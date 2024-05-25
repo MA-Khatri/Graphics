@@ -10,4 +10,4 @@ std::vector<unsigned char> FlipImage(std::vector<unsigned char> image, unsigned 
 /* Saves image to PPM file */
 int DumpPPM(std::vector<unsigned char> image, unsigned int width, unsigned int height);
 
-} /* namespace RT */
+} /* namespace rt */

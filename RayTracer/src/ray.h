@@ -19,4 +19,4 @@ public:
 	Vec3 direction;
 };
 
-} /* namespace RT */
+} /* namespace rt */
