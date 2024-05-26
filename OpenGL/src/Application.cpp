@@ -161,7 +161,7 @@ int main(void)
 	camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
 
 	/* Ray tracer camera */
-	rt::Camera ray_camera;
+	rt::ThinLensCamera ray_camera;
 
 
 	/* ====== Local Variables ====== */
@@ -280,14 +280,16 @@ int main(void)
 				viewport_height = (unsigned int)wsize.y;
 
 				/* RayTracer camera setup */
-				ray_camera.decofus_angle = 2.0;
+				ray_camera.image_width = viewport_width;
+				ray_camera.image_height = viewport_height;
+				ray_camera.defocus_angle = 2.0;
 				ray_camera.focus_distance = 5.0;
 				ray_camera.vfov = camera.vfov;
 				ray_camera.origin = rt::Point3(camera.position.x, camera.position.y, camera.position.z);
-				glm::vec3 look_at = camera.position + camera.orientation;
+				rt::Vec3 look_at = camera.position + camera.orientation;
 				ray_camera.look_at = rt::Point3(look_at.x, look_at.y, look_at.z);
 				ray_camera.up = rt::Vec3(camera.up.x, camera.up.y, camera.up.z);
-				ray_camera.Initialize(viewport_width, viewport_height);
+				ray_camera.Initialize();
 
 				/* RayTracer materials */
 				auto material_default = std::make_shared<rt::Lambertian>(rt::Color(0.5, 0.5, 0.5));
@@ -304,7 +306,7 @@ int main(void)
 				world.Add(std::make_shared<rt::Sphere>(rt::Point3(1.0, -1.0, 0.0), 0.5, material_right));
 
 
-				image = rt::RayTrace(&ray_camera, &world);
+				image = rt::RayTrace(&world, &ray_camera);
 
 				ray_traced_texture->Update(&image[0], viewport_width, viewport_height);
 

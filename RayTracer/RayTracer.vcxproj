@@ -19,10 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\cameras.cpp" />
+    <ClCompile Include="src\renderer.cpp" />
     <ClCompile Include="src\vendor\glm\detail\glm.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\camera.h" />
+    <ClInclude Include="src\cameras.h" />
     <ClInclude Include="src\common.h" />
     <ClInclude Include="src\interaction.h" />
     <ClInclude Include="src\interval.h" />
@@ -548,8 +550,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLM_ENABLE_EXPERIMENTAL;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>
-      </AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src/vendor</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>

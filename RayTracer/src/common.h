@@ -56,14 +56,18 @@ inline unsigned int RoundUpPower2(unsigned int x)
 	return x + 1;
 }
 
+/* Convert the provided pixel value to be gamma corrected */
+inline float LinearToGamma(float linear_component)
+{
+	if (linear_component > 0.0f) return std::sqrt(linear_component);
+	return 0.0f;
+}
+
 } /* namespace rt */
 
 /* ====================== */
 /* === Common Headers === */
 /* ====================== */
-//#include "color.h"
-#include "ray.h"
-//#include "vec3.h"
-#include "interval.h"
-
 #include "math.h"
+#include "ray.h"
+#include "interval.h"

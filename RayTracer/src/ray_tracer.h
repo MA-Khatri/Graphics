@@ -2,7 +2,8 @@
 
 #include "common.h"
 
-#include "camera.h"
+#include "cameras.h"
+#include "renderer.h"
 #include "interaction.h"
 #include "shapes.h"
 #include "material.h"
@@ -13,10 +14,10 @@
 namespace rt 
 {
 
-std::vector<unsigned char> RayTrace(Camera* camera, ShapesList* world)
+/* Pass in the scene and render with this camera */
+std::vector<unsigned char> RayTrace(ShapesList* world, Camera* camera)
 {
-	/* Pass in the scene and render with this camera */
-	return camera->Render(*world);
+	return Render(*world, *camera);
 }
 
 } /* namespace rt */

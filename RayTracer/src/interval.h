@@ -22,10 +22,11 @@ public:
 
 public:
 	float min, max;
-	static const Interval empty, universe;
+	//static const Interval empty;
+	//static const Interval universe;
 };
 
-const Interval Interval::empty = Interval(+Inf, -Inf);
-const Interval Interval::universe = Interval(-Inf, +Inf);
+//const Interval Interval::empty = Interval(+Inf, -Inf);
+//const Interval Interval::universe = Interval(-Inf, +Inf);
 
 } /* namespace rt */

@@ -12,7 +12,8 @@ public:
 
 	Ray(const Point3& origin, const Vec3& direction) : origin(origin), direction(direction) {}
 
-	Point3 At(double t) const {
+	inline Point3 At(double t) const 
+	{
 		return origin + t * direction;
 	}
 
