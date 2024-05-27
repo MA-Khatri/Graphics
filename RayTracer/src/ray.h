@@ -9,8 +9,8 @@ class Ray
 {
 public:
 	Ray() {}
-	Ray(const Point3& origin, const Vec3& direction) : origin(origin), direction(direction), time(0) {}
-	Ray(const Point3& origin, const Vec3& direction, float time) : origin(origin), direction(direction), time(time) {}
+	Ray(const Point3& origin, const Vec3& direction) : origin(origin), direction(direction), time(0.0) {}
+	Ray(const Point3& origin, const Vec3& direction, double time) : origin(origin), direction(direction), time(time) {}
 
 
 	/* Return the position at a distance t along the ray */
@@ -22,7 +22,7 @@ public:
 public:
 	Point3 origin;
 	Vec3 direction;
-	float time;
+	double time;
 };
 
 } /* namespace rt */

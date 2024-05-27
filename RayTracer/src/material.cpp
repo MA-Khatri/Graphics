@@ -24,34 +24,34 @@ bool Metal::Scatter(const Ray& ray_in, const Interaction& interaction, Color& at
 	reflected = glm::normalize(reflected) + (roughness * RandomUnitVector());
 	ray_out = Ray(interaction.posn, reflected, ray_in.time);
 	attenuation = albedo;
-	return (glm::dot(ray_out.direction, interaction.normal) > 0.0f); /* Ignore if produced ray direction is within the object */
+	return (glm::dot(ray_out.direction, interaction.normal) > 0.0); /* Ignore if produced ray direction is within the object */
 }
 
 bool Dielectric::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
 {
-	attenuation = Color(1.0f, 1.0f, 1.0f);
-	float eta_in_over_out = eta_in / eta_out;
-	float refraction_index = interaction.front_face ? (1.0f / eta_in_over_out) : eta_in_over_out;
+	attenuation = Color(1.0, 1.0, 1.0);
+	double eta_in_over_out = eta_in / eta_out;
+	double refraction_index = interaction.front_face ? (1.0 / eta_in_over_out) : eta_in_over_out;
 
 	Vec3 unit_direction = glm::normalize(ray_in.direction);
-	float cos_theta = std::fmin(glm::dot(-unit_direction, interaction.normal), 1.0f);
-	float sin_theta = std::sqrt(1.0f - cos_theta * cos_theta);
+	double cos_theta = std::fmin(glm::dot(-unit_direction, interaction.normal), 1.0);
+	double sin_theta = std::sqrt(1.0 - cos_theta * cos_theta);
 
-	bool cannot_refract = refraction_index * sin_theta > 1.0f;
+	bool cannot_refract = refraction_index * sin_theta > 1.0;
 	Vec3 direction;
 
-	if (cannot_refract || Reflectance(cos_theta, refraction_index) > RandomFloat()) direction = Reflect(unit_direction, interaction.normal);
+	if (cannot_refract || Reflectance(cos_theta, refraction_index) > RandomDouble()) direction = Reflect(unit_direction, interaction.normal);
 	else direction = Refract(unit_direction, interaction.normal, refraction_index);
 
 	ray_out = Ray(interaction.posn, direction, ray_in.time);
 	return true;
 }
 
-float Dielectric::Reflectance(float cosine, float refraction_index)
+double Dielectric::Reflectance(double cosine, double refraction_index)
 {
-	float r0 = (1.0f - refraction_index) / (1.0f + refraction_index);
+	double r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
 	r0 = r0 * r0;
-	return r0 + (1.0f - r0) * std::pow((1.0f - cosine), 5.0f);
+	return r0 + (1.0 - r0) * std::pow((1.0 - cosine), 5.0);
 }
 
 }

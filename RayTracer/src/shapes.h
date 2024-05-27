@@ -16,11 +16,11 @@ public:
 class Sphere : public Shape
 {
 public:
-	Sphere(const Point3& center, float radius, std::shared_ptr<Material> material) 
-		: center(center), radius(std::fmax(0.0f, radius)), material(material), is_moving(false) {}
+	Sphere(const Point3& center, double radius, std::shared_ptr<Material> material) 
+		: center(center), radius(std::fmax(0.0, radius)), material(material), is_moving(false) {}
 
-	Sphere(const Point3& start, const Point3& stop, float radius, std::shared_ptr<Material> material)
-		: center(start), radius(std::fmax(0.0f, radius)), material(material), is_moving(true) 
+	Sphere(const Point3& start, const Point3& stop, double radius, std::shared_ptr<Material> material)
+		: center(start), radius(std::fmax(0.0, radius)), material(material), is_moving(true) 
 	{
 		motion_vector = stop - start;
 	}
@@ -29,17 +29,17 @@ public:
 	{
 		Point3 current_center = is_moving ? SphereCenter(ray.time) : center;
 		Vec3 oc = current_center - ray.origin;
-		float a = glm::length2(ray.direction);
-		float h = glm::dot(ray.direction, oc);
-		float c = glm::length2(oc) - radius * radius;
+		double a = glm::length2(ray.direction);
+		double h = glm::dot(ray.direction, oc);
+		double c = glm::length2(oc) - radius * radius;
 
-		float discriminant = h * h - a * c;
-		if (discriminant < 0.0f) return false;
+		double discriminant = h * h - a * c;
+		if (discriminant < 0.0) return false;
 
-		float sqrtd = std::sqrt(discriminant);
+		double sqrtd = std::sqrt(discriminant);
 
 		/* Find the nearest root that lies in the acceptable range */
-		float root = (h - sqrtd) / a;
+		double root = (h - sqrtd) / a;
 		if (!ray_t.Surrounds(root))
 		{
 			root = (h + sqrtd) / a;
@@ -57,13 +57,13 @@ public:
 
 private:
 	Point3 center;
-	float radius;
+	double radius;
 	std::shared_ptr<Material> material;
 	bool is_moving;
 	Vec3 motion_vector; /* The vector along which the sphere will move */
 
 	/* Return the center of the sphere at time t */
-	Point3 SphereCenter(float time) const
+	Point3 SphereCenter(double time) const
 	{
 		/* Linearly interpolate between the sphere center and the end of the motion_vector */
 		return center + time * motion_vector;
@@ -90,7 +90,7 @@ public:
 	{
 		Interaction tempInteract;
 		bool hitAnything = false;
-		float closestSoFar = ray_t.max;
+		double closestSoFar = ray_t.max;
 
 		for (const auto& shape : shapes)
 		{

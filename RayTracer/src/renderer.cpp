@@ -43,10 +43,10 @@ std::vector<unsigned char> Render(const Shape& world, Camera& camera)
 Color TraceRay(const Ray& ray_in, int depth, const Shape& world)
 {
 	/* If we exceed the ray bounce limit, no more light is gathered */
-	if (depth <= 0) return Color(0.0f, 0.0f, 0.0f);
+	if (depth <= 0) return Color(0.0, 0.0, 0.0);
 
 	Interaction interaction;
-	if (world.Intersect(ray_in, Interval(1e-4f, Inf), interaction)) /* Note the interval is to handle shadow acne */
+	if (world.Intersect(ray_in, Interval(Eps, Inf), interaction)) /* Note the interval is to handle shadow acne */
 	{
 		Ray ray_out;
 		Color attenuation;
@@ -54,13 +54,13 @@ Color TraceRay(const Ray& ray_in, int depth, const Shape& world)
 		{
 			return attenuation * TraceRay(ray_out, depth - 1, world);
 		}
-		return Color(0.0f, 0.0f, 0.0f);
+		return Color(0.0, 0.0, 0.0);
 	}
 
 	/* Default sky background */
 	Vec3 unit_direction = glm::normalize(ray_in.direction);
-	float a = 0.5f * (unit_direction.y + 1.0f);
-	return (1.0f - a) * Color(1.0f, 1.0f, 1.0f) + a * Color(0.5f, 0.7f, 1.0f);
+	double a = 0.5 * (unit_direction.y + 1.0);
+	return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
 }
 
 void PixelColor(std::vector<unsigned char>& rendered_image, unsigned int i, unsigned int j, const Shape& world, Camera& camera)
@@ -73,14 +73,14 @@ void PixelColor(std::vector<unsigned char>& rendered_image, unsigned int i, unsi
 
 	/* Trace ray and determine new color */
 	Color pixel_color = TraceRay(ray, camera.max_depth, world);
-	float r = pixel_color.r;
-	float g = pixel_color.g;
-	float b = pixel_color.b;
+	double r = pixel_color.r;
+	double g = pixel_color.g;
+	double b = pixel_color.b;
 
 	/* Extract accumulated color */
-	float cr = camera.image_accumulator[pixel + 0];
-	float cg = camera.image_accumulator[pixel + 1];
-	float cb = camera.image_accumulator[pixel + 2];
+	double cr = camera.image_accumulator[pixel + 0];
+	double cg = camera.image_accumulator[pixel + 1];
+	double cb = camera.image_accumulator[pixel + 2];
 
 	/* Determine the new accumulated color */
 	r = (r + camera.current_samples * cr) / (camera.current_samples + 1);
@@ -93,7 +93,7 @@ void PixelColor(std::vector<unsigned char>& rendered_image, unsigned int i, unsi
 	camera.image_accumulator[pixel + 2] = b;
 
 	/* Clamp the color from 0-255 and set the pixel values to return */
-	static const Interval intensity(0.000f, 0.999f);
+	static const Interval intensity(0.000, 0.999);
 	rendered_image[pixel + 0] = (unsigned char)(256 * intensity.Clamp(camera.gamma_correct ? LinearToGamma(r) : r));
 	rendered_image[pixel + 1] = (unsigned char)(256 * intensity.Clamp(camera.gamma_correct ? LinearToGamma(g) : g));
 	rendered_image[pixel + 2] = (unsigned char)(256 * intensity.Clamp(camera.gamma_correct ? LinearToGamma(b) : b));

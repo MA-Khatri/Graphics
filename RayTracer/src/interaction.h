@@ -15,7 +15,7 @@ class Interaction
 public:
 	Point3 posn;
 	Vec3 normal;
-	float t = 0.0f;
+	double t = 0.0;
 	std::shared_ptr<Material> material;
 	bool front_face = false;
 
@@ -26,7 +26,7 @@ public:
 		/* Sets the interaction normal vector */
 		/* Note: the parameter `outward_normal` is assumed to have unit length */
 
-		front_face = glm::dot(ray.direction, outward_normal) < 0.0f;
+		front_face = glm::dot(ray.direction, outward_normal) < 0.0;
 		normal = front_face ? outward_normal : -outward_normal;
 	}
 

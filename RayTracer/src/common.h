@@ -13,9 +13,9 @@ namespace rt
 /* === Constants === */
 /* ================= */
 
-const float Inf = std::numeric_limits<float>::infinity();
-const float Pi = 3.1415926535897932385f;
-const float Eps = 1e-8f;
+const double Inf = std::numeric_limits<double>::infinity();
+const double Pi = 3.1415926535897932385;
+const double Eps = 1e-8;
 
 
 /* ========================= */
@@ -23,23 +23,23 @@ const float Eps = 1e-8f;
 /* ========================= */
 
 /* Converts degrees to radians */
-inline float DegreesToRadians(float degrees)
+inline double DegreesToRadians(double degrees)
 {
-	return degrees * Pi / 180.0f;
+	return degrees * Pi / 180.0;
 }
 
-/* Returns a random real (float) in [0, 1) */
-inline float RandomFloat()
+/* Returns a random real (double) in [0, 1) */
+inline double RandomDouble()
 {
-	static std::uniform_real_distribution<float> distribution(0.0f, 1.0f);
+	static std::uniform_real_distribution<double> distribution(0.0, 1.0);
 	thread_local static std::mt19937_64 generator;
 	return distribution(generator);
 }
 
-/* Returns a random real (float) in [min, max) */
-inline float RandomFloat(float min, float max)
+/* Returns a random real (double) in [min, max) */
+inline double RandomDouble(double min, double max)
 {
-	static std::uniform_real_distribution<float> distribution(min, max);
+	static std::uniform_real_distribution<double> distribution(min, max);
 	thread_local static std::mt19937_64 generator;
 	return distribution(generator);
 }
@@ -57,10 +57,10 @@ inline unsigned int RoundUpPower2(unsigned int x)
 }
 
 /* Convert the provided pixel value to be gamma corrected */
-inline float LinearToGamma(float linear_component)
+inline double LinearToGamma(double linear_component)
 {
-	if (linear_component > 0.0f) return std::sqrt(linear_component);
-	return 0.0f;
+	if (linear_component > 0.0) return std::sqrt(linear_component);
+	return 0.0;
 }
 
 } /* namespace rt */
