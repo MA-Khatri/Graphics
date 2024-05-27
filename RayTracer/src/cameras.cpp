@@ -12,7 +12,7 @@ Ray PerspectiveCamera::GenerateRay(unsigned int i, unsigned int j)
 	Vec3 pixel_sample = pixel00_loc + (((float)i + offset.x) * pixel_delta_u) + (((float)j + offset.y) * pixel_delta_v);
 	Vec3 direction = pixel_sample - origin;
 
-	return Ray(origin, direction);
+	return Ray(origin, direction, simulate_time ? RandomFloat() : 0.0f);
 }
 
 void PerspectiveCamera::Initialize()
@@ -80,7 +80,7 @@ Ray ThinLensCamera::GenerateRay(unsigned int i, unsigned int j)
 	Vec3 ray_origin = (defocus_angle <= 0.0f) ? origin : DefocusDiskSample();
 	Vec3 direction = pixel_sample - ray_origin;
 
-	return Ray(ray_origin, direction);
+	return Ray(ray_origin, direction, simulate_time ? RandomFloat() : 0.0f);
 }
 
 Point3 ThinLensCamera::DefocusDiskSample()

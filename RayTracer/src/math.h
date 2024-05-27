@@ -23,20 +23,22 @@ using Vec4 = glm::vec4;
 using Mat4 = glm::mat4;
 
 
-/* ================== */
-/* === Vec3 Utils === */
-/* ================== */
+/* ============= */
+/* === Utils === */
+/* ============= */
 
-/* Returns true if all element-wise components of provided Vec3s are equal */
-inline bool Equal(Vec3 u, Vec3 v)
+/* Returns true if all element-wise components of provided VecXs are equal */
+template <typename T>
+inline bool Equal(T u, T v)
 {
 	return glm::all(glm::equal(u, v));
 }
 
-/* Returns true if all components of Vec3 are close to 0 */
-inline bool NearZero(Vec3 v)
+/* Returns true if all components of VecX are close to 0 */
+template <typename T>
+inline bool NearZero(T v)
 {
-	return glm::all(glm::epsilonEqual(v, Vec3(0.0f), Eps));
+	return glm::all(glm::epsilonEqual(v, T(0.0f), Eps));
 }
 
 /* Generates a Vec3 with all components between 0.0f and 1.0f */

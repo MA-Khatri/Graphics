@@ -283,8 +283,8 @@ int main(void)
 				/* RayTracer camera setup */
 				ray_camera.image_width = viewport_width;
 				ray_camera.image_height = viewport_height;
-				//ray_camera.defocus_angle = 2.0;
-				//ray_camera.focus_distance = 5.0;
+				//ray_camera.defocus_angle = 2.0f;
+				//ray_camera.focus_distance = 5.0f;
 				ray_camera.vfov = camera.vfov;
 				ray_camera.origin = rt::Point3(camera.position.x, camera.position.y, camera.position.z);
 				rt::Vec3 look_at = camera.position + camera.orientation;
@@ -293,18 +293,18 @@ int main(void)
 				ray_camera.Initialize();
 
 				/* RayTracer materials */
-				auto material_default = std::make_shared<rt::Lambertian>(rt::Color(0.5, 0.5, 0.5));
-				auto material_ground = std::make_shared<rt::Lambertian>(rt::Color(0.8, 0.8, 0.0));
-				auto material_left = std::make_shared<rt::Lambertian>(rt::Color(0.1, 0.2, 0.5));
-				auto material_center = std::make_shared<rt::Dielectric>(1.5);
-				auto material_right = std::make_shared<rt::Metal>(rt::Color(0.8, 0.6, 0.2), 0.01);
+				auto material_default = std::make_shared<rt::Lambertian>(rt::Color(0.5f, 0.5f, 0.5f));
+				auto material_ground = std::make_shared<rt::Lambertian>(rt::Color(0.8f, 0.8f, 0.0f));
+				auto material_left = std::make_shared<rt::Lambertian>(rt::Color(0.1f, 0.2f, 0.5f));
+				auto material_center = std::make_shared<rt::Dielectric>(1.5f);
+				auto material_right = std::make_shared<rt::Metal>(rt::Color(0.8f, 0.6f, 0.2f), 0.05f);
 
 				/* RayTracer scene */
 				rt::ShapesList world;
-				world.Add(std::make_shared<rt::Sphere>(rt::Point3(0.0, 0.0, -100.5), 100.0, material_ground));
-				world.Add(std::make_shared<rt::Sphere>(rt::Point3(0.0, -1.0, 0.0), 0.5, material_center));
-				world.Add(std::make_shared<rt::Sphere>(rt::Point3(-1.0, -1.0, 0.0), 0.5, material_left));
-				world.Add(std::make_shared<rt::Sphere>(rt::Point3(1.0, -1.0, 0.0), 0.5, material_right));
+				world.Add(std::make_shared<rt::Sphere>(rt::Point3(0.0f, 0.0f, -1000.5f), 1000.0f, material_default));
+				world.Add(std::make_shared<rt::Sphere>(rt::Point3(-1.0f, -1.0f, 0.0f), rt::Point3(-1.0f, -1.0f, 0.5f), 0.5f, material_left));
+				world.Add(std::make_shared<rt::Sphere>(rt::Point3(0.0f, -1.0f, 0.0f), 0.5f, material_center));
+				world.Add(std::make_shared<rt::Sphere>(rt::Point3(1.0f, -1.0f, 0.0f), 0.5f, material_right));
 
 
 				image = rt::RayTrace(&world, &ray_camera);

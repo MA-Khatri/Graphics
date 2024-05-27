@@ -46,7 +46,7 @@ Color TraceRay(const Ray& ray_in, int depth, const Shape& world)
 	if (depth <= 0) return Color(0.0f, 0.0f, 0.0f);
 
 	Interaction interaction;
-	if (world.Intersect(ray_in, Interval(1e-4, Inf), interaction))
+	if (world.Intersect(ray_in, Interval(1e-4f, Inf), interaction)) /* Note the interval is to handle shadow acne */
 	{
 		Ray ray_out;
 		Color attenuation;

@@ -28,6 +28,9 @@ public:
 	int max_depth = 10; /* Maximum number of bounces per ray */
 	unsigned int current_samples = 0; /* Used to determine previous sample contributions to the accumulated image */
 	std::vector<float> image_accumulator; /* Stores results from all previous samples used for accumulation */
+	bool simulate_time = false; /* Determines if camera has a "shutter speed" to simulate effects like motion blur.
+								   Note: Timescale for the cameras is always defined within 0-1; it is up to the user
+								   to decide how much/where objects move within that time frame. */
 
 	/* Post-process params */
 	bool gamma_correct = false; /* OpenGL gamma corrects for us so this is optional */
