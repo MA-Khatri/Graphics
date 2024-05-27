@@ -61,10 +61,10 @@ protected:
 };
 
 
-//class OrthographicCamera : public ProjectiveCamera
-//{
-//
-//};
+class OrthographicCamera : public ProjectiveCamera
+{
+
+};
 
 
 class PerspectiveCamera : public ProjectiveCamera
@@ -106,15 +106,15 @@ private:
 };
 
 
-//class RealisticCamera : public Camera
-//{
-//
-//};
-//
-//
-//class EnvironmentCamera : public Camera
-//{
-//
-//};
+class RealisticCamera : public Camera
+{
+
+};
+
+
+class EnvironmentCamera : public Camera
+{
+
+};
 
 }

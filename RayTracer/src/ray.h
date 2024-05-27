@@ -12,6 +12,7 @@ public:
 
 	Ray(const Point3& origin, const Vec3& direction) : origin(origin), direction(direction) {}
 
+	/* Return the position at a distance t along the ray */
 	inline Point3 At(double t) const 
 	{
 		return origin + t * direction;

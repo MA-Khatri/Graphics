@@ -161,7 +161,8 @@ int main(void)
 	camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
 
 	/* Ray tracer camera */
-	rt::ThinLensCamera ray_camera;
+	//rt::ThinLensCamera ray_camera;
+	rt::PerspectiveCamera ray_camera;
 
 
 	/* ====== Local Variables ====== */
@@ -282,8 +283,8 @@ int main(void)
 				/* RayTracer camera setup */
 				ray_camera.image_width = viewport_width;
 				ray_camera.image_height = viewport_height;
-				ray_camera.defocus_angle = 2.0;
-				ray_camera.focus_distance = 5.0;
+				//ray_camera.defocus_angle = 2.0;
+				//ray_camera.focus_distance = 5.0;
 				ray_camera.vfov = camera.vfov;
 				ray_camera.origin = rt::Point3(camera.position.x, camera.position.y, camera.position.z);
 				rt::Vec3 look_at = camera.position + camera.orientation;
@@ -294,9 +295,9 @@ int main(void)
 				/* RayTracer materials */
 				auto material_default = std::make_shared<rt::Lambertian>(rt::Color(0.5, 0.5, 0.5));
 				auto material_ground = std::make_shared<rt::Lambertian>(rt::Color(0.8, 0.8, 0.0));
-				auto material_center = std::make_shared<rt::Lambertian>(rt::Color(0.1, 0.2, 0.5));
-				auto material_left = std::make_shared<rt::Dielectric>(1.5);
-				auto material_right = std::make_shared<rt::Metal>(rt::Color(0.8, 0.6, 0.2), 1.0);
+				auto material_left = std::make_shared<rt::Lambertian>(rt::Color(0.1, 0.2, 0.5));
+				auto material_center = std::make_shared<rt::Dielectric>(1.5);
+				auto material_right = std::make_shared<rt::Metal>(rt::Color(0.8, 0.6, 0.2), 0.01);
 
 				/* RayTracer scene */
 				rt::ShapesList world;
