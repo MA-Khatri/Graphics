@@ -1,31 +1,44 @@
 #pragma once
 
 #include "interaction.h"
+#include "aabb.h"
 
 namespace rt 
 {
 
-class Shape
+class Hittable
 {
 public:
-	virtual ~Shape() = default;
+	virtual ~Hittable() = default;
 
-	virtual bool Intersect(const Ray& ray, Interval ray_t, Interaction& interaction) const = 0;
+	virtual bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const = 0;
+
+	virtual AABB BoundingBox() const = 0;
 };
 
-class Sphere : public Shape
+class Sphere : public Hittable
 {
 public:
 	Sphere(const Point3& center, double radius, std::shared_ptr<Material> material) 
-		: center(center), radius(std::fmax(0.0, radius)), material(material), is_moving(false) {}
+		: center(center), radius(std::fmax(0.0, radius)), material(material), is_moving(false) 
+	{
+		auto rvec = Vec3(radius);
+		bounding_box = AABB(center - rvec, center + rvec);
+	}
 
 	Sphere(const Point3& start, const Point3& stop, double radius, std::shared_ptr<Material> material)
 		: center(start), radius(std::fmax(0.0, radius)), material(material), is_moving(true) 
 	{
 		motion_vector = stop - start;
+		
+		/* The bounding box for a moving sphere encapsulates the whole area which it can be in */
+		auto rvec = Vec3(radius);
+		AABB box1(start - rvec, start + rvec);
+		AABB box2(stop - rvec, stop + rvec);
+		bounding_box = AABB(box1, box2);
 	}
 
-	bool Intersect(const Ray& ray, Interval ray_t, Interaction& interaction) const override
+	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override
 	{
 		Point3 current_center = is_moving ? SphereCenter(ray.time) : center;
 		Vec3 oc = current_center - ray.origin;
@@ -55,12 +68,15 @@ public:
 		return true;
 	}
 
+	AABB BoundingBox() const override { return bounding_box; }
+
 private:
 	Point3 center;
 	double radius;
 	std::shared_ptr<Material> material;
 	bool is_moving;
 	Vec3 motion_vector; /* The vector along which the sphere will move */
+	AABB bounding_box;
 
 	/* Return the center of the sphere at time t */
 	Point3 SphereCenter(double time) const
@@ -71,30 +87,31 @@ private:
 };
 
 
-class ShapesList : public Shape
+class HittableList : public Hittable
 {
 public:
-	std::vector<std::shared_ptr<Shape>> shapes;
+	std::vector<std::shared_ptr<Hittable>> objects;
 
-	ShapesList() {};
-	ShapesList(std::shared_ptr<Shape> shape) { Add(shape); };
+	HittableList() {};
+	HittableList(std::shared_ptr<Hittable> hittable) { Add(hittable); };
 
-	void Clear() { shapes.clear(); };
+	void Clear() { objects.clear(); };
 
-	void Add(std::shared_ptr<Shape> shape)
+	void Add(std::shared_ptr<Hittable> hittable)
 	{
-		shapes.push_back(shape);
+		objects.push_back(hittable);
+		bounding_box = AABB(bounding_box, hittable->BoundingBox());
 	}
 
-	bool Intersect(const Ray& ray, Interval ray_t, Interaction& interaction) const override
+	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override
 	{
 		Interaction tempInteract;
 		bool hitAnything = false;
 		double closestSoFar = ray_t.max;
 
-		for (const auto& shape : shapes)
+		for (const auto& hittable : objects)
 		{
-			if (shape->Intersect(ray, Interval(ray_t.min, closestSoFar), tempInteract))
+			if (hittable->Hit(ray, Interval(ray_t.min, closestSoFar), tempInteract))
 			{
 				hitAnything = true;
 				closestSoFar = tempInteract.t;
@@ -104,6 +121,11 @@ public:
 
 		return hitAnything;
 	}
+
+	AABB BoundingBox() const override { return bounding_box; }
+
+private:
+	AABB bounding_box;
 
 };
 

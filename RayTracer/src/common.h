@@ -44,6 +44,12 @@ inline double RandomDouble(double min, double max)
 	return distribution(generator);
 }
 
+/* Returns a random integer in [min, max] */
+inline int RandomInt(int min, int max)
+{
+	return int(RandomDouble(min, max + 1));
+}
+
 /* Returns the next power of two that is greater than or equal to x */
 inline unsigned int RoundUpPower2(unsigned int x)
 {

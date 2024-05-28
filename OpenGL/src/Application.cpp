@@ -160,10 +160,24 @@ int main(void)
 	*/
 	camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
 
-	/* Ray tracer camera */
+	/* ====== Ray tracer setup ====== */
 	//rt::ThinLensCamera ray_camera;
 	rt::PerspectiveCamera ray_camera;
 
+	/* RayTracer materials */
+	auto material_default = std::make_shared<rt::Lambertian>(rt::Color(0.5f, 0.5f, 0.5f));
+	auto material_ground = std::make_shared<rt::Lambertian>(rt::Color(0.8f, 0.8f, 0.0f));
+	auto material_left = std::make_shared<rt::Lambertian>(rt::Color(0.1f, 0.2f, 0.5f));
+	auto material_center = std::make_shared<rt::Dielectric>(1.5f);
+	auto material_right = std::make_shared<rt::Metal>(rt::Color(0.8f, 0.6f, 0.2f), 0.05f);
+
+	/* RayTracer scene */
+	rt::HittableList world;
+	world.Add(std::make_shared<rt::Sphere>(rt::Point3(0.0f, 0.0f, -1000.5f), 1000.0f, material_default));
+	world.Add(std::make_shared<rt::Sphere>(rt::Point3(-1.0f, -1.0f, 0.0f), rt::Point3(-1.0f, -1.0f, 0.2f), 0.5f, material_left));
+	world.Add(std::make_shared<rt::Sphere>(rt::Point3(0.0f, -1.0f, 0.0f), 0.5f, material_center));
+	world.Add(std::make_shared<rt::Sphere>(rt::Point3(1.0f, -1.0f, 0.0f), 0.5f, material_right));
+	world = rt::HittableList(std::make_shared<rt::BVH_Node>(world)); /* Construct the BVH */
 
 	/* ====== Local Variables ====== */
 	unsigned char r = 0;
@@ -281,6 +295,7 @@ int main(void)
 				viewport_height = (unsigned int)wsize.y;
 
 				/* RayTracer camera setup */
+				ray_camera.simulate_time = true;
 				ray_camera.image_width = viewport_width;
 				ray_camera.image_height = viewport_height;
 				//ray_camera.defocus_angle = 2.0f;
@@ -291,21 +306,6 @@ int main(void)
 				ray_camera.look_at = rt::Point3(look_at.x, look_at.y, look_at.z);
 				ray_camera.up = rt::Vec3(camera.up.x, camera.up.y, camera.up.z);
 				ray_camera.Initialize();
-
-				/* RayTracer materials */
-				auto material_default = std::make_shared<rt::Lambertian>(rt::Color(0.5f, 0.5f, 0.5f));
-				auto material_ground = std::make_shared<rt::Lambertian>(rt::Color(0.8f, 0.8f, 0.0f));
-				auto material_left = std::make_shared<rt::Lambertian>(rt::Color(0.1f, 0.2f, 0.5f));
-				auto material_center = std::make_shared<rt::Dielectric>(1.5f);
-				auto material_right = std::make_shared<rt::Metal>(rt::Color(0.8f, 0.6f, 0.2f), 0.05f);
-
-				/* RayTracer scene */
-				rt::ShapesList world;
-				world.Add(std::make_shared<rt::Sphere>(rt::Point3(0.0f, 0.0f, -1000.5f), 1000.0f, material_default));
-				world.Add(std::make_shared<rt::Sphere>(rt::Point3(-1.0f, -1.0f, 0.0f), rt::Point3(-1.0f, -1.0f, 0.5f), 0.5f, material_left));
-				world.Add(std::make_shared<rt::Sphere>(rt::Point3(0.0f, -1.0f, 0.0f), 0.5f, material_center));
-				world.Add(std::make_shared<rt::Sphere>(rt::Point3(1.0f, -1.0f, 0.0f), 0.5f, material_right));
-
 
 				image = rt::RayTrace(&world, &ray_camera);
 

@@ -3,7 +3,7 @@
 
 namespace rt
 {
-std::vector<unsigned char> Render(const Shape& world, Camera& camera)
+std::vector<unsigned char> Render(const Hittable& world, Camera& camera)
 {
 	auto rendered_image = std::vector<unsigned char>(camera.image_width * camera.image_height * 3);
 
@@ -40,13 +40,13 @@ std::vector<unsigned char> Render(const Shape& world, Camera& camera)
 }
 
 
-Color TraceRay(const Ray& ray_in, int depth, const Shape& world)
+Color TraceRay(const Ray& ray_in, int depth, const Hittable& world)
 {
 	/* If we exceed the ray bounce limit, no more light is gathered */
 	if (depth <= 0) return Color(0.0, 0.0, 0.0);
 
 	Interaction interaction;
-	if (world.Intersect(ray_in, Interval(Eps, Inf), interaction)) /* Note the interval is to handle shadow acne */
+	if (world.Hit(ray_in, Interval(Eps, Inf), interaction)) /* Note the interval is to handle shadow acne */
 	{
 		Ray ray_out;
 		Color attenuation;
@@ -63,7 +63,7 @@ Color TraceRay(const Ray& ray_in, int depth, const Shape& world)
 	return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
 }
 
-void PixelColor(std::vector<unsigned char>& rendered_image, unsigned int i, unsigned int j, const Shape& world, Camera& camera)
+void PixelColor(std::vector<unsigned char>& rendered_image, unsigned int i, unsigned int j, const Hittable& world, Camera& camera)
 {
 	/* Determine the index to start of this pixel */
 	unsigned int pixel = 3 * (j * camera.image_width + i);

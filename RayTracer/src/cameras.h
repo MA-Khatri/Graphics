@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.h"
-#include "shapes.h"
+#include "hittable.h"
 #include "material.h"
 
 namespace rt

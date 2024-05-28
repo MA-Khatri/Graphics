@@ -12,7 +12,7 @@
     <ClInclude Include="src\ray_tracer.h" />
     <ClInclude Include="src\utils.h" />
     <ClInclude Include="src\interaction.h" />
-    <ClInclude Include="src\shapes.h" />
+    <ClInclude Include="src\hittable.h" />
     <ClInclude Include="src\interval.h" />
     <ClInclude Include="src\material.h" />
     <ClInclude Include="src\external\glm\detail\_features.hpp" />
@@ -306,6 +306,8 @@
     <ClInclude Include="src\math.h" />
     <ClInclude Include="src\renderer.h" />
     <ClInclude Include="src\cameras.h" />
+    <ClInclude Include="src\aabb.h" />
+    <ClInclude Include="src\bvh.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\external\glm\detail\func_common.inl" />
