@@ -161,8 +161,8 @@ int main(void)
 	camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
 
 	/* ====== Ray tracer setup ====== */
-	//rt::ThinLensCamera ray_camera;
-	rt::PerspectiveCamera ray_camera;
+	rt::ThinLensCamera ray_camera;
+	//rt::PerspectiveCamera ray_camera;
 
 	rt::HittableList world = rt::GenerateScene(1);
 
@@ -291,9 +291,9 @@ int main(void)
 				ray_camera.look_at = rt::Point3(look_at.x, look_at.y, look_at.z);
 				ray_camera.up = rt::Vec3(camera.up.x, camera.up.y, camera.up.z);
 
-				///* Specific to thin lens setup */
-				//ray_camera.defocus_angle = 2.0f;
-				//ray_camera.focus_distance = 5.0f;
+				/* Specific to thin lens setup */
+				ray_camera.defocus_angle = 1.0f; /* Aperture size -- affects how much out of focus things are blurred */
+				ray_camera.focus_distance = 11.0f; /* Distance to plane of perfect focus */
 
 				ray_camera.Initialize();
 

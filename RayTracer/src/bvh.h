@@ -23,7 +23,7 @@ public:
 	BVH_Node(std::vector<std::shared_ptr<Hittable>>& objects, size_t start, size_t end)
 	{
 		/* Build a bounding box that spans all the source objects */
-		bounding_box = AABB();
+		bounding_box = AABB(/*Interval(+Inf, -Inf), Interval(+Inf, -Inf), Interval(+Inf, -Inf)*/);
 		for (size_t object_index = start; object_index < end; object_index++)
 		{
 			bounding_box = AABB(bounding_box, objects[object_index]->BoundingBox());
@@ -65,7 +65,7 @@ public:
 		if (!bounding_box.Hit(ray, ray_t)) return false;
 
 		bool hit_left = left->Hit(ray, ray_t, interaction);
-		bool hit_right = right->Hit(ray, ray_t, interaction);
+		bool hit_right = right->Hit(ray, Interval(ray_t.min, hit_left ? interaction.t : ray_t.max), interaction);
 
 		return hit_left || hit_right;
 	}
