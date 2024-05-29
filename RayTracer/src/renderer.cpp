@@ -7,8 +7,8 @@ std::vector<unsigned char> Render(const Hittable& world, Camera& camera)
 {
 	auto rendered_image = std::vector<unsigned char>(camera.image_width * camera.image_height * 3);
 
-#define MULTI true
-#if MULTI
+#define MULTI_THREADED true
+#if MULTI_THREADED
 	/* Set up iterators for std::foreach */
 	auto horizontal_iter = std::vector<unsigned int>(camera.image_width);
 	auto vertical_iter = std::vector<unsigned int>(camera.image_height);
@@ -60,7 +60,7 @@ Color TraceRay(const Ray& ray_in, int depth, const Hittable& world)
 	/* Default sky background */
 	Vec3 unit_direction = glm::normalize(ray_in.direction);
 	double a = 0.5 * (unit_direction.y + 1.0);
-	return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
+	return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0); /* Interpolate between white and sky-blue */
 }
 
 void PixelColor(std::vector<unsigned char>& rendered_image, unsigned int i, unsigned int j, const Hittable& world, Camera& camera)

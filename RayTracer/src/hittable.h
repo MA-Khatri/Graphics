@@ -105,21 +105,21 @@ public:
 
 	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override
 	{
-		Interaction tempInteract;
-		bool hitAnything = false;
-		double closestSoFar = ray_t.max;
+		Interaction temp_interact;
+		bool hit_anything = false;
+		double closest_so_far = ray_t.max;
 
 		for (const auto& hittable : objects)
 		{
-			if (hittable->Hit(ray, Interval(ray_t.min, closestSoFar), tempInteract))
+			if (hittable->Hit(ray, Interval(ray_t.min, closest_so_far), temp_interact))
 			{
-				hitAnything = true;
-				closestSoFar = tempInteract.t;
-				interaction = tempInteract;
+				hit_anything = true;
+				closest_so_far = temp_interact.t;
+				interaction = temp_interact;
 			}
 		}
 
-		return hitAnything;
+		return hit_anything;
 	}
 
 	AABB BoundingBox() const override { return bounding_box; }

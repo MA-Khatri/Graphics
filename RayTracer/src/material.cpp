@@ -4,6 +4,7 @@
 namespace rt
 {
 
+/* ====== Lambertian ====== */
 bool Lambertian::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
 {
 	Vec3 scatter_direction = interaction.normal + RandomUnitVector();
@@ -16,8 +17,7 @@ bool Lambertian::Scatter(const Ray& ray_in, const Interaction& interaction, Colo
 	return true;
 }
 
-
-
+/* ====== Metal ====== */
 bool Metal::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
 {
 	Vec3 reflected = Reflect(ray_in.direction, interaction.normal);
@@ -27,6 +27,7 @@ bool Metal::Scatter(const Ray& ray_in, const Interaction& interaction, Color& at
 	return (glm::dot(ray_out.direction, interaction.normal) > 0.0); /* Ignore if produced ray direction is within the object */
 }
 
+/* ====== Dielectric ====== */
 bool Dielectric::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
 {
 	attenuation = Color(1.0, 1.0, 1.0);

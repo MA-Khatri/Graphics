@@ -150,7 +150,7 @@ int main(void)
 
 
 	/* ====== Camera ====== */
-	Camera camera(viewport_width, viewport_height, glm::vec3(7.0f, 0.0f, 2.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	Camera camera(viewport_width, viewport_height, glm::vec3(10.0f, -3.0f, 2.0f), glm::normalize(glm::vec3(-0.95f, 0.2f, -0.1f)), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	/* 
 		Initialize camera matrix. 
@@ -164,20 +164,7 @@ int main(void)
 	//rt::ThinLensCamera ray_camera;
 	rt::PerspectiveCamera ray_camera;
 
-	/* RayTracer materials */
-	auto material_default = std::make_shared<rt::Lambertian>(rt::Color(0.5f, 0.5f, 0.5f));
-	auto material_ground = std::make_shared<rt::Lambertian>(rt::Color(0.8f, 0.8f, 0.0f));
-	auto material_left = std::make_shared<rt::Lambertian>(rt::Color(0.1f, 0.2f, 0.5f));
-	auto material_center = std::make_shared<rt::Dielectric>(1.5f);
-	auto material_right = std::make_shared<rt::Metal>(rt::Color(0.8f, 0.6f, 0.2f), 0.05f);
-
-	/* RayTracer scene */
-	rt::HittableList world;
-	world.Add(std::make_shared<rt::Sphere>(rt::Point3(0.0f, 0.0f, -1000.5f), 1000.0f, material_default));
-	world.Add(std::make_shared<rt::Sphere>(rt::Point3(-1.0f, -1.0f, 0.0f), rt::Point3(-1.0f, -1.0f, 0.2f), 0.5f, material_left));
-	world.Add(std::make_shared<rt::Sphere>(rt::Point3(0.0f, -1.0f, 0.0f), 0.5f, material_center));
-	world.Add(std::make_shared<rt::Sphere>(rt::Point3(1.0f, -1.0f, 0.0f), 0.5f, material_right));
-	world = rt::HittableList(std::make_shared<rt::BVH_Node>(world)); /* Construct the BVH */
+	rt::HittableList world = rt::GenerateScene(1);
 
 	/* ====== Local Variables ====== */
 	unsigned char r = 0;
@@ -298,14 +285,18 @@ int main(void)
 				ray_camera.simulate_time = true;
 				ray_camera.image_width = viewport_width;
 				ray_camera.image_height = viewport_height;
-				//ray_camera.defocus_angle = 2.0f;
-				//ray_camera.focus_distance = 5.0f;
 				ray_camera.vfov = camera.vfov;
 				ray_camera.origin = rt::Point3(camera.position.x, camera.position.y, camera.position.z);
 				rt::Vec3 look_at = camera.position + camera.orientation;
 				ray_camera.look_at = rt::Point3(look_at.x, look_at.y, look_at.z);
 				ray_camera.up = rt::Vec3(camera.up.x, camera.up.y, camera.up.z);
+
+				///* Specific to thin lens setup */
+				//ray_camera.defocus_angle = 2.0f;
+				//ray_camera.focus_distance = 5.0f;
+
 				ray_camera.Initialize();
+
 
 				image = rt::RayTrace(&world, &ray_camera);
 

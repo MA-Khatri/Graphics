@@ -22,9 +22,6 @@ public:
 
 	BVH_Node(std::vector<std::shared_ptr<Hittable>>& objects, size_t start, size_t end)
 	{
-		///* Randomly choose an axis to split along */
-		//int axis = RandomInt(0, 2);
-
 		/* Build a bounding box that spans all the source objects */
 		bounding_box = AABB();
 		for (size_t object_index = start; object_index < end; object_index++)
@@ -35,35 +32,32 @@ public:
 		/* Split along the longest axis */
 		int axis = bounding_box.LongestAxis();
 
-		auto comparator = (axis == 0) ? BoxXCompare
-						: (axis == 1) ? BoxYCompare
-									  : BoxZCompare;
+		auto comparator = (axis == 0) ? BoxXCompare : ((axis == 1) ? BoxYCompare : BoxZCompare);
 
 		size_t object_span = end - start;
 
 		if (object_span == 1)
 		{
-			/* If there is only 1 object left, assign it to both children*/
+			/* If there is only 1 object remaining, assign it to both children*/
 			left = right = objects[start];
 		}
 		else if (object_span == 2)
 		{
-			/* If there are two objects left, assign one to each child */
+			/* If there are two objects remaining, assign one to each child */
 			left = objects[start];
 			right = objects[start + 1];
 		}
 		else
 		{
-			/* Sort the list and assign the first half to the first child, second half to the other */
+			/* Sort the objects along the determined longest axis, then 
+			assign the first half to the first child, second half to the other */
 			std::sort(objects.begin() + start, objects.begin() + end, comparator);
 
+			/* Recursively create the remaining nodes */
 			auto mid = start + object_span / 2;
 			left = std::make_shared<BVH_Node>(objects, start, mid);
 			right = std::make_shared<BVH_Node>(objects, mid, end);
 		}
-
-		///* Determine the bounding box of this node by using the bounding boxes of its children */
-		//bounding_box = AABB(left->BoundingBox(), right->BoundingBox());
 	}
 
 	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override
@@ -86,8 +80,8 @@ private:
 private:
 	static bool BoxCompare(const std::shared_ptr<Hittable> a, const std::shared_ptr<Hittable> b, int axis_index)
 	{
-		auto a_axis_interval = a->BoundingBox().AxisInterval(axis_index);
-		auto b_axis_interval = b->BoundingBox().AxisInterval(axis_index);
+		Interval a_axis_interval = a->BoundingBox().AxisInterval(axis_index);
+		Interval b_axis_interval = b->BoundingBox().AxisInterval(axis_index);
 		return a_axis_interval.min < b_axis_interval.min;
 	}
 
