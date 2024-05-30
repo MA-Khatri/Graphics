@@ -473,9 +473,6 @@
     <None Include="src\external\glm\gtx\vector_query.inl" />
     <None Include="src\external\glm\gtx\wrap.inl" />
   </ItemGroup>
-  <ItemGroup>
-    <Image Include="res\images\earthmap.jpg" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
