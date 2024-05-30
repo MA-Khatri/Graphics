@@ -5,6 +5,8 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/epsilon.hpp"
 
+#include "common.h"
+
 /* Custom wrapper over glm */
 
 namespace rt
@@ -23,9 +25,9 @@ using Vec4 = glm::dvec4;
 using Mat4 = glm::dmat4;
 
 
-/* ============= */
-/* === Utils === */
-/* ============= */
+/* ================= */
+/* === GLM Utils === */
+/* ================= */
 
 /* Returns true if all element-wise components of provided VecXs are equal */
 template <typename T>

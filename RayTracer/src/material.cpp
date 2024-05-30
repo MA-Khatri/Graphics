@@ -13,7 +13,7 @@ bool Lambertian::Scatter(const Ray& ray_in, const Interaction& interaction, Colo
 	if (NearZero(scatter_direction)) scatter_direction = interaction.normal;
 
 	ray_out = Ray(interaction.posn, scatter_direction, ray_in.time);
-	attenuation = albedo;
+	attenuation = texture->Value(interaction.u, interaction.v, interaction.posn);
 	return true;
 }
 

@@ -5,6 +5,9 @@
     <ClCompile Include="src\renderer.cpp" />
     <ClCompile Include="src\cameras.cpp" />
     <ClCompile Include="src\material.cpp" />
+    <ClCompile Include="src\image.cpp" />
+    <ClCompile Include="src\hittable.cpp" />
+    <ClCompile Include="src\texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common.h" />
@@ -308,6 +311,9 @@
     <ClInclude Include="src\cameras.h" />
     <ClInclude Include="src\aabb.h" />
     <ClInclude Include="src\bvh.h" />
+    <ClInclude Include="src\texture.h" />
+    <ClInclude Include="src\image.h" />
+    <ClInclude Include="src\external\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\external\glm\detail\func_common.inl" />
@@ -448,5 +454,8 @@
     <None Include="src\external\glm\gtx\vector_angle.inl" />
     <None Include="src\external\glm\gtx\vector_query.inl" />
     <None Include="src\external\glm\gtx\wrap.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\images\earthmap.jpg" />
   </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "ray.h"
+#include "texture.h"
 
 namespace rt 
 {
@@ -26,12 +27,13 @@ public:
 class Lambertian : public Material
 {
 public:
-	Lambertian(const Color& albedo) : albedo(albedo) {}
+	Lambertian(const Color& albedo) : texture(std::make_shared<SolidColor>(albedo)) {}
+	Lambertian(std::shared_ptr<Texture> texture) : texture(texture) {}
 
 	bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const override;
 
 private:
-	Color albedo;
+	std::shared_ptr<Texture> texture;
 };
 
 

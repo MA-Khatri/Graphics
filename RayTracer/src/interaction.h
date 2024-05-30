@@ -15,9 +15,11 @@ class Interaction
 public:
 	Point3 posn;
 	Vec3 normal;
-	double t = 0.0;
 	std::shared_ptr<Material> material;
-	bool front_face = false;
+	double t;
+	double u;
+	double v;
+	bool front_face;
 
 	Interaction() {} /* No constructor is actually used for this class */
 

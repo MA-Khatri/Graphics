@@ -164,7 +164,7 @@ int main(void)
 	rt::ThinLensCamera ray_camera;
 	//rt::PerspectiveCamera ray_camera;
 
-	rt::HittableList world = rt::GenerateScene(1);
+	rt::HittableList world = rt::GenerateScene(4);
 
 	/* ====== Local Variables ====== */
 	unsigned char r = 0;

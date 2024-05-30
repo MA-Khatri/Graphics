@@ -20,15 +20,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\cameras.cpp" />
+    <ClCompile Include="src\hittable.cpp" />
+    <ClCompile Include="src\image.cpp" />
     <ClCompile Include="src\material.cpp" />
     <ClCompile Include="src\renderer.cpp" />
     <ClCompile Include="src\external\glm\detail\glm.cpp" />
+    <ClCompile Include="src\texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\aabb.h" />
     <ClInclude Include="src\bvh.h" />
     <ClInclude Include="src\cameras.h" />
     <ClInclude Include="src\common.h" />
+    <ClInclude Include="src\external\stb_image\stb_image.h" />
+    <ClInclude Include="src\image.h" />
     <ClInclude Include="src\interaction.h" />
     <ClInclude Include="src\interval.h" />
     <ClInclude Include="src\material.h" />
@@ -37,6 +42,7 @@
     <ClInclude Include="src\ray_tracer.h" />
     <ClInclude Include="src\renderer.h" />
     <ClInclude Include="src\hittable.h" />
+    <ClInclude Include="src\texture.h" />
     <ClInclude Include="src\utils.h" />
     <ClInclude Include="src\external\glm\common.hpp" />
     <ClInclude Include="src\external\glm\detail\compute_common.hpp" />
@@ -466,6 +472,9 @@
     <None Include="src\external\glm\gtx\vector_angle.inl" />
     <None Include="src\external\glm\gtx\vector_query.inl" />
     <None Include="src\external\glm\gtx\wrap.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\images\earthmap.jpg" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
