@@ -56,15 +56,45 @@ private:
 	Image image;
 };
 
-class NoiseTexture : public Texture
+
+/* ====== Perlin Noise Based Textures ====== */
+class PerlinTexture : public Texture
 {
 public:
-	NoiseTexture() {};
+	PerlinTexture() {};
+	PerlinTexture(double scale) : scale(scale) {}
 
 	Color Value(double u, double v, const Point3& p) const override;
 
 private:
 	Perlin noise;
+	double scale = 1.0;
+};
+
+class TurbulenceTexture : public Texture
+{
+public:
+	TurbulenceTexture() {}
+	TurbulenceTexture(double scale) : scale(scale) {}
+
+	Color Value(double u, double v, const Point3& p) const override;
+
+private:
+	Perlin noise;
+	double scale = 1.0;
+};
+
+class MarbleTexture : public Texture
+{
+public:
+	MarbleTexture() {}
+	MarbleTexture(double scale) : scale(scale) {}
+
+	Color Value(double u, double v, const Point3& p) const override;
+
+private:
+	Perlin noise;
+	double scale = 1.0;
 };
 
 }

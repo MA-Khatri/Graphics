@@ -40,10 +40,21 @@ Color ImageTexture::Value(double u, double v, const Point3& p) const
 }
 
 
-Color NoiseTexture::Value(double u, double v, const Point3& p) const
+/* ====== Perlin Noise based textures ====== */
+Color PerlinTexture::Value(double u, double v, const Point3& p) const
 {
-	//return Color(1.0, 1.0, 1.0);
-	return Color(1.0, 1.0, 1.0) * noise.Noise(p);
+	/* Note: we convert the output from noise which is [-1, 1] to [0, 1] */
+	return Color(1.0, 1.0, 1.0) * 0.5 * (1.0 + noise.Noise(scale * p));
+}
+
+Color TurbulenceTexture::Value(double u, double v, const Point3& p) const
+{
+	return Color(1.0, 1.0, 1.0) * noise.Turbulence(p, 7);
+}
+
+Color MarbleTexture::Value(double u, double v, const Point3& p) const
+{
+	return Color(0.5, 0.5, 0.5) * (1.0 + std::sin(scale * p.z + 10 * noise.Turbulence(p, 7)));
 }
 
 }

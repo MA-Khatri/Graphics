@@ -21,15 +21,24 @@ std::vector<unsigned char> RayTrace(HittableList* world, Camera* camera)
 	return Render(*world, *camera);
 }
 
+enum Scenes
+{
+	BasicMaterials,
+	ScatteredSpheres,
+	BouncingSpheres,
+	Earth,
+	PerlinSpheres,
+};
+
 /* Generate one of the default scenes */
-HittableList GenerateScene(unsigned int i)
+HittableList GenerateScene(Scenes scene)
 {
 	HittableList world;
 
-	switch (i)
+	switch (scene)
 	{
 
-	case 1:
+	case BasicMaterials:
 	{
 		/* Ground sphere */
 		auto material_ground = std::make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
@@ -46,7 +55,7 @@ HittableList GenerateScene(unsigned int i)
 		world.Add(std::make_shared<Sphere>(Point3(4.0, 0.0, 1.0), 1.0, material3));
 	}
 
-	case 2:
+	case ScatteredSpheres:
 	{
 		/* Ground sphere */
 		auto material_ground = std::make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
@@ -88,12 +97,7 @@ HittableList GenerateScene(unsigned int i)
 						sphere_material = std::make_shared<Dielectric>(1.5);
 					}
 
-					world.Add(std::make_shared<Sphere>(
-						center,
-						choose_bounce < 0.3 ? center + Vec3(0.0, 0.0, RandomDouble(0.0, 0.2)) : center,
-						0.2,
-						sphere_material)
-					);
+					world.Add(std::make_shared<Sphere>(center, 0.2, sphere_material));
 				}
 			}
 		}
@@ -111,7 +115,7 @@ HittableList GenerateScene(unsigned int i)
 		break;
 	}
 
-	case 3:
+	case BouncingSpheres:
 	{
 		/* Ground sphere with checker texture */
 		auto checker_texture = std::make_shared<CheckerTexture>(0.32, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
@@ -177,7 +181,7 @@ HittableList GenerateScene(unsigned int i)
 		break;
 	}
 
-	case 4:
+	case Earth:
 	{
 		auto earth_texture = std::make_shared<ImageTexture>("earthmap.jpg");
 		auto earth_surface = std::make_shared<Lambertian>(earth_texture);
@@ -185,16 +189,14 @@ HittableList GenerateScene(unsigned int i)
 		break;
 	}
 
-	case 5:
+	case PerlinSpheres:
 	{
-		auto earth_texture = std::make_shared<ImageTexture>("earthmap.jpg");
-		auto earth_surface = std::make_shared<Lambertian>(earth_texture);
-		world.Add(std::make_shared<Sphere>(Point3(4.0, 4.0, 2.0), 2.0, earth_surface));
-
-
-		auto perlin_texture = std::make_shared<NoiseTexture>();
+		auto perlin_texture = std::make_shared<PerlinTexture>(4.0);
+		auto turbulence_texture = std::make_shared<TurbulenceTexture>(4.0);
+		auto marble_texture = std::make_shared<MarbleTexture>(4.0);
 		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1000.0), 1000.0, std::make_shared<Lambertian>(perlin_texture)));
-		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 2.0), 2.0, std::make_shared<Lambertian>(perlin_texture)));
+		world.Add(std::make_shared<Sphere>(Point3(4.0, 4.0, 2.0), 2.0,std::make_shared<Lambertian>(turbulence_texture)));
+		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 2.0), 2.0, std::make_shared<Lambertian>(marble_texture)));
 		break;
 	}
 
