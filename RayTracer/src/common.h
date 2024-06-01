@@ -34,6 +34,8 @@ inline double RandomDouble()
 	static std::uniform_real_distribution<double> distribution(0.0, 1.0);
 	thread_local static std::mt19937_64 generator;
 	return distribution(generator);
+
+	//return std::rand() / (RAND_MAX + 1.0);
 }
 
 /* Returns a random real (double) in [min, max) */
@@ -42,12 +44,19 @@ inline double RandomDouble(double min, double max)
 	static std::uniform_real_distribution<double> distribution(min, max);
 	thread_local static std::mt19937_64 generator;
 	return distribution(generator);
+
+	//return min + (max - min) * RandomDouble();
 }
 
 /* Returns a random integer in [min, max] */
 inline int RandomInt(int min, int max)
 {
-	return int(RandomDouble(min, max + 1));
+	//return int(min + (max + 1 - min) * (std::rand() / (RAND_MAX + 1.0)));
+	//return int(RandomDouble(min, max + 1));
+
+	static std::uniform_int_distribution<int> distribution(min, max);
+	thread_local static std::mt19937 generator;
+	return distribution(generator);
 }
 
 /* Returns the next power of two that is greater than or equal to x */

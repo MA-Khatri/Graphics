@@ -38,6 +38,7 @@
     <ClInclude Include="src\interval.h" />
     <ClInclude Include="src\material.h" />
     <ClInclude Include="src\math.h" />
+    <ClInclude Include="src\perlin.h" />
     <ClInclude Include="src\ray.h" />
     <ClInclude Include="src\ray_tracer.h" />
     <ClInclude Include="src\renderer.h" />

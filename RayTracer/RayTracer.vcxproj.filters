@@ -314,6 +314,7 @@
     <ClInclude Include="src\texture.h" />
     <ClInclude Include="src\image.h" />
     <ClInclude Include="src\external\stb_image\stb_image.h" />
+    <ClInclude Include="src\perlin.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\external\glm\detail\func_common.inl" />

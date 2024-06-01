@@ -167,8 +167,9 @@ HittableList GenerateScene(unsigned int i)
 		auto material1 = std::make_shared<Dielectric>(1.5);
 		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 1.0), 1.0, material1));
 
-		auto material2 = std::make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
-		world.Add(std::make_shared<Sphere>(Point3(-4.0, 0.0, 1.0), 1.0, material2));
+		auto earth_texture = std::make_shared<ImageTexture>("earthmap.jpg");
+		auto earth_surface = std::make_shared<Lambertian>(earth_texture);
+		world.Add(std::make_shared<Sphere>(Point3(-4.0, 0.0, 1.0), 1.0, earth_surface));
 
 		auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
 		world.Add(std::make_shared<Sphere>(Point3(4.0, 0.0, 1.0), 1.0, material3));
@@ -180,7 +181,21 @@ HittableList GenerateScene(unsigned int i)
 	{
 		auto earth_texture = std::make_shared<ImageTexture>("earthmap.jpg");
 		auto earth_surface = std::make_shared<Lambertian>(earth_texture);
-		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 0.0), 2, earth_surface));
+		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 0.0), 2.0, earth_surface));
+		break;
+	}
+
+	case 5:
+	{
+		auto earth_texture = std::make_shared<ImageTexture>("earthmap.jpg");
+		auto earth_surface = std::make_shared<Lambertian>(earth_texture);
+		world.Add(std::make_shared<Sphere>(Point3(4.0, 4.0, 2.0), 2.0, earth_surface));
+
+
+		auto perlin_texture = std::make_shared<NoiseTexture>();
+		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1000.0), 1000.0, std::make_shared<Lambertian>(perlin_texture)));
+		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 2.0), 2.0, std::make_shared<Lambertian>(perlin_texture)));
+		break;
 	}
 
 	default:
