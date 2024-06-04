@@ -164,7 +164,7 @@ int main(void)
 	//rt::ThinLensCamera ray_camera;
 	rt::PerspectiveCamera ray_camera;
 
-	rt::HittableList world = rt::GenerateScene(rt::Scenes::BouncingSpheres);
+	rt::Scene scene = rt::GenerateScene(rt::Scenes::PerlinSpheres);
 
 	/* ====== Local Variables ====== */
 	unsigned char r = 0;
@@ -298,7 +298,7 @@ int main(void)
 				ray_camera.Initialize();
 
 
-				image = rt::RayTrace(&world, &ray_camera);
+				image = rt::RayTrace(&scene, &ray_camera);
 
 				ray_traced_texture->Update(&image[0], viewport_width, viewport_height);
 

@@ -3,7 +3,7 @@
 
 namespace rt
 {
-std::vector<unsigned char> Render(const Hittable& world, Camera& camera)
+std::vector<unsigned char> Render(const Scene& scene, Camera& camera)
 {
 	auto rendered_image = std::vector<unsigned char>(camera.image_width * camera.image_height * 3);
 
@@ -19,7 +19,7 @@ std::vector<unsigned char> Render(const Hittable& world, Camera& camera)
 	std::for_each(std::execution::par, vertical_iter.begin(), vertical_iter.end(), [&](unsigned int j) {
 		std::for_each(std::execution::par, horizontal_iter.begin(), horizontal_iter.end(), [&](unsigned int i) {
 
-			PixelColor(rendered_image, i, j, world, camera);
+			PixelColor(rendered_image, i, j, scene, camera);
 
 			});
 		});
@@ -40,30 +40,38 @@ std::vector<unsigned char> Render(const Hittable& world, Camera& camera)
 }
 
 
-Color TraceRay(const Ray& ray_in, int depth, const Hittable& world)
+Color TraceRay(const Ray& ray_in, int depth, const Scene& scene)
 {
 	/* If we exceed the ray bounce limit, no more light is gathered */
 	if (depth <= 0) return Color(0.0, 0.0, 0.0);
 
 	Interaction interaction;
-	if (world.Hit(ray_in, Interval(Eps, Inf), interaction)) /* Note the interval is to handle shadow acne */
+	
+	/* If the ray hits nothing, sample the sky texture */
+	if (!scene.World().Hit(ray_in, Interval(Eps, Inf), interaction))
 	{
-		Ray ray_out;
-		Color attenuation;
-		if (interaction.material->Scatter(ray_in, interaction, attenuation, ray_out))
-		{
-			return attenuation * TraceRay(ray_out, depth - 1, world);
-		}
-		return Color(0.0, 0.0, 0.0);
+		return scene.SampleSky(ray_in);
+
+		///* Default sky background */
+		//Vec3 unit_direction = glm::normalize(ray_in.direction);
+		//double a = 0.5 * (unit_direction.y + 1.0);
+		//return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0); /* Interpolate between white and sky-blue */
 	}
 
-	/* Default sky background */
-	Vec3 unit_direction = glm::normalize(ray_in.direction);
-	double a = 0.5 * (unit_direction.y + 1.0);
-	return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0); /* Interpolate between white and sky-blue */
+	Ray ray_out;
+	Color attenuation;
+	Color color_from_emission = interaction.material->Emitted(interaction.u, interaction.v, interaction.posn);
+
+	/* If ray does not scatter, return the emitted color */
+	if (!interaction.material->Scatter(ray_in, interaction, attenuation, ray_out)) return color_from_emission;
+
+	/* Otherwise, determine the scattered color by recursively tracing the ray */
+	Color color_from_scatter = attenuation * TraceRay(ray_out, depth - 1, scene);
+
+	return color_from_emission + color_from_scatter;
 }
 
-void PixelColor(std::vector<unsigned char>& rendered_image, unsigned int i, unsigned int j, const Hittable& world, Camera& camera)
+void PixelColor(std::vector<unsigned char>& rendered_image, unsigned int i, unsigned int j, const Scene& scene, Camera& camera)
 {
 	/* Determine the index to start of this pixel */
 	unsigned int pixel = 3 * (j * camera.image_width + i);
@@ -72,7 +80,7 @@ void PixelColor(std::vector<unsigned char>& rendered_image, unsigned int i, unsi
 	Ray ray = camera.GenerateRay(i, j);
 
 	/* Trace ray and determine new color */
-	Color pixel_color = TraceRay(ray, camera.max_depth, world);
+	Color pixel_color = TraceRay(ray, camera.max_depth, scene);
 	double r = pixel_color.r;
 	double g = pixel_color.g;
 	double b = pixel_color.b;

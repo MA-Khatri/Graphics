@@ -10,9 +10,13 @@ namespace rt
 class Texture
 {
 public:
+	Texture() {}
 	virtual ~Texture() = default;
 
-	virtual Color Value(double u, double v, const Point3& p) const = 0;
+	virtual Color Value(double u, double v, const Point3& p) const
+	{
+		return Color(0.0, 0.0, 0.0);
+	}
 };
 
 

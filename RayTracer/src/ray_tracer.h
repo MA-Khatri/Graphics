@@ -16,9 +16,9 @@ namespace rt
 {
 
 /* Pass in the scene and render with this camera */
-std::vector<unsigned char> RayTrace(HittableList* world, Camera* camera)
+std::vector<unsigned char> RayTrace(Scene* scene, Camera* camera)
 {
-	return Render(*world, *camera);
+	return Render(*scene, *camera);
 }
 
 enum Scenes
@@ -28,12 +28,14 @@ enum Scenes
 	BouncingSpheres,
 	Earth,
 	PerlinSpheres,
+	Parallelograms,
 };
 
 /* Generate one of the default scenes */
-HittableList GenerateScene(Scenes scene)
+Scene GenerateScene(Scenes scene)
 {
 	HittableList world;
+	Texture* sky = new SolidColor(0.7, 0.8, 1.0);
 
 	switch (scene)
 	{
@@ -197,7 +199,30 @@ HittableList GenerateScene(Scenes scene)
 		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1000.0), 1000.0, std::make_shared<Lambertian>(perlin_texture)));
 		world.Add(std::make_shared<Sphere>(Point3(4.0, 4.0, 2.0), 2.0,std::make_shared<Lambertian>(turbulence_texture)));
 		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 2.0), 2.0, std::make_shared<Lambertian>(marble_texture)));
+
+		auto diffuse_light = std::make_shared<DiffuseLight>(Color(10.0, 10.0, 10.0));
+		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 8.0), 2.0, diffuse_light));
+
+		sky = new ImageTexture("earthmap.jpg");
+
 		break;
+	}
+
+	case Parallelograms:
+	{
+		// Materials
+		auto left_red = std::make_shared<Lambertian>(Color(1.0, 0.2, 0.2));
+		auto back_green = std::make_shared<Lambertian>(Color(0.2, 1.0, 0.2));
+		auto right_blue = std::make_shared<Lambertian>(Color(0.2, 0.2, 1.0));
+		auto upper_orange = std::make_shared<Lambertian>(Color(1.0, 0.5, 0.0));
+		auto lower_teal = std::make_shared<Lambertian>(Color(0.2, 0.8, 0.8));
+
+		// Parallelograms
+		world.Add(std::make_shared<Parallelogram>(Point3(-3.0, -2.0, 5.0), Vec3(0.0, 0.0, -4.0), Vec3(0.0, 4.0, 0.0), left_red));
+		world.Add(std::make_shared<Parallelogram>(Point3(-2.0, -2.0, 0.0), Vec3(4.0, 0.0, 0.0), Vec3(0.0, 4.0, 0.0), back_green));
+		world.Add(std::make_shared<Parallelogram>(Point3(3.0, -2.0, 1.0), Vec3(0.0, 0.0, 4.0), Vec3(0.0, 4.0, 0.0), right_blue));
+		world.Add(std::make_shared<Parallelogram>(Point3(-2.0, 3.0, 1.0), Vec3(4.0, 0.0, 0.0), Vec3(0.0, 0.0, 4.0), upper_orange));
+		world.Add(std::make_shared<Parallelogram>(Point3(-2.0, -3.0, 5.0), Vec3(4.0, 0.0, 0.0), Vec3(0.0, 0.0, -4.0), lower_teal));
 	}
 
 	default:
@@ -210,7 +235,7 @@ HittableList GenerateScene(Scenes scene)
 	/* Construct BVH */
 	world = HittableList(std::make_shared<BVH_Node>(world));
 
-	return world;
+	return Scene(world, sky);
 }
 
 } /* namespace rt */

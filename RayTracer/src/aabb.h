@@ -12,7 +12,10 @@ class AABB
 public:
 	AABB() {} /* The default AABB is empty, since intervals are empty by default */
 
-	AABB(const Interval& x, const Interval& y, const Interval& z) : x(x), y(y), z(z) {}
+	AABB(const Interval& x, const Interval& y, const Interval& z) : x(x), y(y), z(z) 
+	{
+		PadToMinimums();
+	}
 
 	AABB(const Point3& a, const Point3& b)
 	{
@@ -20,6 +23,8 @@ public:
 		x = (a.x <= b.x) ? Interval(a.x, b.x) : Interval(b.x, a.x);
 		y = (a.y <= b.y) ? Interval(a.y, b.y) : Interval(b.y, a.y);
 		z = (a.z <= b.z) ? Interval(a.z, b.z) : Interval(b.z, a.z);
+
+		PadToMinimums();
 	}
 
 	AABB(const AABB& box0, const AABB& box1)
@@ -76,6 +81,18 @@ public:
 
 public:
 	Interval x, y, z;
+
+
+private:
+
+	/* Adjust the AABB so that no side is narrower than some delta */
+	void PadToMinimums()
+	{
+		double delta = 0.0001;
+		if (x.Size() < delta) x = x.Expand(delta);
+		if (y.Size() < delta) y = y.Expand(delta);
+		if (z.Size() < delta) z = z.Expand(delta);
+	}
 };
 
 }

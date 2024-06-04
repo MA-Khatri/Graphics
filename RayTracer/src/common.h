@@ -15,6 +15,7 @@ namespace rt
 
 const double Inf = std::numeric_limits<double>::infinity();
 const double Pi = 3.1415926535897932385;
+const double InvPi = 1.0 / Pi;
 const double Eps = 1e-8;
 
 

@@ -2,6 +2,7 @@
 
 #include "interaction.h"
 #include "aabb.h"
+#include "texture.h"
 
 namespace rt 
 {
@@ -43,15 +44,44 @@ private:
 };
 
 
+class Parallelogram : public Hittable
+{
+public:
+	/* Construct a parallelogram using an origin Q and two vectors u, v that define its sides */
+	Parallelogram(const Point3& Q, const Vec3& u, const Vec3& v, std::shared_ptr<Material> material);
+
+	/* Compute the bounding box encapsulating all four vertices */
+	virtual void SetBoundingBox();
+
+	AABB BoundingBox() const override;
+
+	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
+
+
+	/* Given the hit point in plane coordinates, return false if it is outside the primitive. 
+	Otherwise, set the UV coordinates of the hit and return true. */
+	virtual bool IsInterior(double a, double b, Interaction& interaction) const;
+
+private:
+	Point3 Q;
+	Vec3 u, v, w;
+	std::shared_ptr<Material> material;
+	AABB bounding_box;
+	Vec3 normal;
+	double D;
+};
+
+
 class HittableList : public Hittable
 {
 public:
 	std::vector<std::shared_ptr<Hittable>> objects;
 
-	HittableList();;
-	HittableList(std::shared_ptr<Hittable> hittable);;
+public:
+	HittableList();
+	HittableList(std::shared_ptr<Hittable> hittable);
 
-	void Clear();;
+	void Clear();
 
 	void Add(std::shared_ptr<Hittable> hittable);
 

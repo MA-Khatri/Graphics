@@ -43,6 +43,7 @@
     <ClInclude Include="src\ray_tracer.h" />
     <ClInclude Include="src\renderer.h" />
     <ClInclude Include="src\hittable.h" />
+    <ClInclude Include="src\scene.h" />
     <ClInclude Include="src\texture.h" />
     <ClInclude Include="src\utils.h" />
     <ClInclude Include="src\external\glm\common.hpp" />

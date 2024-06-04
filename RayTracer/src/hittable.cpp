@@ -2,6 +2,9 @@
 
 namespace rt
 {
+/* ===================== */
+/* ====== Spheres ====== */
+/* ===================== */
 
 Sphere::Sphere(const Point3& start, const Point3& stop, double radius, std::shared_ptr<Material> material) 
 	: center(start), radius(std::fmax(0.0, radius)), material(material), is_moving(true)
@@ -76,6 +79,83 @@ void Sphere::GetSphereUV(const Point3& p, double& u, double& v)
 	u = phi / (2.0 * Pi);
 	v = theta / Pi;
 }
+
+
+/* ============================ */
+/* ====== Parallelograms ====== */
+/* ============================ */
+
+Parallelogram::Parallelogram(const Point3& Q, const Vec3& u, const Vec3& v, std::shared_ptr<Material> material)
+	: Q(Q), u(u), v(v), material(material)
+{
+	Vec3 n = glm::cross(u, v);
+	normal = glm::normalize(n);
+
+	/* In the equation for a plane (Ax + By + Cz = D), (A,B,C) is the normal vector. We can then solve for D 
+	by picking a point (x,y,z) on the plane. We know Q is on the plane so D = n dot Q */
+	D = glm::dot(normal, Q);
+
+	w = n / glm::dot(n, n);
+
+	SetBoundingBox();
+}
+
+void Parallelogram::SetBoundingBox()
+{
+	AABB bbox_diagonal1 = AABB(Q, Q + u + v);
+	AABB bbox_diagonal2 = AABB(Q + u, Q + v);
+	bounding_box = AABB(bbox_diagonal1, bbox_diagonal2);
+}
+
+AABB Parallelogram::BoundingBox() const
+{
+	return bounding_box;
+}
+
+bool Parallelogram::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
+{
+	/* If our ray is defined as R = P + td, the intersection with the plane becomes
+	n dot (P + td) = D. Solving for t, we get t = (D - n dot P) / (n dot d) */
+	
+	double denominator = glm::dot(normal, ray.direction);
+
+	/* No hit if the ray is parallel to the plane */
+	if (std::fabs(denominator) < Eps) return false;
+
+	/* Return false if the hit point parameter t is outside the ray interval */
+	double t = (D - glm::dot(normal, ray.origin)) / denominator;
+	if (!ray_t.Contains(t)) return false;
+
+	/* Determine if the hit point lies within the bounds of the parallelogram using the planar coordinates */
+	Point3 intersection = ray.At(t);
+	Vec3 planar_hitpoint_vector = intersection - Q;
+	double alpha = glm::dot(w, glm::cross(planar_hitpoint_vector, v));
+	double beta = glm::dot(w, glm::cross(u, planar_hitpoint_vector));
+	if (!IsInterior(alpha, beta, interaction)) return false;
+
+	/* Ray hits within the plane bounds... return interaction */
+	interaction.t = t;
+	interaction.posn = intersection;
+	interaction.material = material;
+	interaction.SetFaceNormal(ray, normal);
+
+	return true;
+}
+
+bool Parallelogram::IsInterior(double a, double b, Interaction& interaction) const
+{
+	Interval unit_interval = Interval(0.0, 1.0);
+
+	if (!unit_interval.Contains(a) || !unit_interval.Contains(b)) return false;
+
+	interaction.u = a;
+	interaction.v = b;
+	return true;
+}
+
+/* =========================== */
+/* ====== Hittable List ====== */
+/* =========================== */
 
 HittableList::HittableList(std::shared_ptr<Hittable> hittable)
 {

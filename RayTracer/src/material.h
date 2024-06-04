@@ -16,6 +16,11 @@ class Material
 public:
 	virtual ~Material() = default;
 
+	virtual Color Emitted(double u, double v, const Point3& p) const
+	{
+		return Color(0.0, 0.0, 0.0);
+	}
+
 	/* Update ray_out with the appropriate scatter function for this material */
 	virtual bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
 	{
@@ -64,6 +69,19 @@ private:
 
 	/* Use Schlick's approximation to model reflectance */
 	static double Reflectance(double cosine, double refraction_index);
+};
+
+
+class DiffuseLight : public Material
+{
+public:
+	DiffuseLight(std::shared_ptr<Texture> texture) : texture(texture) {}
+	DiffuseLight(const Color& emit) : texture(std::make_shared<SolidColor>(emit)) {}
+
+	Color Emitted(double u, double v, const Point3& p) const override;
+
+private:
+	std::shared_ptr<Texture> texture;
 };
 
 } /* namespace rt */

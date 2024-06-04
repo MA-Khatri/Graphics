@@ -3,8 +3,10 @@
 
 namespace rt
 {
-
+/* ======================== */
 /* ====== Lambertian ====== */
+/* ======================== */
+
 bool Lambertian::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
 {
 	Vec3 scatter_direction = interaction.normal + RandomUnitVector();
@@ -17,7 +19,10 @@ bool Lambertian::Scatter(const Ray& ray_in, const Interaction& interaction, Colo
 	return true;
 }
 
+/* =================== */
 /* ====== Metal ====== */
+/* =================== */
+
 bool Metal::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
 {
 	Vec3 reflected = Reflect(ray_in.direction, interaction.normal);
@@ -27,7 +32,10 @@ bool Metal::Scatter(const Ray& ray_in, const Interaction& interaction, Color& at
 	return (glm::dot(ray_out.direction, interaction.normal) > 0.0); /* Ignore if produced ray direction is within the object */
 }
 
+/* ======================== */
 /* ====== Dielectric ====== */
+/* ======================== */
+
 bool Dielectric::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
 {
 	attenuation = Color(1.0, 1.0, 1.0);
@@ -53,6 +61,15 @@ double Dielectric::Reflectance(double cosine, double refraction_index)
 	double r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
 	r0 = r0 * r0;
 	return r0 + (1.0 - r0) * std::pow((1.0 - cosine), 5.0);
+}
+
+/* =========================== */
+/* ====== Diffuse Light ====== */
+/* =========================== */
+
+Color DiffuseLight::Emitted(double u, double v, const Point3& p) const
+{
+	return texture->Value(u, v, p);
 }
 
 }
