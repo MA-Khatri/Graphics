@@ -150,7 +150,9 @@ int main(void)
 
 
 	/* ====== Camera ====== */
-	Camera camera(viewport_width, viewport_height, glm::vec3(10.0f, -3.0f, 2.0f), glm::normalize(glm::vec3(-0.95f, 0.2f, -0.1f)), glm::vec3(0.0f, 0.0f, 1.0f));
+	//Camera camera(viewport_width, viewport_height, glm::vec3(10.0f, -3.0f, 2.0f), glm::normalize(glm::vec3(-0.95f, 0.2f, -0.1f)), glm::vec3(0.0f, 0.0f, 1.0f));
+	Camera camera(viewport_width, viewport_height, glm::vec3(17.5f, 0.0f, 5.0f), glm::normalize(glm::vec3(-1.0f, 0.0f, 0.0f)), glm::vec3(0.0f, 0.0f, 1.0f));
+
 
 	/* 
 		Initialize camera matrix. 
@@ -164,7 +166,7 @@ int main(void)
 	//rt::ThinLensCamera ray_camera;
 	rt::PerspectiveCamera ray_camera;
 
-	rt::Scene scene = rt::GenerateScene(rt::Scenes::PerlinSpheres);
+	rt::Scene scene = rt::GenerateScene(rt::Scenes::CornellBox);
 
 	/* ====== Local Variables ====== */
 	unsigned char r = 0;

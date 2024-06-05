@@ -94,4 +94,13 @@ private:
 
 };
 
+
+/* Compound shapes */
+
+/* Returns a 3D box that contains the two provided opposite vertices 'a' and 'b' */
+std::shared_ptr<HittableList> Box(const Point3& a, const Point3& b, std::shared_ptr<Material> material);
+
+/* Returns a 1x1x1 box centered at the origin with the provided material. */
+std::shared_ptr<HittableList> Box(std::shared_ptr<Material> material);
+
 } /* namespace rt */

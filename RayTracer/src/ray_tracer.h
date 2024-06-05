@@ -29,6 +29,7 @@ enum Scenes
 	Earth,
 	PerlinSpheres,
 	Parallelograms,
+	CornellBox,
 };
 
 /* Generate one of the default scenes */
@@ -203,26 +204,55 @@ Scene GenerateScene(Scenes scene)
 		auto diffuse_light = std::make_shared<DiffuseLight>(Color(10.0, 10.0, 10.0));
 		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 8.0), 2.0, diffuse_light));
 
-		sky = new ImageTexture("earthmap.jpg");
+		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
 
 		break;
 	}
 
 	case Parallelograms:
 	{
-		// Materials
+		/* Materials */ 
 		auto left_red = std::make_shared<Lambertian>(Color(1.0, 0.2, 0.2));
 		auto back_green = std::make_shared<Lambertian>(Color(0.2, 1.0, 0.2));
 		auto right_blue = std::make_shared<Lambertian>(Color(0.2, 0.2, 1.0));
 		auto upper_orange = std::make_shared<Lambertian>(Color(1.0, 0.5, 0.0));
 		auto lower_teal = std::make_shared<Lambertian>(Color(0.2, 0.8, 0.8));
 
-		// Parallelograms
+		/* Parallelograms */
 		world.Add(std::make_shared<Parallelogram>(Point3(-3.0, -2.0, 5.0), Vec3(0.0, 0.0, -4.0), Vec3(0.0, 4.0, 0.0), left_red));
 		world.Add(std::make_shared<Parallelogram>(Point3(-2.0, -2.0, 0.0), Vec3(4.0, 0.0, 0.0), Vec3(0.0, 4.0, 0.0), back_green));
 		world.Add(std::make_shared<Parallelogram>(Point3(3.0, -2.0, 1.0), Vec3(0.0, 0.0, 4.0), Vec3(0.0, 4.0, 0.0), right_blue));
 		world.Add(std::make_shared<Parallelogram>(Point3(-2.0, 3.0, 1.0), Vec3(4.0, 0.0, 0.0), Vec3(0.0, 0.0, 4.0), upper_orange));
 		world.Add(std::make_shared<Parallelogram>(Point3(-2.0, -3.0, 5.0), Vec3(4.0, 0.0, 0.0), Vec3(0.0, 0.0, -4.0), lower_teal));
+
+		break;
+	}
+
+	case CornellBox:
+	{
+		/* Black background */
+		sky = new SolidColor(0.0, 0.0, 0.0);
+
+		/* Materials */
+		auto red =   std::make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
+		auto white = std::make_shared<Lambertian>(Color(0.73, 0.73, 0.73));
+		auto green = std::make_shared<Lambertian>(Color(0.12, 0.45, 0.15));
+		auto light = std::make_shared<DiffuseLight>(Color(15.0, 15.0, 15.0));
+		auto glass = std::make_shared<Dielectric>(1.5);
+
+		/* Cornell box */
+		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 0.0, 10.0), green)); /* left */
+		world.Add(std::make_shared<Parallelogram>(Point3(5.0, 5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 0.0, 10.0), red)); /* right */
+		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 10.0, 0.0), white)); /* bottom */
+		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 10.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 10.0, 0.0), white)); /* top */
+		world.Add(std::make_shared<Parallelogram>(Point3(-5.0, -5.0, 0.0), Vec3(0.0, 10.0, 0.0), Vec3(0.0, 0.0, 10.0), white)); /* back */
+		world.Add(std::make_shared<Parallelogram>(Point3(-1.5, -1.5, 10.0-Eps), Vec3(3.0, 0.0, 0.0), Vec3(0.0, 3.0, 0.0), light)); /* light */
+
+		/* Cornell box contents */
+		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 7.0), 2.0, glass));
+		world.Add(Box(Point3(-1.0, -1.0, 1.0), Point3(1.0, 1.0, 3.0), glass));
+
+		break;
 	}
 
 	default:
