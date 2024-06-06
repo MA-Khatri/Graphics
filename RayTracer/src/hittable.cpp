@@ -93,12 +93,9 @@ void Sphere::GetSphereUV(const Point3& p, double& u, double& v)
 void Sphere::SetBoundingBox()
 {
 	auto mtx33 = transform.model_matrix[3][3];
-	auto mtx00 = transform.model_matrix[0][0] / mtx33;
-	auto mtx11 = transform.model_matrix[1][1] / mtx33;
-	auto mtx22 = transform.model_matrix[2][2] / mtx33;
 
 	auto tvec = Vec3(transform.model_matrix[3] / mtx33);
-	auto rvec = Vec3(mtx00, mtx11, mtx22); /* edges of AABB should be origin +/- rvec */
+	Vec3 rvec = transform.model_matrix * Vec4(1.0, 1.0, 1.0, 0.0);
 	
 	AABB box1(tvec - rvec, tvec + rvec);
 	AABB box2(tvec + motion_vector - rvec, tvec + motion_vector + rvec);

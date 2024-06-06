@@ -64,8 +64,9 @@ Scene GenerateScene(Scenes scene)
 		auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
 		Transform t3;
 		t3.Translate(0.0, 5.0, 4.0);
-		//t3.Rotate(30.0, Vec3(0.0, 0.0, 1.0));
-		t3.Scale(4.0, 2.0, 4.0);
+		t3.Rotate(180.0, Vec3(0.0, 0.0, 1.0));
+		//t3.Scale(4.0, 2.0, 4.0);
+		t3.Scale(2.0);
 		world.Add(std::make_shared<Sphere>(t3, material3));
 
 		//auto light = std::make_shared<DiffuseLight>(Color(10.0));

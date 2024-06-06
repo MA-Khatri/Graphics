@@ -90,7 +90,7 @@ private:
 		world_to_model = glm::inverse(model_matrix);
 		normal_to_world = glm::transpose(world_to_model); /* i.e., inverse transpose of model_matrix */
 
-		//normal_to_world = world_to_model;
+		//normal_to_world = model_matrix;
 
 		//normal_to_world[0][3] = 0.0;
 		//normal_to_world[1][3] = 0.0;
@@ -102,7 +102,7 @@ private:
 
 		//normal_to_world[3][3] = 1.0;
 
-		//normal_to_world = glm::transpose(normal_to_world);
+		//normal_to_world = glm::inverseTranspose(normal_to_world);
 	}
 
 };
