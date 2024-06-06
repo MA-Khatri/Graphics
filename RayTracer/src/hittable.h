@@ -3,6 +3,7 @@
 #include "interaction.h"
 #include "aabb.h"
 #include "texture.h"
+#include "transform.h"
 
 namespace rt 
 {
@@ -12,31 +13,35 @@ class Hittable
 public:
 	virtual ~Hittable() = default;
 
+	/* Handle ray-object interaction */
 	virtual bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const = 0;
 
-	virtual AABB BoundingBox() const = 0;
+	/* Return this object's axis aligned bounding box */
+	inline AABB BoundingBox() const { return bounding_box; }
+
+public:
+	/* Store the transformation matrices for this object */
+	Transform transform;
+
+protected:
+	/* The axis aligned bounding box which tightly encloses the object */
+	AABB bounding_box;
 };
 
 class Sphere : public Hittable
 {
 public:
-	Sphere(const Point3& center, double radius, std::shared_ptr<Material> material);
-
-	Sphere(const Point3& start, const Point3& stop, double radius, std::shared_ptr<Material> material);
+	Sphere(std::shared_ptr<Material> material, Vec3 motion_vector = Vec3(0.0));
 
 	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
 
-	AABB BoundingBox() const override;
+private:
+	std::shared_ptr<Material> material;
+	Vec3 motion_vector;
+
 
 private:
-	Point3 center;
-	double radius;
-	std::shared_ptr<Material> material;
-	bool is_moving;
-	Vec3 motion_vector; /* The vector along which the sphere will move */
-	AABB bounding_box;
-
-	/* Return the center of the sphere at time t */
+	/* Return the center of the sphere (in model space) at time t */
 	Point3 SphereCenter(double time) const;
 
 	/* Set the UV coordinates of the sphere based on the hit point on a sphere of radius 1 */
@@ -50,25 +55,22 @@ public:
 	/* Construct a parallelogram using an origin Q and two vectors u, v that define its sides */
 	Parallelogram(const Point3& Q, const Vec3& u, const Vec3& v, std::shared_ptr<Material> material);
 
-	/* Compute the bounding box encapsulating all four vertices */
-	virtual void SetBoundingBox();
-
-	AABB BoundingBox() const override;
-
 	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
-
-
-	/* Given the hit point in plane coordinates, return false if it is outside the primitive. 
-	Otherwise, set the UV coordinates of the hit and return true. */
-	virtual bool IsInterior(double a, double b, Interaction& interaction) const;
 
 private:
 	Point3 Q;
 	Vec3 u, v, w;
 	std::shared_ptr<Material> material;
-	AABB bounding_box;
 	Vec3 normal;
 	double D;
+
+private:
+	/* Given the hit point in plane coordinates, return false if it is outside the primitive.
+	Otherwise, set the UV coordinates of the hit and return true. */
+	virtual bool IsInterior(double a, double b, Interaction& interaction) const;
+
+	/* Compute the bounding box encapsulating all four vertices */
+	virtual void SetBoundingBox();
 };
 
 
@@ -78,7 +80,7 @@ public:
 	std::vector<std::shared_ptr<Hittable>> objects;
 
 public:
-	HittableList();
+	HittableList() {}
 	HittableList(std::shared_ptr<Hittable> hittable);
 
 	void Clear();
@@ -86,12 +88,6 @@ public:
 	void Add(std::shared_ptr<Hittable> hittable);
 
 	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
-
-	AABB BoundingBox() const override;
-
-private:
-	AABB bounding_box;
-
 };
 
 

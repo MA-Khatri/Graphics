@@ -316,6 +316,7 @@
     <ClInclude Include="src\external\stb_image\stb_image.h" />
     <ClInclude Include="src\perlin.h" />
     <ClInclude Include="src\scene.h" />
+    <ClInclude Include="src\transform.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\external\glm\detail\func_common.inl" />

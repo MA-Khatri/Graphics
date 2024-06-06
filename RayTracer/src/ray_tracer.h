@@ -45,169 +45,186 @@ Scene GenerateScene(Scenes scene)
 	{
 		/* Ground sphere */
 		auto material_ground = std::make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
-		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1000.0), 1000.0, material_ground));
+		auto ground = std::make_shared<Sphere>(material_ground);
+		ground->transform.Translate(0.0, 0.0, -1000.0);
+		ground->transform.Scale(1000.0);
+		world.Add(ground);
 
 		/* Add in some custom larger spheres */
-		auto material1 = std::make_shared<Dielectric>(1.5);
-		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 1.0), 1.0, material1));
+		auto material1 = std::make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
+		auto s1 = std::make_shared<Sphere>(material1);
+		s1->transform.Translate(0.0, -4.0, 4.0);
+		s1->transform.Scale(2.0, 2.0, 4.0);
+		world.Add(s1);
 
-		auto material2 = std::make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
-		world.Add(std::make_shared<Sphere>(Point3(-4.0, 0.0, 1.0), 1.0, material2));
-
-		auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
-		world.Add(std::make_shared<Sphere>(Point3(4.0, 0.0, 1.0), 1.0, material3));
-	}
-
-	case ScatteredSpheres:
-	{
-		/* Ground sphere */
-		auto material_ground = std::make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
-		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1000.0), 1000.0, material_ground));
-
-		/* Add some random spheres */
-		for (int a = -11; a < 11; a++)
-		{
-			for (int b = -11; b < 11; b++)
-			{
-				double choose_mat = RandomDouble();
-				double choose_bounce = RandomDouble();
-				Point3 center = Point3(a, b, 0.2) + Point3(0.4 * RandomInUnitDisk(), 0.0);
-
-				/* Make sure these spheres do not intersect with the custom spheres */
-				if (glm::length(center - Point3(4.0, 0.0, 1.0)) > 1.2 
-					&& glm::length(center - Point3(0.0, 0.0, 1.0)) > 1.2 
-					&& glm::length(center - Point3(-4.0, 0.0, 1.0)) > 1.2)
-				{
-					std::shared_ptr<Material> sphere_material;
-
-					if (choose_mat < 0.6)
-					{
-						/* Diffuse */
-						Color albedo = RandomVec3() * RandomVec3();
-						sphere_material = std::make_shared<Lambertian>(albedo);
-
-					}
-					else if (choose_mat < 0.95)
-					{
-						/* Metal */
-						Color albedo = RandomVec3(0.5, 1.0);
-						double fuzz = RandomDouble(0, 0.5);
-						sphere_material = std::make_shared<Metal>(albedo, fuzz);
-					}
-					else
-					{
-						/* Glass */
-						sphere_material = std::make_shared<Dielectric>(1.5);
-					}
-
-					world.Add(std::make_shared<Sphere>(center, 0.2, sphere_material));
-				}
-			}
-		}
-
-		/* Add in some custom larger spheres */
-		auto material1 = std::make_shared<Dielectric>(1.5);
-		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 1.0), 1.0, material1));
-
-		auto material2 = std::make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
-		world.Add(std::make_shared<Sphere>(Point3(-4.0, 0.0, 1.0), 1.0, material2));
+		auto material2 = std::make_shared<Dielectric>(1.5);
+		auto s2 = std::make_shared<Sphere>(material2);
+		s2->transform.Translate(0.0, 0.0, 2.0);
+		s2->transform.Scale(2.0);
+		world.Add(s2);
 
 		auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
-		world.Add(std::make_shared<Sphere>(Point3(4.0, 0.0, 1.0), 1.0, material3));
-
-		break;
-	}
-
-	case BouncingSpheres:
-	{
-		/* Ground sphere with checker texture */
-		auto checker_texture = std::make_shared<CheckerTexture>(0.32, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
-		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1000.0), 1000.0, std::make_shared<Lambertian>(checker_texture)));
-
-		/* Add some random spheres */
-		for (int a = -11; a < 11; a++)
-		{
-			for (int b = -11; b < 11; b++)
-			{
-				double choose_mat = RandomDouble();
-				double choose_bounce = RandomDouble();
-				Point3 center = Point3(a, b, 0.2) + Point3(0.4 * RandomInUnitDisk(), 0.0);
-
-				/* Make sure these spheres do not intersect with the custom spheres */
-				if (glm::length(center - Point3(4.0, 0.0, 1.0)) > 1.2
-					&& glm::length(center - Point3(0.0, 0.0, 1.0)) > 1.2
-					&& glm::length(center - Point3(-4.0, 0.0, 1.0)) > 1.2)
-				{
-					std::shared_ptr<Material> sphere_material;
-
-					if (choose_mat < 0.6)
-					{
-						/* Diffuse */
-						Color albedo = RandomVec3() * RandomVec3();
-						sphere_material = std::make_shared<Lambertian>(albedo);
-
-					}
-					else if (choose_mat < 0.9)
-					{
-						/* Metal */
-						Color albedo = RandomVec3(0.5, 1.0);
-						double fuzz = RandomDouble(0, 0.5);
-						sphere_material = std::make_shared<Metal>(albedo, fuzz);
-					}
-					else
-					{
-						/* Glass */
-						sphere_material = std::make_shared<Dielectric>(1.5);
-					}
-
-					world.Add(std::make_shared<Sphere>(
-						center,
-						choose_bounce < 0.3 ? center + Vec3(0.0, 0.0, RandomDouble(0.0, 0.2)) : center,
-						0.2,
-						sphere_material)
-					);
-				}
-			}
-		}
-
-		/* Add in some custom larger spheres */
-		auto material1 = std::make_shared<Dielectric>(1.5);
-		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 1.0), 1.0, material1));
-
-		auto earth_texture = std::make_shared<ImageTexture>("earthmap.jpg");
-		auto earth_surface = std::make_shared<Lambertian>(earth_texture);
-		world.Add(std::make_shared<Sphere>(Point3(-4.0, 0.0, 1.0), 1.0, earth_surface));
-
-		auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
-		world.Add(std::make_shared<Sphere>(Point3(4.0, 0.0, 1.0), 1.0, material3));
-
-		break;
-	}
-
-	case Earth:
-	{
-		auto earth_texture = std::make_shared<ImageTexture>("earthmap.jpg");
-		auto earth_surface = std::make_shared<Lambertian>(earth_texture);
-		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 0.0), 2.0, earth_surface));
-		break;
-	}
-
-	case PerlinSpheres:
-	{
-		auto perlin_texture = std::make_shared<PerlinTexture>(4.0);
-		auto turbulence_texture = std::make_shared<TurbulenceTexture>(4.0);
-		auto marble_texture = std::make_shared<MarbleTexture>(4.0);
-		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1000.0), 1000.0, std::make_shared<Lambertian>(perlin_texture)));
-		world.Add(std::make_shared<Sphere>(Point3(4.0, 4.0, 2.0), 2.0,std::make_shared<Lambertian>(turbulence_texture)));
-		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 2.0), 2.0, std::make_shared<Lambertian>(marble_texture)));
-
-		auto diffuse_light = std::make_shared<DiffuseLight>(Color(10.0, 10.0, 10.0));
-		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 8.0), 2.0, diffuse_light));
+		auto s3 = std::make_shared<Sphere>(material3);
+		s3->transform.Translate(0.0, 4.0, 4.0);
+		s3->transform.Rotate(45.0, Vec3(1.0, 0.0, 0.0));
+		s3->transform.Scale(2.0, 2.0, 4.0);
+		world.Add(s3);
 
 		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
 
 		break;
 	}
+
+	//case ScatteredSpheres:
+	//{
+	//	/* Ground sphere */
+	//	auto material_ground = std::make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+	//	world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1000.0), 1000.0, material_ground));
+
+	//	/* Add some random spheres */
+	//	for (int a = -11; a < 11; a++)
+	//	{
+	//		for (int b = -11; b < 11; b++)
+	//		{
+	//			double choose_mat = RandomDouble();
+	//			double choose_bounce = RandomDouble();
+	//			Point3 center = Point3(a, b, 0.2) + Point3(0.4 * RandomInUnitDisk(), 0.0);
+
+	//			/* Make sure these spheres do not intersect with the custom spheres */
+	//			if (glm::length(center - Point3(4.0, 0.0, 1.0)) > 1.2 
+	//				&& glm::length(center - Point3(0.0, 0.0, 1.0)) > 1.2 
+	//				&& glm::length(center - Point3(-4.0, 0.0, 1.0)) > 1.2)
+	//			{
+	//				std::shared_ptr<Material> sphere_material;
+
+	//				if (choose_mat < 0.6)
+	//				{
+	//					/* Diffuse */
+	//					Color albedo = RandomVec3() * RandomVec3();
+	//					sphere_material = std::make_shared<Lambertian>(albedo);
+
+	//				}
+	//				else if (choose_mat < 0.95)
+	//				{
+	//					/* Metal */
+	//					Color albedo = RandomVec3(0.5, 1.0);
+	//					double fuzz = RandomDouble(0, 0.5);
+	//					sphere_material = std::make_shared<Metal>(albedo, fuzz);
+	//				}
+	//				else
+	//				{
+	//					/* Glass */
+	//					sphere_material = std::make_shared<Dielectric>(1.5);
+	//				}
+
+	//				world.Add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+	//			}
+	//		}
+	//	}
+
+	//	/* Add in some custom larger spheres */
+	//	auto material1 = std::make_shared<Dielectric>(1.5);
+	//	world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 1.0), 1.0, material1));
+
+	//	auto material2 = std::make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
+	//	world.Add(std::make_shared<Sphere>(Point3(-4.0, 0.0, 1.0), 1.0, material2));
+
+	//	auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
+	//	world.Add(std::make_shared<Sphere>(Point3(4.0, 0.0, 1.0), 1.0, material3));
+
+	//	break;
+	//}
+
+	//case BouncingSpheres:
+	//{
+	//	/* Ground sphere with checker texture */
+	//	auto checker_texture = std::make_shared<CheckerTexture>(0.32, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
+	//	world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1000.0), 1000.0, std::make_shared<Lambertian>(checker_texture)));
+
+	//	/* Add some random spheres */
+	//	for (int a = -11; a < 11; a++)
+	//	{
+	//		for (int b = -11; b < 11; b++)
+	//		{
+	//			double choose_mat = RandomDouble();
+	//			double choose_bounce = RandomDouble();
+	//			Point3 center = Point3(a, b, 0.2) + Point3(0.4 * RandomInUnitDisk(), 0.0);
+
+	//			/* Make sure these spheres do not intersect with the custom spheres */
+	//			if (glm::length(center - Point3(4.0, 0.0, 1.0)) > 1.2
+	//				&& glm::length(center - Point3(0.0, 0.0, 1.0)) > 1.2
+	//				&& glm::length(center - Point3(-4.0, 0.0, 1.0)) > 1.2)
+	//			{
+	//				std::shared_ptr<Material> sphere_material;
+
+	//				if (choose_mat < 0.6)
+	//				{
+	//					/* Diffuse */
+	//					Color albedo = RandomVec3() * RandomVec3();
+	//					sphere_material = std::make_shared<Lambertian>(albedo);
+
+	//				}
+	//				else if (choose_mat < 0.9)
+	//				{
+	//					/* Metal */
+	//					Color albedo = RandomVec3(0.5, 1.0);
+	//					double fuzz = RandomDouble(0, 0.5);
+	//					sphere_material = std::make_shared<Metal>(albedo, fuzz);
+	//				}
+	//				else
+	//				{
+	//					/* Glass */
+	//					sphere_material = std::make_shared<Dielectric>(1.5);
+	//				}
+
+	//				world.Add(std::make_shared<Sphere>(
+	//					center,
+	//					choose_bounce < 0.3 ? center + Vec3(0.0, 0.0, RandomDouble(0.0, 0.2)) : center,
+	//					0.2,
+	//					sphere_material)
+	//				);
+	//			}
+	//		}
+	//	}
+
+	//	/* Add in some custom larger spheres */
+	//	auto material1 = std::make_shared<Dielectric>(1.5);
+	//	world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 1.0), 1.0, material1));
+
+	//	auto earth_texture = std::make_shared<ImageTexture>("earthmap.jpg");
+	//	auto earth_surface = std::make_shared<Lambertian>(earth_texture);
+	//	world.Add(std::make_shared<Sphere>(Point3(-4.0, 0.0, 1.0), 1.0, earth_surface));
+
+	//	auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
+	//	world.Add(std::make_shared<Sphere>(Point3(4.0, 0.0, 1.0), 1.0, material3));
+
+	//	break;
+	//}
+
+	//case Earth:
+	//{
+	//	auto earth_texture = std::make_shared<ImageTexture>("earthmap.jpg");
+	//	auto earth_surface = std::make_shared<Lambertian>(earth_texture);
+	//	world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 0.0), 2.0, earth_surface));
+	//	break;
+	//}
+
+	//case PerlinSpheres:
+	//{
+	//	auto perlin_texture = std::make_shared<PerlinTexture>(4.0);
+	//	auto turbulence_texture = std::make_shared<TurbulenceTexture>(4.0);
+	//	auto marble_texture = std::make_shared<MarbleTexture>(4.0);
+	//	world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1000.0), 1000.0, std::make_shared<Lambertian>(perlin_texture)));
+	//	world.Add(std::make_shared<Sphere>(Point3(4.0, 4.0, 2.0), 2.0,std::make_shared<Lambertian>(turbulence_texture)));
+	//	world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 2.0), 2.0, std::make_shared<Lambertian>(marble_texture)));
+
+	//	auto diffuse_light = std::make_shared<DiffuseLight>(Color(10.0, 10.0, 10.0));
+	//	world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 8.0), 2.0, diffuse_light));
+
+	//	sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
+
+	//	break;
+	//}
 
 	case Parallelograms:
 	{
@@ -234,11 +251,12 @@ Scene GenerateScene(Scenes scene)
 		sky = new SolidColor(0.0, 0.0, 0.0);
 
 		/* Materials */
-		auto red =   std::make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
-		auto white = std::make_shared<Lambertian>(Color(0.73, 0.73, 0.73));
-		auto green = std::make_shared<Lambertian>(Color(0.12, 0.45, 0.15));
-		auto light = std::make_shared<DiffuseLight>(Color(15.0, 15.0, 15.0));
-		auto glass = std::make_shared<Dielectric>(1.5);
+		auto red    = std::make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
+		auto white  = std::make_shared<Lambertian>(Color(0.73, 0.73, 0.73));
+		auto green  = std::make_shared<Lambertian>(Color(0.12, 0.45, 0.15));
+		auto light  = std::make_shared<DiffuseLight>(Color(15.0, 15.0, 15.0));
+		auto glass  = std::make_shared<Dielectric>(1.5);
+		auto bubble = std::make_shared<Dielectric>(0.666666);
 
 		/* Cornell box */
 		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 0.0, 10.0), green)); /* left */
@@ -249,8 +267,7 @@ Scene GenerateScene(Scenes scene)
 		world.Add(std::make_shared<Parallelogram>(Point3(-1.5, -1.5, 10.0-Eps), Vec3(3.0, 0.0, 0.0), Vec3(0.0, 3.0, 0.0), light)); /* light */
 
 		/* Cornell box contents */
-		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, 7.0), 2.0, glass));
-		world.Add(Box(Point3(-1.0, -1.0, 1.0), Point3(1.0, 1.0, 3.0), glass));
+		/* TODO */
 
 		break;
 	}
@@ -263,7 +280,7 @@ Scene GenerateScene(Scenes scene)
 	}
 
 	/* Construct BVH */
-	world = HittableList(std::make_shared<BVH_Node>(world));
+	//world = HittableList(std::make_shared<BVH_Node>(world));
 
 	return Scene(world, sky);
 }

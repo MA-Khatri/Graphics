@@ -6,32 +6,18 @@ namespace rt
 /* ====== Spheres ====== */
 /* ===================== */
 
-Sphere::Sphere(const Point3& start, const Point3& stop, double radius, std::shared_ptr<Material> material) 
-	: center(start), radius(std::fmax(0.0, radius)), material(material), is_moving(true)
-{
-	motion_vector = stop - start;
-
-	/* The bounding box for a moving sphere encapsulates the whole area which it can be in */
-	auto rvec = Vec3(radius);
-	AABB box1(start - rvec, start + rvec);
-	AABB box2(stop - rvec, stop + rvec);
-	bounding_box = AABB(box1, box2);
-}
-
-Sphere::Sphere(const Point3& center, double radius, std::shared_ptr<Material> material) 
-	: center(center), radius(std::fmax(0.0, radius)), material(material), is_moving(false)
-{
-	auto rvec = Vec3(radius);
-	bounding_box = AABB(center - rvec, center + rvec);
-}
+Sphere::Sphere(std::shared_ptr<Material> material, Vec3 motion_vector /* = Vec3(0.0)*/)
+	: material(material), motion_vector(motion_vector) {}
 
 bool Sphere::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
 {
-	Point3 current_center = is_moving ? SphereCenter(ray.time) : center;
-	Vec3 oc = current_center - ray.origin;
-	double a = glm::length2(ray.direction);
-	double h = glm::dot(ray.direction, oc);
-	double c = glm::length2(oc) - radius * radius;
+	Ray model_ray = transform.World2Model(ray);
+
+	Point3 current_center = SphereCenter(ray.time); /* In model coords */
+	Vec3 oc = current_center - model_ray.origin;
+	double a = glm::length2(model_ray.direction);
+	double h = glm::dot(model_ray.direction, oc);
+	double c = glm::length2(oc) - 1.0;
 
 	double discriminant = h * h - a * c;
 	if (discriminant < 0.0) return false;
@@ -40,31 +26,26 @@ bool Sphere::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
 
 	/* Find the nearest root that lies in the acceptable range */
 	double root = (h - sqrtd) / a;
-	if (!ray_t.Surrounds(root))
+	if (!ray_t.Surrounds(root)) 
 	{
 		root = (h + sqrtd) / a;
 		if (!ray_t.Surrounds(root)) return false;
 	}
 
 	interaction.t = root;
-	interaction.posn = ray.At(interaction.t);
-	Vec3 outward_normal = (interaction.posn - current_center) / radius;
-	interaction.SetFaceNormal(ray, outward_normal);
+	interaction.posn = ray.At(interaction.t); /* world space posn */
+	Vec3 outward_normal = model_ray.At(interaction.t) - current_center;
+	interaction.SetFaceNormal(model_ray.direction, outward_normal);
 	GetSphereUV(outward_normal, interaction.u, interaction.v);
 	interaction.material = material;
 
 	return true;
 }
 
-AABB Sphere::BoundingBox() const
-{
-	return bounding_box;
-}
-
 Point3 Sphere::SphereCenter(double time) const
 {
 	/* Linearly interpolate between the sphere center and the end of the motion_vector */
-	return center + time * motion_vector;
+	return time * motion_vector;
 }
 
 void Sphere::GetSphereUV(const Point3& p, double& u, double& v)
@@ -107,11 +88,6 @@ void Parallelogram::SetBoundingBox()
 	bounding_box = AABB(bbox_diagonal1, bbox_diagonal2);
 }
 
-AABB Parallelogram::BoundingBox() const
-{
-	return bounding_box;
-}
-
 bool Parallelogram::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
 {
 	/* If our ray is defined as R = P + td, the intersection with the plane becomes
@@ -137,7 +113,7 @@ bool Parallelogram::Hit(const Ray& ray, Interval ray_t, Interaction& interaction
 	interaction.t = t;
 	interaction.posn = intersection;
 	interaction.material = material;
-	interaction.SetFaceNormal(ray, normal);
+	interaction.SetFaceNormal(ray.direction, normal);
 
 	return true;
 }
@@ -160,11 +136,6 @@ bool Parallelogram::IsInterior(double a, double b, Interaction& interaction) con
 HittableList::HittableList(std::shared_ptr<Hittable> hittable)
 {
 	Add(hittable);
-}
-
-HittableList::HittableList()
-{
-
 }
 
 void HittableList::Clear()
@@ -195,11 +166,6 @@ bool HittableList::Hit(const Ray& ray, Interval ray_t, Interaction& interaction)
 	}
 
 	return hit_anything;
-}
-
-AABB HittableList::BoundingBox() const
-{
-	return bounding_box;
 }
 
 

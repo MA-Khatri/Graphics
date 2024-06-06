@@ -23,12 +23,12 @@ public:
 
 	Interaction() {} /* No constructor is actually used for this class */
 
-	void SetFaceNormal(const Ray& ray, const Vec3& outward_normal)
+	void SetFaceNormal(const Vec3& ray_direction, const Vec3& outward_normal)
 	{
 		/* Sets the interaction normal vector */
 		/* Note: the parameter `outward_normal` is assumed to have unit length */
 
-		front_face = glm::dot(ray.direction, outward_normal) < 0.0;
+		front_face = glm::dot(ray_direction, outward_normal) < 0.0;
 		normal = front_face ? outward_normal : -outward_normal;
 	}
 

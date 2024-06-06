@@ -51,11 +51,6 @@ Color TraceRay(const Ray& ray_in, int depth, const Scene& scene)
 	if (!scene.World().Hit(ray_in, Interval(Eps, Inf), interaction))
 	{
 		return scene.SampleSky(ray_in);
-
-		///* Default sky background */
-		//Vec3 unit_direction = glm::normalize(ray_in.direction);
-		//double a = 0.5 * (unit_direction.y + 1.0);
-		//return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0); /* Interpolate between white and sky-blue */
 	}
 
 	Ray ray_out;

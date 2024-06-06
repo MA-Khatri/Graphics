@@ -70,8 +70,6 @@ public:
 		return hit_left || hit_right;
 	}
 
-	AABB BoundingBox() const override { return bounding_box; }
-
 private:
 	std::shared_ptr<Hittable> left;
 	std::shared_ptr<Hittable> right;

@@ -45,6 +45,7 @@
     <ClInclude Include="src\hittable.h" />
     <ClInclude Include="src\scene.h" />
     <ClInclude Include="src\texture.h" />
+    <ClInclude Include="src\transform.h" />
     <ClInclude Include="src\utils.h" />
     <ClInclude Include="src\external\glm\common.hpp" />
     <ClInclude Include="src\external\glm\detail\compute_common.hpp" />
@@ -563,6 +564,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)src/external</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -579,6 +581,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)src/external</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
