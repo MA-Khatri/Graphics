@@ -16,7 +16,7 @@ public:
 	/* Handle ray-object interaction */
 	virtual bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const = 0;
 
-	/* Return this object's axis aligned bounding box */
+	/* Return this object's axis aligned bounding box in world space coordinates */
 	inline AABB BoundingBox() const { return bounding_box; }
 
 public:
@@ -24,14 +24,21 @@ public:
 	Transform transform;
 
 protected:
-	/* The axis aligned bounding box which tightly encloses the object */
+	/* The axis aligned bounding box which tightly encloses the world space dimensions of the object */
 	AABB bounding_box;
 };
 
 class Sphere : public Hittable
 {
 public:
-	Sphere(std::shared_ptr<Material> material, Vec3 motion_vector = Vec3(0.0));
+	/* Manually set the transform when generating a sphere */
+	Sphere(const Transform& t_transform, std::shared_ptr<Material> material);
+
+	/* Standard sphere generation with center and radius. This sets up the initial transforms for you */
+	Sphere(const Vec3& center, double radius, std::shared_ptr<Material> material);
+
+	/* For motion blur spheres, provide a start and stopping position and radius */
+	Sphere(const Point3& start, const Point3& stop, double radius, std::shared_ptr<Material> material);
 
 	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
 
@@ -46,6 +53,8 @@ private:
 
 	/* Set the UV coordinates of the sphere based on the hit point on a sphere of radius 1 */
 	static void GetSphereUV(const Point3& p, double& u, double& v);
+
+	void SetBoundingBox();
 };
 
 
@@ -67,7 +76,7 @@ private:
 private:
 	/* Given the hit point in plane coordinates, return false if it is outside the primitive.
 	Otherwise, set the UV coordinates of the hit and return true. */
-	virtual bool IsInterior(double a, double b, Interaction& interaction) const;
+	virtual bool IsInterior(double a, double b, Interaction& interaction) const; /* why virtual? */
 
 	/* Compute the bounding box encapsulating all four vertices */
 	virtual void SetBoundingBox();

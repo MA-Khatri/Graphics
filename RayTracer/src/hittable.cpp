@@ -6,8 +6,33 @@ namespace rt
 /* ====== Spheres ====== */
 /* ===================== */
 
-Sphere::Sphere(std::shared_ptr<Material> material, Vec3 motion_vector /* = Vec3(0.0)*/)
-	: material(material), motion_vector(motion_vector) {}
+Sphere::Sphere(const Transform& t_transform, std::shared_ptr<Material> material)
+	: material(material), motion_vector(Vec3(0.0)) 
+{
+	transform = t_transform;
+	SetBoundingBox();
+}
+
+
+
+Sphere::Sphere(const Vec3& center, double radius, std::shared_ptr<Material> material)
+	: material(material), motion_vector(Vec3(0.0))
+{
+	transform.Translate(center);
+	transform.Scale(radius);
+
+	SetBoundingBox();
+}
+
+
+Sphere::Sphere(const Point3& start, const Point3& stop, double radius, std::shared_ptr<Material> material)
+	: material(material), motion_vector(stop - start)
+{
+	transform.Translate(start);
+	transform.Scale(radius);
+
+	SetBoundingBox();
+}
 
 bool Sphere::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
 {
@@ -36,7 +61,7 @@ bool Sphere::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
 	interaction.posn = ray.At(interaction.t); /* store world space posn */
 
 	Vec3 outward_normal = model_ray.At(interaction.t) - current_center; /* model space normal vector */
-	GetSphereUV(outward_normal, interaction.u, interaction.v);
+	GetSphereUV(outward_normal, interaction.u, interaction.v); /* Set UV coords in model space */
 
 	//interaction.SetFaceNormal(model_ray.direction, outward_normal);
 	interaction.SetFaceNormal(ray.direction, transform.GetWorldNormal(outward_normal)); /* set world space normal */
@@ -63,6 +88,22 @@ void Sphere::GetSphereUV(const Point3& p, double& u, double& v)
 
 	u = phi / (2.0 * Pi);
 	v = theta / Pi;
+}
+
+void Sphere::SetBoundingBox()
+{
+	auto mtx33 = transform.model_matrix[3][3];
+	auto mtx00 = transform.model_matrix[0][0] / mtx33;
+	auto mtx11 = transform.model_matrix[1][1] / mtx33;
+	auto mtx22 = transform.model_matrix[2][2] / mtx33;
+
+	auto tvec = Vec3(transform.model_matrix[3] / mtx33);
+	auto rvec = Vec3(mtx00, mtx11, mtx22); /* edges of AABB should be origin +/- rvec */
+	
+	AABB box1(tvec - rvec, tvec + rvec);
+	AABB box2(tvec + motion_vector - rvec, tvec + motion_vector + rvec);
+
+	bounding_box = AABB(box1, box2);
 }
 
 

@@ -71,7 +71,7 @@ void PixelColor(std::vector<unsigned char>& rendered_image, unsigned int i, unsi
 	/* Determine the index to start of this pixel */
 	unsigned int pixel = 3 * (j * camera.image_width + i);
 
-	/* Create a ray with a random offset within the pixel */
+	/* Create a ray from this pixel using the given camera */
 	Ray ray = camera.GenerateRay(i, j);
 
 	/* Trace ray and determine new color */
