@@ -16,7 +16,7 @@ public:
 	It is the inverse of the model matrix */
 	Mat4 world_to_model = Mat4(1.0);
 
-	/* Stores the transpose of the model matrix which is used to update surface normals. 
+	/* Stores the inverse transpose of the model matrix which is used to update surface normals. 
 	This is so that normals for non-uniform scaling stay perpendicular to the surface of
 	the object. */
 	Mat4 normal_to_world = Mat4(1.0);
@@ -88,7 +88,8 @@ private:
 	inline void UpdateMatrices()
 	{
 		world_to_model = glm::inverse(model_matrix);
-		normal_to_world = glm::transpose(world_to_model);
+		//normal_to_world = glm::transpose(world_to_model); /* i.e., inverse transpose of model_matrix */
+		normal_to_world = world_to_model;
 	}
 
 };

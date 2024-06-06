@@ -51,26 +51,34 @@ Scene GenerateScene(Scenes scene)
 		world.Add(ground);
 
 		/* Add in some custom larger spheres */
-		auto material1 = std::make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
+		auto material1 = std::make_shared<Lambertian>(std::make_shared<TurbulenceTexture>(4.0));
 		auto s1 = std::make_shared<Sphere>(material1);
-		s1->transform.Translate(0.0, -4.0, 4.0);
-		s1->transform.Scale(2.0, 2.0, 4.0);
+		s1->transform.Translate(0.0, -5.0, 2.0);
+		s1->transform.Rotate(-30.0, Vec3(0.0, 0.0, 1.0));
+		s1->transform.Scale(5.0, 2.0, 2.0);
 		world.Add(s1);
 
 		auto material2 = std::make_shared<Dielectric>(1.5);
 		auto s2 = std::make_shared<Sphere>(material2);
-		s2->transform.Translate(0.0, 0.0, 2.0);
-		s2->transform.Scale(2.0);
+		s2->transform.Translate(0.0, 0.0, 4.0);
+		s2->transform.Scale(3.0, 2.0, 3.0);
 		world.Add(s2);
 
 		auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
 		auto s3 = std::make_shared<Sphere>(material3);
-		s3->transform.Translate(0.0, 4.0, 4.0);
-		s3->transform.Rotate(45.0, Vec3(1.0, 0.0, 0.0));
-		s3->transform.Scale(2.0, 2.0, 4.0);
+		s3->transform.Translate(0.0, 5.0, 4.0);
+		s3->transform.Rotate(30.0, Vec3(0.0, 0.0, 1.0));
+		s3->transform.Scale(4.0, 2.0, 4.0);
 		world.Add(s3);
 
+		auto light = std::make_shared<DiffuseLight>(Color(10.0));
+		auto s4 = std::make_shared<Sphere>(light);
+		s4->transform.Translate(0.0, 0.0, 12.0);
+		s4->transform.Scale(3.0, 3.0, 1.0);
+		world.Add(s4);
+
 		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
+		//sky = new SolidColor(0.4, 0.4, 0.4);
 
 		break;
 	}

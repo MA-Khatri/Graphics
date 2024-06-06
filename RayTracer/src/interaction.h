@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ray.h"
+#include "transform.h"
 
 #include <vector>
 #include <memory>
@@ -20,6 +21,8 @@ public:
 	double u;
 	double v;
 	bool front_face;
+	Transform transform;
+
 
 	Interaction() {} /* No constructor is actually used for this class */
 

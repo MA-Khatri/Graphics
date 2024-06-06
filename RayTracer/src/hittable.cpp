@@ -33,10 +33,14 @@ bool Sphere::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
 	}
 
 	interaction.t = root;
-	interaction.posn = ray.At(interaction.t); /* world space posn */
-	Vec3 outward_normal = model_ray.At(interaction.t) - current_center;
-	interaction.SetFaceNormal(model_ray.direction, outward_normal);
+	interaction.posn = ray.At(interaction.t); /* store world space posn */
+
+	Vec3 outward_normal = model_ray.At(interaction.t) - current_center; /* model space normal vector */
 	GetSphereUV(outward_normal, interaction.u, interaction.v);
+
+	//interaction.SetFaceNormal(model_ray.direction, outward_normal);
+	interaction.SetFaceNormal(ray.direction, transform.GetWorldNormal(outward_normal)); /* set world space normal */
+
 	interaction.material = material;
 
 	return true;
