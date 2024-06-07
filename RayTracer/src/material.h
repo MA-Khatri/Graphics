@@ -72,6 +72,19 @@ private:
 };
 
 
+class Isotropic : public Material
+{
+public:
+	Isotropic(const Color& albedo) : texture(std::make_shared<SolidColor>(albedo)) {}
+	Isotropic(std::shared_ptr<Texture> texture) : texture(texture) {}
+
+	bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const override;
+
+private:
+	std::shared_ptr<Texture> texture;
+};
+
+
 class DiffuseLight : public Material
 {
 public:

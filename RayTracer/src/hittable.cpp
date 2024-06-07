@@ -164,15 +164,13 @@ bool Parallelogram::Hit(const Ray& ray, Interval ray_t, Interaction& interaction
 	
 	Ray model_ray = transform.WorldToModel(ray);
 
-	Vec3 m_normal = transform.world_to_model * Vec4(normal, 0.0);
-
-	double denominator = glm::dot(m_normal, model_ray.direction);
+	double denominator = glm::dot(normal, model_ray.direction);
 
 	/* No hit if the ray is parallel to the plane */
 	if (std::fabs(denominator) < Eps) return false;
 
 	/* Return false if the hit point parameter t is outside the ray interval */
-	double t = (D - glm::dot(m_normal, model_ray.origin)) / denominator;
+	double t = (D - glm::dot(normal, model_ray.origin)) / denominator;
 	if (!ray_t.Contains(t)) return false;
 
 	/* Determine if the hit point lies within the bounds of the parallelogram using the planar coordinates */
@@ -186,7 +184,8 @@ bool Parallelogram::Hit(const Ray& ray, Interval ray_t, Interaction& interaction
 	interaction.t = t;
 	interaction.posn = intersection;
 	interaction.material = material;
-	interaction.SetFaceNormal(model_ray.direction, m_normal);
+	interaction.SetFaceNormal(model_ray.direction, normal);
+	interaction.transform = transform;
 
 	return true;
 }
@@ -200,6 +199,61 @@ bool Parallelogram::IsInterior(double a, double b, Interaction& interaction) con
 	interaction.u = a;
 	interaction.v = b;
 	return true;
+}
+
+
+/* ============================== */
+/* ====== Constant Mediums ====== */
+/* ============================== */
+
+ConstantMedium::ConstantMedium(std::shared_ptr<Hittable> boundary, double density, std::shared_ptr<Texture> texture)
+	: boundary(boundary), neg_inv_density(-1.0 / density), phase_function(std::make_shared<Isotropic>(texture))
+{
+
+}
+
+ConstantMedium::ConstantMedium(std::shared_ptr<Hittable> boundary, double density, const Color& albedo)
+	: boundary(boundary), neg_inv_density(-1.0 / density), phase_function(std::make_shared<Isotropic>(albedo))
+{
+
+}
+
+bool ConstantMedium::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
+{
+	/* We need to determine the entry and exit points of the ray along the boundary */
+	Interaction interaction1, interaction2;
+
+	/* If the ray does not intersect with the boundary at all, return */
+	if (!boundary->Hit(ray, Interval(-Inf, Inf), interaction1)) return false;
+
+	/* If the ray does not *exit*  the boundary, return */
+	if (!boundary->Hit(ray, Interval(interaction1.t + Eps, Inf), interaction2)) return false;
+
+	/* Bounds check the entry and exit points */
+	if (interaction1.t < ray_t.min) interaction1.t = ray_t.min;
+	if (interaction2.t > ray_t.max) interaction2.t = ray_t.max;
+
+	if (interaction1.t >= interaction2.t) return false;
+
+	if (interaction1.t < 0) interaction1.t = 0.0;
+
+	/* Determine at what point inside the bounds the ray will scatter (or if it will pass through) */
+	//Ray model_ray = boundary->transform.WorldToModel(ray);
+	Ray model_ray = ray;
+	double ray_length = glm::length(model_ray.direction);
+	double distance_inside_boundary = (interaction1.t - interaction2.t) * ray_length;
+	double hit_distance = neg_inv_density * std::log(RandomDouble());
+
+	if (hit_distance > distance_inside_boundary) return false;
+
+	interaction.t = interaction1.t + hit_distance / ray_length;
+	interaction.posn = model_ray.At(interaction.t);
+	interaction.material = phase_function;
+	//interaction.transform = boundary->transform;
+
+	/* arbitrary... */
+	interaction.normal = Vec3(0.0, 0.0, 1.0);
+	interaction.front_face = true;
 }
 
 /* =========================== */

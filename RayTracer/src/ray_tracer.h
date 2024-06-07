@@ -44,7 +44,7 @@ Scene GenerateScene(Scenes scene)
 	case BasicMaterials:
 	{
 		/* Ground plane with checker texture */
-		auto checker_texture = std::make_shared<CheckerTexture>(1.0/100.0, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
+		auto checker_texture = std::make_shared<CheckerTexture>(2.5, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
 		Transform tg;
 		tg.Scale(100.0);
 		world.Add(std::make_shared<Parallelogram>(tg, std::make_shared<Lambertian>(checker_texture)));
@@ -77,11 +77,11 @@ Scene GenerateScene(Scenes scene)
 		//s4->transform.Scale(3.0, 3.0, 1.0);
 		//world.Add(s4);
 
-		Transform box_t;
-		box_t.Translate(3.0, 4.0, 3.0);
-		box_t.Rotate(30.0, Vec3(0.0, 1.0, 1.0));
-		box_t.Scale(3.0);
-		world.Add(std::make_shared<HittableList>(Box(box_t, material3)));
+		Transform t4;
+		t4.Translate(-10.0, 0.0, 5.0);
+		t4.Rotate(-90.0, Vec3(0.0, 1.0, 0.0));
+		t4.Scale(10.0, 20.0, 1.0);
+		world.Add(std::make_shared<Parallelogram>(t4, material3));
 
 		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
 
@@ -298,7 +298,8 @@ Scene GenerateScene(Scenes scene)
 		box_t.Translate(0.0, 0.0, 3.0);
 		box_t.Rotate(30.0, Vec3(0.0, 1.0, 1.0));
 		box_t.Scale(3.0);
-		world.Add(std::make_shared<HittableList>(Box(box_t, glass)));
+		//world.Add(std::make_shared<HittableList>(Box(box_t, glass)));
+		world.Add(std::make_shared<ConstantMedium>(std::make_shared<HittableList>(Box(box_t, white)), 0.01, Color(0.4, 0.4, 0.4)));
 
 		break;
 	}

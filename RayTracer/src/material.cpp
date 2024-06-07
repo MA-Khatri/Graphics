@@ -26,10 +26,15 @@ bool Lambertian::Scatter(const Ray& ray_in, const Interaction& interaction, Colo
 bool Metal::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
 {
 	Ray model_ray = interaction.transform.WorldToModel(ray_in);
+	
 	Vec3 reflected = Reflect(model_ray.direction, interaction.normal);
-	reflected = glm::normalize(reflected) + (roughness * RandomUnitVector());
+	reflected = glm::normalize(reflected);
+	if (roughness > 0.0) reflected += roughness * RandomUnitVector();
+	
 	ray_out = interaction.transform.ModelToWorld(Ray(interaction.posn + Eps * interaction.normal, reflected, ray_in.time));
+	
 	attenuation = albedo;
+	
 	return (glm::dot(reflected, interaction.normal) > 0.0); /* Ignore if produced ray direction is within the object */
 }
 
@@ -64,6 +69,21 @@ double Dielectric::Reflectance(double cosine, double refraction_index)
 	r0 = r0 * r0;
 	return r0 + (1.0 - r0) * std::pow((1.0 - cosine), 5.0);
 }
+
+
+/* ======================= */
+/* ====== Isotropic ====== */
+/* ======================= */
+
+bool Isotropic::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
+{
+	/* Scatter the ray in a uniform random direction */
+	ray_out = Ray(interaction.transform.model_to_world * Vec4(interaction.posn, 1.0), RandomUnitVector(), ray_in.time);
+	attenuation = texture->Value(interaction.u, interaction.v, ray_out.origin);
+	return true;
+}
+
+
 
 /* =========================== */
 /* ====== Diffuse Light ====== */

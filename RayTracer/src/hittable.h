@@ -4,6 +4,7 @@
 #include "aabb.h"
 #include "texture.h"
 #include "transform.h"
+#include "material.h"
 
 namespace rt 
 {
@@ -27,6 +28,7 @@ protected:
 	/* The axis aligned bounding box which tightly encloses the world space dimensions of the object */
 	AABB bounding_box;
 };
+
 
 
 class Sphere : public Hittable
@@ -58,6 +60,7 @@ private:
 };
 
 
+
 class Parallelogram : public Hittable
 {
 public:
@@ -84,6 +87,23 @@ private:
 	/* Compute the bounding box encapsulating all four vertices */
 	virtual void SetBoundingBox(); /* why virtual? */
 };
+
+
+
+class ConstantMedium : public Hittable
+{
+public:
+	ConstantMedium(std::shared_ptr<Hittable> boundary, double density, std::shared_ptr<Texture> texture);
+	ConstantMedium(std::shared_ptr<Hittable> boundary, double density, const Color& albedo);
+
+	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
+
+private:
+	std::shared_ptr<Hittable> boundary;
+	double neg_inv_density;
+	std::shared_ptr<Material> phase_function;
+};
+
 
 
 class HittableList : public Hittable
