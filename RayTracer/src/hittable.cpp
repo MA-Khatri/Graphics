@@ -135,6 +135,11 @@ Parallelogram::Parallelogram(const Transform& t_transform, std::shared_ptr<Mater
 	w(Vec3(0.0, 0.0, 1.0)), normal(Vec3(0.0, 0.0, 1.0)), material(material)
 {
 	transform = t_transform;
+	//Q = transform.world_to_model * Vec4(Q, 1.0);
+	//u = transform.world_to_model * Vec4(u, 0.0);
+	//v = transform.world_to_model * Vec4(v, 0.0);
+	//w = transform.world_to_model * Vec4(w, 0.0);
+	//normal = transform.normal_to_world * Vec4(normal, 0.0);
 	D = glm::dot(normal, Q);
 
 	SetBoundingBox();
@@ -159,13 +164,15 @@ bool Parallelogram::Hit(const Ray& ray, Interval ray_t, Interaction& interaction
 	
 	Ray model_ray = transform.WorldToModel(ray);
 
-	double denominator = glm::dot(normal, model_ray.direction);
+	Vec3 m_normal = transform.world_to_model * Vec4(normal, 0.0);
+
+	double denominator = glm::dot(m_normal, model_ray.direction);
 
 	/* No hit if the ray is parallel to the plane */
 	if (std::fabs(denominator) < Eps) return false;
 
 	/* Return false if the hit point parameter t is outside the ray interval */
-	double t = (D - glm::dot(normal, model_ray.origin)) / denominator;
+	double t = (D - glm::dot(m_normal, model_ray.origin)) / denominator;
 	if (!ray_t.Contains(t)) return false;
 
 	/* Determine if the hit point lies within the bounds of the parallelogram using the planar coordinates */
@@ -179,7 +186,7 @@ bool Parallelogram::Hit(const Ray& ray, Interval ray_t, Interaction& interaction
 	interaction.t = t;
 	interaction.posn = intersection;
 	interaction.material = material;
-	interaction.SetFaceNormal(model_ray.direction, normal);
+	interaction.SetFaceNormal(model_ray.direction, m_normal);
 
 	return true;
 }
@@ -264,12 +271,12 @@ std::shared_ptr<rt::HittableList> Box(const Transform& t_transform, std::shared_
 {
 	auto sides = std::make_shared<HittableList>();
 
-	sides->Add(std::make_shared<Parallelogram>(Transform(glm::translate(Vec3(0.0, 0.0, 0.5)) * t_transform.model_to_world), material));
-	sides->Add(std::make_shared<Parallelogram>(Transform(glm::translate(Vec3(-0.5, 0.0, 0.0)) * glm::rotate(Pi / 2.0, Vec3(1.0, 0.0, 0.0)) * t_transform.model_to_world), material));
-	//sides->Add(std::make_shared<Parallelogram>(Transform(glm::translate(Vec3(0.0, 0.0, 0.5)) * t_transform.model_to_world), material));
-	//sides->Add(std::make_shared<Parallelogram>(Transform(glm::translate(Vec3(0.0, 0.0, 0.5)) * t_transform.model_to_world), material));
-	//sides->Add(std::make_shared<Parallelogram>(Transform(glm::translate(Vec3(0.0, 0.0, 0.5)) * t_transform.model_to_world), material));
-	//sides->Add(std::make_shared<Parallelogram>(Transform(glm::translate(Vec3(0.0, 0.0, 0.5)) * t_transform.model_to_world), material));
+	sides->Add(std::make_shared<Parallelogram>(Transform(t_transform.model_to_world * glm::translate(Vec3(0.0, 0.0, 0.5))), material)); /* top */
+	sides->Add(std::make_shared<Parallelogram>(Transform(t_transform.model_to_world * glm::translate(Vec3(0.0, 0.0, -0.5)) * glm::rotate(Pi, Vec3(1.0, 0.0, 0.0))), material)); /* bottom */
+	sides->Add(std::make_shared<Parallelogram>(Transform(t_transform.model_to_world * glm::translate(Vec3(0.0, -0.5, 0.0)) * glm::rotate(Pi / 2.0, Vec3(1.0, 0.0, 0.0))), material)); /* left */
+	sides->Add(std::make_shared<Parallelogram>(Transform(t_transform.model_to_world * glm::translate(Vec3(0.0, 0.5, 0.0)) * glm::rotate(-Pi / 2.0, Vec3(1.0, 0.0, 0.0))), material)); /* right */
+	sides->Add(std::make_shared<Parallelogram>(Transform(t_transform.model_to_world * glm::translate(Vec3(-0.5, 0.0, 0.0)) * glm::rotate(-Pi / 2.0, Vec3(0.0, 1.0, 0.0))), material)); /* back */
+	sides->Add(std::make_shared<Parallelogram>(Transform(t_transform.model_to_world * glm::translate(Vec3(0.5, 0.0, 0.0)) * glm::rotate(Pi / 2.0, Vec3(0.0, 1.0, 0.0))), material)); /* front */
 
 	return sides;
 }

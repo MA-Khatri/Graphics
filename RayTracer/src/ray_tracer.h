@@ -77,6 +77,12 @@ Scene GenerateScene(Scenes scene)
 		//s4->transform.Scale(3.0, 3.0, 1.0);
 		//world.Add(s4);
 
+		Transform box_t;
+		box_t.Translate(3.0, 4.0, 3.0);
+		box_t.Rotate(30.0, Vec3(0.0, 1.0, 1.0));
+		box_t.Scale(3.0);
+		world.Add(std::make_shared<HittableList>(Box(box_t, material3)));
+
 		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
 
 		break;
@@ -290,9 +296,9 @@ Scene GenerateScene(Scenes scene)
 
 		Transform box_t;
 		box_t.Translate(0.0, 0.0, 3.0);
-		box_t.Rotate(30.0, Vec3(0.0, 0.0, 1.0));
+		box_t.Rotate(30.0, Vec3(0.0, 1.0, 1.0));
 		box_t.Scale(3.0);
-		world.Add(std::make_shared<HittableList>(Box(box_t, red)));
+		world.Add(std::make_shared<HittableList>(Box(box_t, glass)));
 
 		break;
 	}

@@ -166,7 +166,7 @@ int main(void)
 	//rt::ThinLensCamera ray_camera;
 	rt::PerspectiveCamera ray_camera;
 
-	rt::Scene scene = rt::GenerateScene(rt::Scenes::CornellBox);
+	rt::Scene scene = rt::GenerateScene(rt::Scenes::BasicMaterials);
 
 	/* ====== Local Variables ====== */
 	unsigned char r = 0;
