@@ -14,8 +14,8 @@ bool Lambertian::Scatter(const Ray& ray_in, const Interaction& interaction, Colo
 	/* Catch degenerate scatter direction */
 	if (NearZero(scatter_direction)) scatter_direction = interaction.normal;
 
-	ray_out = Ray(interaction.posn, scatter_direction, ray_in.time);
-	attenuation = texture->Value(interaction.u, interaction.v, interaction.posn);
+	ray_out = interaction.transform.ModelToWorld(Ray(interaction.posn, scatter_direction, ray_in.time));
+	attenuation = texture->Value(interaction.u, interaction.v, ray_out.origin);
 	return true;
 }
 
@@ -25,11 +25,12 @@ bool Lambertian::Scatter(const Ray& ray_in, const Interaction& interaction, Colo
 
 bool Metal::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
 {
-	Vec3 reflected = Reflect(ray_in.direction, interaction.normal);
+	Ray model_ray = interaction.transform.WorldToModel(ray_in);
+	Vec3 reflected = Reflect(model_ray.direction, interaction.normal);
 	reflected = glm::normalize(reflected) + (roughness * RandomUnitVector());
-	ray_out = Ray(interaction.posn, reflected, ray_in.time);
+	ray_out = interaction.transform.ModelToWorld(Ray(interaction.posn, reflected, ray_in.time));
 	attenuation = albedo;
-	return (glm::dot(ray_out.direction, interaction.normal) > 0.0); /* Ignore if produced ray direction is within the object */
+	return (glm::dot(reflected, interaction.normal) > 0.0); /* Ignore if produced ray direction is within the object */
 }
 
 /* ======================== */
@@ -42,7 +43,8 @@ bool Dielectric::Scatter(const Ray& ray_in, const Interaction& interaction, Colo
 	double eta_in_over_out = eta_in / eta_out;
 	double refraction_index = interaction.front_face ? (1.0 / eta_in_over_out) : eta_in_over_out;
 
-	Vec3 unit_direction = glm::normalize(ray_in.direction);
+	Ray model_ray = interaction.transform.WorldToModel(ray_in);
+	Vec3 unit_direction = glm::normalize(model_ray.direction);
 	double cos_theta = std::fmin(glm::dot(-unit_direction, interaction.normal), 1.0);
 	double sin_theta = std::sqrt(1.0 - cos_theta * cos_theta);
 
@@ -52,7 +54,7 @@ bool Dielectric::Scatter(const Ray& ray_in, const Interaction& interaction, Colo
 	if (cannot_refract || Reflectance(cos_theta, refraction_index) > RandomDouble()) direction = Reflect(unit_direction, interaction.normal);
 	else direction = Refract(unit_direction, interaction.normal, refraction_index);
 
-	ray_out = Ray(interaction.posn, direction, ray_in.time);
+	ray_out = interaction.transform.ModelToWorld(Ray(interaction.posn, direction, ray_in.time));
 	return true;
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ray.h"
+#include "transform.h"
 
 #include <vector>
 #include <memory>
@@ -13,15 +14,19 @@ class Material;
 class Interaction
 {
 public:
-	Point3 posn;
-	Vec3 normal;
+	Point3 posn; /* Model space position */
+	Vec3 normal; /* Model space normal */
 	std::shared_ptr<Material> material;
-	double t;
+	double t; /* position of hit along the ray */
 	double u;
 	double v;
 	bool front_face;
 
+	/* Used to convert between model space and world space.
+	All interaction calculations are done in model space then converted to world space. */
+	Transform transform; 
 
+public:
 	Interaction() {} /* No constructor is actually used for this class */
 
 	void SetFaceNormal(const Vec3& ray_direction, const Vec3& outward_normal)

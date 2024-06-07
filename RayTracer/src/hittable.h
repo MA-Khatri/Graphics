@@ -79,7 +79,7 @@ private:
 	virtual bool IsInterior(double a, double b, Interaction& interaction) const; /* why virtual? */
 
 	/* Compute the bounding box encapsulating all four vertices */
-	virtual void SetBoundingBox();
+	virtual void SetBoundingBox(); /* why virtual? */
 };
 
 

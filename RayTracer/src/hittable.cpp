@@ -36,7 +36,7 @@ Sphere::Sphere(const Point3& start, const Point3& stop, double radius, std::shar
 
 bool Sphere::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
 {
-	Ray model_ray = transform.World2Model(ray);
+	Ray model_ray = transform.WorldToModel(ray);
 
 	Point3 current_center = SphereCenter(ray.time); /* In model coords */
 	Vec3 oc = current_center - model_ray.origin;
@@ -58,15 +58,16 @@ bool Sphere::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
 	}
 
 	interaction.t = root;
-	interaction.posn = ray.At(interaction.t); /* store world space posn */
+	interaction.posn = model_ray.At(interaction.t); /* store model space posn */
+
 
 	Vec3 outward_normal = model_ray.At(interaction.t) - current_center; /* model space normal vector */
 	GetSphereUV(outward_normal, interaction.u, interaction.v); /* Set UV coords in model space */
 
-	//interaction.SetFaceNormal(model_ray.direction, outward_normal);
-	interaction.SetFaceNormal(ray.direction, transform.GetWorldNormal(outward_normal)); /* set world space normal */
+	interaction.SetFaceNormal(model_ray.direction, outward_normal); /* set model space normal */
 
 	interaction.material = material;
+	interaction.transform = transform;
 
 	return true;
 }
@@ -92,15 +93,19 @@ void Sphere::GetSphereUV(const Point3& p, double& u, double& v)
 
 void Sphere::SetBoundingBox()
 {
-	auto mtx33 = transform.model_matrix[3][3];
+	/* Find the transformed bounds of all corners of the box with corners [-1,-1,-1] to [1,1,1]*/
+	Vec3 rvec1 = transform.model_to_world * Vec4(-1.0, -1.0, -1.0, 1.0);
+	Vec3 rvec2 = transform.model_to_world * Vec4(1.0, -1.0, -1.0, 1.0);
+	Vec3 rvec3 = transform.model_to_world * Vec4(1.0, 1.0, -1.0, 1.0);
+	Vec3 rvec4 = transform.model_to_world * Vec4(-1.0, 1.0, -1.0, 1.0);
 
-	auto tvec = Vec3(transform.model_matrix[3] / mtx33);
-	Vec3 rvec = transform.model_matrix * Vec4(1.0, 1.0, 1.0, 0.0);
-	
-	AABB box1(tvec - rvec, tvec + rvec);
-	AABB box2(tvec + motion_vector - rvec, tvec + motion_vector + rvec);
+	Vec3 rvec5 = transform.model_to_world * Vec4(-1.0, -1.0, 1.0, 1.0);
+	Vec3 rvec6 = transform.model_to_world * Vec4(1.0, -1.0, 1.0, 1.0);
+	Vec3 rvec7 = transform.model_to_world * Vec4(1.0, 1.0, 1.0, 1.0);
+	Vec3 rvec8 = transform.model_to_world * Vec4(-1.0, 1.0, 1.0, 1.0);
 
-	bounding_box = AABB(box1, box2);
+	bounding_box = AABB(AABB(AABB(rvec1, rvec2), AABB(rvec3, rvec4)), 
+						AABB(AABB(rvec5, rvec6), AABB(rvec7, rvec8)));
 }
 
 
