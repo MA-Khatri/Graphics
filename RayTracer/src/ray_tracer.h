@@ -43,9 +43,12 @@ Scene GenerateScene(Scenes scene)
 
 	case BasicMaterials:
 	{
-		/* Ground sphere with checker texture */
-		auto checker_texture = std::make_shared<CheckerTexture>(0.32, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
-		world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1000.0), 1000.0, std::make_shared<Lambertian>(checker_texture)));
+		/* Ground plane with checker texture */
+		auto checker_texture = std::make_shared<CheckerTexture>(1.0/100.0, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
+		Transform tg;
+		tg.Scale(100.0);
+		world.Add(std::make_shared<Parallelogram>(tg, std::make_shared<Lambertian>(checker_texture)));
+		//world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1000.0), 1000.0, std::make_shared<Lambertian>(checker_texture)));
 
 		/* Add in some custom larger spheres */
 		auto material1 = std::make_shared<Lambertian>(std::make_shared<TurbulenceTexture>(4.0));
@@ -255,23 +258,41 @@ Scene GenerateScene(Scenes scene)
 		sky = new SolidColor(0.0, 0.0, 0.0);
 
 		/* Materials */
-		auto red    = std::make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
-		auto white  = std::make_shared<Lambertian>(Color(0.73, 0.73, 0.73));
-		auto green  = std::make_shared<Lambertian>(Color(0.12, 0.45, 0.15));
-		auto light  = std::make_shared<DiffuseLight>(Color(15.0, 15.0, 15.0));
-		auto glass  = std::make_shared<Dielectric>(1.5);
-		auto bubble = std::make_shared<Dielectric>(0.666666);
+		auto red     = std::make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
+		auto white   = std::make_shared<Lambertian>(Color(0.73, 0.73, 0.73));
+		auto green   = std::make_shared<Lambertian>(Color(0.12, 0.45, 0.15));
+		auto light   = std::make_shared<DiffuseLight>(Color(15.0, 15.0, 15.0));
+		auto glass   = std::make_shared<Dielectric>(1.5);
+		auto bubble  = std::make_shared<Dielectric>(0.666666);
+		auto checker = std::make_shared<Lambertian>(std::make_shared<CheckerTexture>(2.5, Color(0.1, 0.1, 0.4), Color(0.73, 0.73, 0.73)));
 
 		/* Cornell box */
 		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 0.0, 10.0), green)); /* left */
 		world.Add(std::make_shared<Parallelogram>(Point3(5.0, 5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 0.0, 10.0), red)); /* right */
-		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 10.0, 0.0), white)); /* bottom */
+		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 10.0, 0.0), checker)); /* bottom */
 		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 10.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 10.0, 0.0), white)); /* top */
 		world.Add(std::make_shared<Parallelogram>(Point3(-5.0, -5.0, 0.0), Vec3(0.0, 10.0, 0.0), Vec3(0.0, 0.0, 10.0), white)); /* back */
 		world.Add(std::make_shared<Parallelogram>(Point3(-1.5, -1.5, 10.0-Eps), Vec3(3.0, 0.0, 0.0), Vec3(0.0, 3.0, 0.0), light)); /* light */
 
 		/* Cornell box contents */
-		/* TODO */
+		//auto material2 = std::make_shared<Dielectric>(1.5);
+		//Transform t2;
+		//t2.Translate(0.0, 0.0, 4.0);
+		//t2.Scale(3.0, 3.0, 1.0);
+		//world.Add(std::make_shared<Sphere>(t2, material2));
+
+		//auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
+		//Transform t3;
+		//t3.Translate(-2.0, 0.0, 4.0);
+		//t3.Rotate(35.0, Vec3(0.0, 1.0, 1.0));
+		//t3.Scale(4.0, 2.0, 4.0);
+		//world.Add(std::make_shared<Sphere>(t3, material3));
+
+		Transform box_t;
+		box_t.Translate(0.0, 0.0, 3.0);
+		box_t.Rotate(30.0, Vec3(0.0, 0.0, 1.0));
+		box_t.Scale(3.0);
+		world.Add(std::make_shared<HittableList>(Box(box_t, red)));
 
 		break;
 	}

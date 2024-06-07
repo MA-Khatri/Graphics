@@ -14,7 +14,7 @@ bool Lambertian::Scatter(const Ray& ray_in, const Interaction& interaction, Colo
 	/* Catch degenerate scatter direction */
 	if (NearZero(scatter_direction)) scatter_direction = interaction.normal;
 
-	ray_out = interaction.transform.ModelToWorld(Ray(interaction.posn, scatter_direction, ray_in.time));
+	ray_out = interaction.transform.ModelToWorld(Ray(interaction.posn + Eps * interaction.normal, scatter_direction, ray_in.time));
 	attenuation = texture->Value(interaction.u, interaction.v, ray_out.origin);
 	return true;
 }
@@ -28,7 +28,7 @@ bool Metal::Scatter(const Ray& ray_in, const Interaction& interaction, Color& at
 	Ray model_ray = interaction.transform.WorldToModel(ray_in);
 	Vec3 reflected = Reflect(model_ray.direction, interaction.normal);
 	reflected = glm::normalize(reflected) + (roughness * RandomUnitVector());
-	ray_out = interaction.transform.ModelToWorld(Ray(interaction.posn, reflected, ray_in.time));
+	ray_out = interaction.transform.ModelToWorld(Ray(interaction.posn + Eps * interaction.normal, reflected, ray_in.time));
 	attenuation = albedo;
 	return (glm::dot(reflected, interaction.normal) > 0.0); /* Ignore if produced ray direction is within the object */
 }
@@ -54,7 +54,7 @@ bool Dielectric::Scatter(const Ray& ray_in, const Interaction& interaction, Colo
 	if (cannot_refract || Reflectance(cos_theta, refraction_index) > RandomDouble()) direction = Reflect(unit_direction, interaction.normal);
 	else direction = Refract(unit_direction, interaction.normal, refraction_index);
 
-	ray_out = interaction.transform.ModelToWorld(Ray(interaction.posn, direction, ray_in.time));
+	ray_out = interaction.transform.ModelToWorld(Ray(interaction.posn + Eps * direction, direction, ray_in.time));
 	return true;
 }
 

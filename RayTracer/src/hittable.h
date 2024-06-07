@@ -28,6 +28,7 @@ protected:
 	AABB bounding_box;
 };
 
+
 class Sphere : public Hittable
 {
 public:
@@ -46,7 +47,6 @@ private:
 	std::shared_ptr<Material> material;
 	Vec3 motion_vector;
 
-
 private:
 	/* Return the center of the sphere (in model space) at time t */
 	Point3 SphereCenter(double time) const;
@@ -63,6 +63,9 @@ class Parallelogram : public Hittable
 public:
 	/* Construct a parallelogram using an origin Q and two vectors u, v that define its sides */
 	Parallelogram(const Point3& Q, const Vec3& u, const Vec3& v, std::shared_ptr<Material> material);
+
+	/* Construct a unit quad centered at the origin with normal along +z transformed by the given transform */
+	Parallelogram(const Transform& t_transform, std::shared_ptr<Material> material);
 
 	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
 
@@ -105,7 +108,7 @@ public:
 /* Returns a 3D box that contains the two provided opposite vertices 'a' and 'b' */
 std::shared_ptr<HittableList> Box(const Point3& a, const Point3& b, std::shared_ptr<Material> material);
 
-/* Returns a 1x1x1 box centered at the origin with the provided material. */
-std::shared_ptr<HittableList> Box(std::shared_ptr<Material> material);
+/* Returns a unit cube centered at the origin with the provided material transformed with the provided transform. */
+std::shared_ptr<HittableList> Box(const Transform& t_transform, std::shared_ptr<Material> material);
 
 } /* namespace rt */

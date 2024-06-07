@@ -104,6 +104,7 @@ void Sphere::SetBoundingBox()
 	Vec3 rvec7 = transform.model_to_world * Vec4(1.0, 1.0, 1.0, 1.0);
 	Vec3 rvec8 = transform.model_to_world * Vec4(-1.0, 1.0, 1.0, 1.0);
 
+	/* Create a bounding box that encompasses all transformed bounds */
 	bounding_box = AABB(AABB(AABB(rvec1, rvec2), AABB(rvec3, rvec4)), 
 						AABB(AABB(rvec5, rvec6), AABB(rvec7, rvec8)));
 }
@@ -128,10 +129,26 @@ Parallelogram::Parallelogram(const Point3& Q, const Vec3& u, const Vec3& v, std:
 	SetBoundingBox();
 }
 
+
+Parallelogram::Parallelogram(const Transform& t_transform, std::shared_ptr<Material> material)
+	: Q(Point3(-0.5, -0.5, 0.0)), u(Vec3(1.0, 0.0, 0.0)), v(Vec3(0.0, 1.0, 0.0)), 
+	w(Vec3(0.0, 0.0, 1.0)), normal(Vec3(0.0, 0.0, 1.0)), material(material)
+{
+	transform = t_transform;
+	D = glm::dot(normal, Q);
+
+	SetBoundingBox();
+}
+
 void Parallelogram::SetBoundingBox()
 {
-	AABB bbox_diagonal1 = AABB(Q, Q + u + v);
-	AABB bbox_diagonal2 = AABB(Q + u, Q + v);
+	/* Transform the parallelogram origin and direction vectors to world space */
+	Vec3 Q_w = transform.model_to_world * Vec4(Q, 1.0);
+	Vec3 u_w = transform.model_to_world * Vec4(u, 0.0);
+	Vec3 v_w = transform.model_to_world * Vec4(v, 0.0);
+
+	AABB bbox_diagonal1 = AABB(Q_w, Q_w+ u_w + v_w);
+	AABB bbox_diagonal2 = AABB(Q_w+ u_w, Q_w+ v_w);
 	bounding_box = AABB(bbox_diagonal1, bbox_diagonal2);
 }
 
@@ -140,17 +157,19 @@ bool Parallelogram::Hit(const Ray& ray, Interval ray_t, Interaction& interaction
 	/* If our ray is defined as R = P + td, the intersection with the plane becomes
 	n dot (P + td) = D. Solving for t, we get t = (D - n dot P) / (n dot d) */
 	
-	double denominator = glm::dot(normal, ray.direction);
+	Ray model_ray = transform.WorldToModel(ray);
+
+	double denominator = glm::dot(normal, model_ray.direction);
 
 	/* No hit if the ray is parallel to the plane */
 	if (std::fabs(denominator) < Eps) return false;
 
 	/* Return false if the hit point parameter t is outside the ray interval */
-	double t = (D - glm::dot(normal, ray.origin)) / denominator;
+	double t = (D - glm::dot(normal, model_ray.origin)) / denominator;
 	if (!ray_t.Contains(t)) return false;
 
 	/* Determine if the hit point lies within the bounds of the parallelogram using the planar coordinates */
-	Point3 intersection = ray.At(t);
+	Point3 intersection = model_ray.At(t);
 	Vec3 planar_hitpoint_vector = intersection - Q;
 	double alpha = glm::dot(w, glm::cross(planar_hitpoint_vector, v));
 	double beta = glm::dot(w, glm::cross(u, planar_hitpoint_vector));
@@ -160,7 +179,7 @@ bool Parallelogram::Hit(const Ray& ray, Interval ray_t, Interaction& interaction
 	interaction.t = t;
 	interaction.posn = intersection;
 	interaction.material = material;
-	interaction.SetFaceNormal(ray.direction, normal);
+	interaction.SetFaceNormal(model_ray.direction, normal);
 
 	return true;
 }
@@ -241,9 +260,18 @@ std::shared_ptr<rt::HittableList> Box(const Point3& a, const Point3& b, std::sha
 	return sides;
 }
 
-std::shared_ptr<rt::HittableList> Box(std::shared_ptr<Material> material)
+std::shared_ptr<rt::HittableList> Box(const Transform& t_transform, std::shared_ptr<Material> material)
 {
-	return Box(Point3(-0.5, -0.5, -0.5), Point3(0.5, 0.5, 0.5), material);
+	auto sides = std::make_shared<HittableList>();
+
+	sides->Add(std::make_shared<Parallelogram>(Transform(glm::translate(Vec3(0.0, 0.0, 0.5)) * t_transform.model_to_world), material));
+	sides->Add(std::make_shared<Parallelogram>(Transform(glm::translate(Vec3(-0.5, 0.0, 0.0)) * glm::rotate(Pi / 2.0, Vec3(1.0, 0.0, 0.0)) * t_transform.model_to_world), material));
+	//sides->Add(std::make_shared<Parallelogram>(Transform(glm::translate(Vec3(0.0, 0.0, 0.5)) * t_transform.model_to_world), material));
+	//sides->Add(std::make_shared<Parallelogram>(Transform(glm::translate(Vec3(0.0, 0.0, 0.5)) * t_transform.model_to_world), material));
+	//sides->Add(std::make_shared<Parallelogram>(Transform(glm::translate(Vec3(0.0, 0.0, 0.5)) * t_transform.model_to_world), material));
+	//sides->Add(std::make_shared<Parallelogram>(Transform(glm::translate(Vec3(0.0, 0.0, 0.5)) * t_transform.model_to_world), material));
+
+	return sides;
 }
 
 }
