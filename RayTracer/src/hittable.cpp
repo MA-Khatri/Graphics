@@ -1,5 +1,7 @@
 #include "hittable.h"
 
+//#include "OBJ-Loader.h"
+
 namespace rt
 {
 /* ===================== */
@@ -223,6 +225,67 @@ bool Parallelogram::IsInterior(double a, double b, Interaction& interaction) con
 }
 
 
+/* ======================= */
+/* ====== Triangles ====== */
+/* ======================= */
+
+Triangle::Triangle(const Transform& t_transform, const Point3& v0, const Point3& v1, const Point3& v2, std::shared_ptr<Material> material)
+	: v0(v0), v1(v1), v2(v2), material(material)
+{
+	transform = t_transform;
+
+	/* Edge vectors and normal in model space */
+	e01 = v1 - v0;
+	e02 = v2 - v0;
+	normal = glm::normalize(glm::cross(e01, e02));
+
+	SetBoundingBox();
+}
+
+bool Triangle::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
+{
+	/* Moller-Trumbore intersection algorithm */
+	/* https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm */
+
+	Ray model_ray = transform.WorldToModel(ray);
+
+	Vec3 ray_cross_e02 = glm::cross(model_ray.direction, e02);
+	double det = glm::dot(e01, ray_cross_e02);
+
+	/* No hit if the ray is parallel to the triangle */
+	if (std::fabs(det) < Eps) return false;
+
+	/* Is the ray within the bounds of the triangle? */
+	double inv_det = 1.0 / det;
+	Vec3 s = model_ray.origin - v0;
+	double u = inv_det * glm::dot(s, ray_cross_e02);
+	if (u < 0.0 || u > 1.0) return false;
+
+	Vec3 s_cross_e01 = glm::cross(s, e01);
+	double v = inv_det * glm::dot(s, ray_cross_e02);
+	if (v < 0.0 || u + v > 1.0) return false;
+
+	/* The ray is within the triangle, test the intersection point */
+	double t = inv_det * glm::dot(e02, s_cross_e01);
+	if (t < Eps) return false;
+	
+	interaction.t = t;
+	interaction.posn = model_ray.At(t);
+	interaction.material = material;
+	interaction.SetFaceNormal(model_ray.direction, normal);
+	interaction.transform = transform;
+
+	return true;
+}
+
+void Triangle::SetBoundingBox()
+{
+	auto w_v0 = transform.model_to_world * Vec4(v0, 1.0);
+	auto w_v1 = transform.model_to_world * Vec4(v1, 1.0);
+	auto w_v2 = transform.model_to_world * Vec4(v2, 1.0);
+	bounding_box = AABB(AABB(v0, v1), AABB(v0, v2));
+}
+
 /* ============================== */
 /* ====== Constant Mediums ====== */
 /* ============================== */
@@ -325,6 +388,7 @@ bool HittableList::Hit(const Ray& ray, Interval ray_t, Interaction& interaction)
 /* ====== Compound Shapes ====== */
 /* ============================= */
 
+/* === Boxes (cubes) === */
 std::shared_ptr<rt::HittableList> Box(const Point3& a, const Point3& b, std::shared_ptr<Material> material)
 {
 	auto sides = std::make_shared<HittableList>();
@@ -358,6 +422,12 @@ std::shared_ptr<rt::HittableList> Box(const Transform& t_transform, std::shared_
 	sides->Add(std::make_shared<Parallelogram>(Transform(t_transform.model_to_world * glm::translate(Vec3(0.5, 0.0, 0.0)) * glm::rotate(Pi / 2.0, Vec3(0.0, 1.0, 0.0))), material)); /* front */
 
 	return sides;
+}
+
+/* === Triangle Meshes === */
+std::shared_ptr<rt::HittableList> LoadMesh(const Transform& t_transform, const std::string& filepath, std::shared_ptr<Material> material)
+{
+
 }
 
 }

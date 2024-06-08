@@ -302,11 +302,14 @@ Scene GenerateScene(Scenes scene)
 		//t3.Scale(4.0, 2.0, 4.0);
 		//world.Add(std::make_shared<Sphere>(t3, material3));
 
-		Transform box_t;
-		box_t.Translate(0.0, 0.0, 3.0);
-		box_t.Rotate(30.0, Vec3(0.0, 1.0, 1.0));
-		box_t.Scale(3.0);
-		world.Add(std::make_shared<ConstantMedium>(std::make_shared<HittableList>(Box(box_t, white)), 0.1, Color(0.0)));
+		//Transform box_t;
+		//box_t.Translate(0.0, 0.0, 3.0);
+		//box_t.Rotate(30.0, Vec3(0.0, 1.0, 1.0));
+		//box_t.Scale(3.0);
+		//world.Add(std::make_shared<ConstantMedium>(std::make_shared<HittableList>(Box(box_t, white)), 0.1, Color(0.0)));
+
+		Transform t;
+		world.Add(std::make_shared<Triangle>(t, Point3(0.0, -2.0, 2.0), Point3(0.0, 2.0, 2.0), Point3(-4.0, 0.0, 4.0), red));
 
 		break;
 	}

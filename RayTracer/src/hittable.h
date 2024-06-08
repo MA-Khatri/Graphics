@@ -93,6 +93,30 @@ private:
 
 
 
+class Triangle : public Hittable
+{
+public:
+	/* Construct a triangle (in model space!) using the positions of its three vertices */
+	Triangle(const Transform& t_transform, const Point3& v0, const Point3& v1, const Point3& v2, std::shared_ptr<Material> material);
+
+	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
+
+private:
+	Point3 v0;
+	Point3 v1;
+	Point3 v2;
+	std::shared_ptr<Material> material;
+
+	Vec3 e01; /* Vector from v0 to v1 */
+	Vec3 e02; /* Vector from v0 to v2 */
+	Vec3 normal; /* Unit normal vector in model space */
+
+private:
+	void SetBoundingBox();
+};
+
+
+
 class ConstantMedium : public Hittable
 {
 public:
@@ -136,5 +160,8 @@ std::shared_ptr<HittableList> Box(const Point3& a, const Point3& b, std::shared_
 
 /* Returns a unit cube centered at the origin with the provided material transformed with the provided transform. */
 std::shared_ptr<HittableList> Box(const Transform& t_transform, std::shared_ptr<Material> material);
+
+/* Load a triangle mesh */
+std::shared_ptr<HittableList> LoadMesh(const Transform& t_transform, const std::string& filepath, std::shared_ptr<Material> material);
 
 } /* namespace rt */

@@ -32,6 +32,7 @@
     <ClInclude Include="src\bvh.h" />
     <ClInclude Include="src\cameras.h" />
     <ClInclude Include="src\common.h" />
+    <ClInclude Include="src\external\OBJ-Loader.h" />
     <ClInclude Include="src\external\stb_image\stb_image.h" />
     <ClInclude Include="src\image.h" />
     <ClInclude Include="src\interaction.h" />
