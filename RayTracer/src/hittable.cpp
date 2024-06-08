@@ -13,7 +13,12 @@ Sphere::Sphere(const Transform& t_transform, std::shared_ptr<Material> material)
 	SetBoundingBox();
 }
 
-
+Sphere::Sphere(const Transform& t_transform, const Vec3& motion_vector, std::shared_ptr<Material> material)
+	: material(material), motion_vector(motion_vector)
+{
+	transform = t_transform;
+	SetBoundingBox();
+}
 
 Sphere::Sphere(const Vec3& center, double radius, std::shared_ptr<Material> material)
 	: material(material), motion_vector(Vec3(0.0))
@@ -23,7 +28,6 @@ Sphere::Sphere(const Vec3& center, double radius, std::shared_ptr<Material> mate
 
 	SetBoundingBox();
 }
-
 
 Sphere::Sphere(const Point3& start, const Point3& stop, double radius, std::shared_ptr<Material> material)
 	: material(material), motion_vector(stop - start)
@@ -105,8 +109,30 @@ void Sphere::SetBoundingBox()
 	Vec3 rvec8 = transform.model_to_world * Vec4(-1.0, 1.0, 1.0, 1.0);
 
 	/* Create a bounding box that encompasses all transformed bounds */
-	bounding_box = AABB(AABB(AABB(rvec1, rvec2), AABB(rvec3, rvec4)), 
-						AABB(AABB(rvec5, rvec6), AABB(rvec7, rvec8)));
+	AABB bounding_box_1 = AABB(AABB(AABB(rvec1, rvec2), AABB(rvec3, rvec4)), 
+							   AABB(AABB(rvec5, rvec6), AABB(rvec7, rvec8)));
+
+	/* Do this *again* for the stop point */
+	AABB bounding_box_2;
+	if (glm::length(motion_vector) > 0.0)
+	{
+		Vec4 mv = Vec4(motion_vector, 0.0);
+		rvec1 = transform.model_to_world * (mv + Vec4(-1.0, -1.0, -1.0, 1.0));
+		rvec2 = transform.model_to_world * (mv + Vec4(1.0, -1.0, -1.0, 1.0));
+		rvec3 = transform.model_to_world * (mv + Vec4(1.0, 1.0, -1.0, 1.0));
+		rvec4 = transform.model_to_world * (mv + Vec4(-1.0, 1.0, -1.0, 1.0));
+
+		rvec5 = transform.model_to_world * (mv + Vec4(-1.0, -1.0, 1.0, 1.0));
+		rvec6 = transform.model_to_world * (mv + Vec4(1.0, -1.0, 1.0, 1.0));
+		rvec7 = transform.model_to_world * (mv + Vec4(1.0, 1.0, 1.0, 1.0));
+		rvec8 = transform.model_to_world * (mv + Vec4(-1.0, 1.0, 1.0, 1.0));
+
+		/* Create a bounding box that encompasses all transformed bounds */
+		bounding_box_2 = AABB(AABB(AABB(rvec1, rvec2), AABB(rvec3, rvec4)),
+							  AABB(AABB(rvec5, rvec6), AABB(rvec7, rvec8)));
+	}
+
+	bounding_box = AABB(bounding_box_1, bounding_box_2);
 }
 
 
@@ -135,11 +161,6 @@ Parallelogram::Parallelogram(const Transform& t_transform, std::shared_ptr<Mater
 	w(Vec3(0.0, 0.0, 1.0)), normal(Vec3(0.0, 0.0, 1.0)), material(material)
 {
 	transform = t_transform;
-	//Q = transform.world_to_model * Vec4(Q, 1.0);
-	//u = transform.world_to_model * Vec4(u, 0.0);
-	//v = transform.world_to_model * Vec4(v, 0.0);
-	//w = transform.world_to_model * Vec4(w, 0.0);
-	//normal = transform.normal_to_world * Vec4(normal, 0.0);
 	D = glm::dot(normal, Q);
 
 	SetBoundingBox();
@@ -209,13 +230,13 @@ bool Parallelogram::IsInterior(double a, double b, Interaction& interaction) con
 ConstantMedium::ConstantMedium(std::shared_ptr<Hittable> boundary, double density, std::shared_ptr<Texture> texture)
 	: boundary(boundary), neg_inv_density(-1.0 / density), phase_function(std::make_shared<Isotropic>(texture))
 {
-
+	SetBoundingBox();
 }
 
 ConstantMedium::ConstantMedium(std::shared_ptr<Hittable> boundary, double density, const Color& albedo)
 	: boundary(boundary), neg_inv_density(-1.0 / density), phase_function(std::make_shared<Isotropic>(albedo))
 {
-
+	SetBoundingBox();
 }
 
 bool ConstantMedium::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
@@ -232,16 +253,13 @@ bool ConstantMedium::Hit(const Ray& ray, Interval ray_t, Interaction& interactio
 	/* Bounds check the entry and exit points */
 	if (interaction1.t < ray_t.min) interaction1.t = ray_t.min;
 	if (interaction2.t > ray_t.max) interaction2.t = ray_t.max;
-
 	if (interaction1.t >= interaction2.t) return false;
-
-	if (interaction1.t < 0) interaction1.t = 0.0;
+	if (interaction1.t < 0.0) interaction1.t = 0.0;
 
 	/* Determine at what point inside the bounds the ray will scatter (or if it will pass through) */
-	//Ray model_ray = boundary->transform.WorldToModel(ray);
-	Ray model_ray = ray;
+	Ray model_ray = boundary->transform.WorldToModel(ray);
 	double ray_length = glm::length(model_ray.direction);
-	double distance_inside_boundary = (interaction1.t - interaction2.t) * ray_length;
+	double distance_inside_boundary = (interaction2.t - interaction1.t) * ray_length;
 	double hit_distance = neg_inv_density * std::log(RandomDouble());
 
 	if (hit_distance > distance_inside_boundary) return false;
@@ -249,11 +267,18 @@ bool ConstantMedium::Hit(const Ray& ray, Interval ray_t, Interaction& interactio
 	interaction.t = interaction1.t + hit_distance / ray_length;
 	interaction.posn = model_ray.At(interaction.t);
 	interaction.material = phase_function;
-	//interaction.transform = boundary->transform;
+	interaction.transform = boundary->transform;
 
 	/* arbitrary... */
 	interaction.normal = Vec3(0.0, 0.0, 1.0);
 	interaction.front_face = true;
+
+	return true;
+}
+
+void ConstantMedium::SetBoundingBox()
+{
+	bounding_box = boundary->BoundingBox();
 }
 
 /* =========================== */

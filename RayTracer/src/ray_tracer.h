@@ -30,6 +30,7 @@ enum Scenes
 	PerlinSpheres,
 	Parallelograms,
 	CornellBox,
+	Showcase0,
 };
 
 /* Generate one of the default scenes */
@@ -77,11 +78,18 @@ Scene GenerateScene(Scenes scene)
 		//s4->transform.Scale(3.0, 3.0, 1.0);
 		//world.Add(s4);
 
+		auto material4 = std::make_shared<Metal>(Color(0.5, 0.6, 0.7), 0.01);
 		Transform t4;
 		t4.Translate(-10.0, 0.0, 5.0);
-		t4.Rotate(-90.0, Vec3(0.0, 1.0, 0.0));
+		t4.Rotate(90.0, Vec3(0.0, 1.0, 0.0));
 		t4.Scale(10.0, 20.0, 1.0);
-		world.Add(std::make_shared<Parallelogram>(t4, material3));
+		world.Add(std::make_shared<Parallelogram>(t4, material4));
+
+		Transform t5;
+		t5.Translate(0.0, -5.0, 8.0);
+		t5.Rotate(45.0, Vec3(0.0, 1.0, 1.0));
+		t5.Scale(4.0);
+		world.Add(std::make_shared<ConstantMedium>(std::make_shared<HittableList>(Box(t5, material3)), 0.1, Color(0.0)));
 
 		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
 
@@ -298,8 +306,118 @@ Scene GenerateScene(Scenes scene)
 		box_t.Translate(0.0, 0.0, 3.0);
 		box_t.Rotate(30.0, Vec3(0.0, 1.0, 1.0));
 		box_t.Scale(3.0);
-		//world.Add(std::make_shared<HittableList>(Box(box_t, glass)));
-		world.Add(std::make_shared<ConstantMedium>(std::make_shared<HittableList>(Box(box_t, white)), 0.01, Color(0.4, 0.4, 0.4)));
+		world.Add(std::make_shared<ConstantMedium>(std::make_shared<HittableList>(Box(box_t, white)), 0.1, Color(0.0)));
+
+		break;
+	}
+
+	case Showcase0:
+	{
+		/* Black background */
+		sky = new ImageTexture("milky_way.jpg");
+
+		/* Single large diffuse overhead light */
+		auto light_material = std::make_shared<DiffuseLight>(Color(7.0));
+		Transform light_t;
+		light_t.Translate(0.0, 0.0, 15.0);
+		light_t.Scale(10.0);
+		world.Add(std::make_shared<Parallelogram>(light_t, light_material));
+
+		/* Fog throughout the scene */
+		auto white_material = std::make_shared<Lambertian>(Color(0.73));
+		Transform fog_t;
+		fog_t.Scale(1000.0);
+		world.Add(std::make_shared<ConstantMedium>(std::make_shared<HittableList>(Box(fog_t, white_material)), 0.0001, Color(0.1)));
+
+		/* Create a 'ground' out of multiple staggered height boxes */
+		HittableList ground;
+		auto ground_material = std::make_shared<Lambertian>(Color(0.48, 0.83, 0.53));
+		int boxes_per_side = 20;
+		for (int i = 0; i < boxes_per_side; i++)
+		{
+			for (int j = 0; j < boxes_per_side; j++)
+			{
+				double w = 2.0; /* scale */
+
+				/* Determine the origin of the box */
+				double x = (-(boxes_per_side / 2) + i + 0.5) * w;
+				double y = (-(boxes_per_side / 2) + j + 0.5) * w;
+				double z = RandomDouble(-w / 4.0, w / 4.0);
+
+				Transform t;
+				t.Translate(x, y, z);
+				t.Scale(w);
+
+				ground.Add(Box(t, ground_material));
+			}
+		}
+		/* Create a BVH of these boxes and add to the world */
+		world.Add(std::make_shared<BVH_Node>(ground));
+
+		/* Make a rotated 'box' of lambertian spheres */
+		HittableList box_of_spheres;
+		Transform bs_t;
+		bs_t.Translate(0.0, 6.0, 9.0);
+		bs_t.Rotate(45.0, Vec3(0.0, 1.0, 1.0));
+		bs_t.Scale(2.5);
+		int n_spheres = 1000;
+		for (int i = 0; i < n_spheres; i++)
+		{
+			/* Transform for this circle */
+			Transform s_t;
+			s_t.Translate(RandomVec3(-1.0, 1.0));
+			s_t.Scale(0.05);
+
+			/* Combined transform */
+			Transform bss_t(bs_t.model_to_world * s_t.model_to_world);
+
+			box_of_spheres.Add(std::make_shared<Sphere>(bss_t, white_material));
+		}
+		world.Add(std::make_shared<BVH_Node>(box_of_spheres));
+
+		/* Motion blur sphere */
+		auto blur_material = std::make_shared<Lambertian>(Color(0.9, 0.4, 0.6));
+		Transform blur_t;
+		blur_t.Translate(2.0, 2.5, 2.0);
+		blur_t.Scale(1.0);
+		world.Add(std::make_shared<Sphere>(blur_t, Vec3(0.0, 1.0, 0.0), blur_material));
+
+		/* Globe */
+		auto globe_material = std::make_shared<Lambertian>(std::make_shared<ImageTexture>("earthmap.jpg"));
+		Transform globe_t;
+		globe_t.Translate(-7.0, -7.0, 6.0);
+		globe_t.Scale(3.0);
+		world.Add(std::make_shared<Sphere>(globe_t, globe_material));
+
+		/* Glass ball */
+		auto glass_material = std::make_shared<Dielectric>(1.5);
+		Transform glass_t;
+		glass_t.Translate(4.0, -2.0, 3.5);
+		glass_t.Scale(1.75);
+		world.Add(std::make_shared<Sphere>(glass_t, glass_material));
+
+		/* Metal spheroid */
+		auto smooth_metal_material = std::make_shared<Metal>(Color(0.7, 0.5, 0.4), 0.0);
+		Transform ms_t;
+		ms_t.Translate(-4.0, 4.0, 4.0);
+		ms_t.Rotate(30.0, Vec3(0.0, 0.0, 1.0));
+		ms_t.Scale(5.0, 2.0, 2.0);
+		world.Add(std::make_shared<Sphere>(ms_t, smooth_metal_material));
+
+		/* Noise spheroid */
+		auto turbulence_texture = std::make_shared<TurbulenceTexture>(100.0);
+		auto turbulence_material = std::make_shared<Lambertian>(turbulence_texture);
+		Transform mt_t;
+		mt_t.Translate(3.0, 6.0, 3.0);
+		mt_t.Scale(1.0, 1.0, 1.5);
+		world.Add(std::make_shared<Sphere>(mt_t, turbulence_material));
+
+		/* Fog cuboid */
+		Transform c_t;
+		c_t.Translate(-12.0, 0.0, 8.0);
+		c_t.Rotate(-60.0, Vec3(0.0, 1.0, 1.0));
+		c_t.Scale(4.0);
+		world.Add(std::make_shared<ConstantMedium>(std::make_shared<HittableList>(Box(c_t, white_material)), 0.2, Color(0.73)));
 
 		break;
 	}

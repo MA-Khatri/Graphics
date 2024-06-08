@@ -73,7 +73,7 @@ public:
 private:
 	std::shared_ptr<Hittable> left;
 	std::shared_ptr<Hittable> right;
-	AABB bounding_box;
+	//AABB bounding_box; /* this is now a protected member of Hittable! */
 
 private:
 	static bool BoxCompare(const std::shared_ptr<Hittable> a, const std::shared_ptr<Hittable> b, int axis_index)

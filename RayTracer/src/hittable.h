@@ -37,6 +37,9 @@ public:
 	/* Manually set the transform when generating a sphere */
 	Sphere(const Transform& t_transform, std::shared_ptr<Material> material);
 
+	/* Set transform and motion_vector */
+	Sphere(const Transform& t_transform, const Vec3& motion_vector, std::shared_ptr<Material> material);
+
 	/* Standard sphere generation with center and radius. This sets up the initial transforms for you */
 	Sphere(const Vec3& center, double radius, std::shared_ptr<Material> material);
 
@@ -102,6 +105,9 @@ private:
 	std::shared_ptr<Hittable> boundary;
 	double neg_inv_density;
 	std::shared_ptr<Material> phase_function;
+
+private:
+	void SetBoundingBox();
 };
 
 

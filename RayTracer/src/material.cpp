@@ -79,6 +79,7 @@ bool Isotropic::Scatter(const Ray& ray_in, const Interaction& interaction, Color
 {
 	/* Scatter the ray in a uniform random direction */
 	ray_out = Ray(interaction.transform.model_to_world * Vec4(interaction.posn, 1.0), RandomUnitVector(), ray_in.time);
+	//ray_out = Ray(interaction.posn, RandomUnitVector(), ray_in.time);
 	attenuation = texture->Value(interaction.u, interaction.v, ray_out.origin);
 	return true;
 }
