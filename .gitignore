@@ -367,3 +367,4 @@ FodyWeavers.xsd
 # Force include back in some directories
 !OpenGL/res/**
 !OpenGL/dependencies/**
+!RayTracer/res/**
