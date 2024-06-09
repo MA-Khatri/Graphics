@@ -168,7 +168,7 @@ int main(void)
 
 	ray_camera.max_depth = 8;
 
-	rt::Scene scene = rt::GenerateScene(rt::Scenes::CornellBox);
+	rt::Scene scene = rt::GenerateScene(rt::Scenes::TriangleMesh);
 
 	/* ====== Local Variables ====== */
 	unsigned char r = 0;

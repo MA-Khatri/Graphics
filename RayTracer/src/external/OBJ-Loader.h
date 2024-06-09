@@ -25,6 +25,8 @@
 //
 // Description: The namespace that holds everything that
 //	is needed and used for the OBJ Model Loader
+namespace rt
+{
 namespace objl
 {
 	// Structure: Vector2
@@ -1165,4 +1167,5 @@ namespace objl
 				return true;
 		}
 	};
-}
+} /* namspace objl */
+} /* namespace rt */

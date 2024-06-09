@@ -31,6 +31,7 @@ enum Scenes
 	Parallelograms,
 	CornellBox,
 	Showcase0,
+	TriangleMesh,
 };
 
 /* Generate one of the default scenes */
@@ -308,9 +309,6 @@ Scene GenerateScene(Scenes scene)
 		//box_t.Scale(3.0);
 		//world.Add(std::make_shared<ConstantMedium>(std::make_shared<HittableList>(Box(box_t, white)), 0.1, Color(0.0)));
 
-		Transform t;
-		world.Add(std::make_shared<Triangle>(t, Point3(0.0, -2.0, 2.0), Point3(0.0, 2.0, 2.0), Point3(-4.0, 0.0, 4.0), red));
-
 		break;
 	}
 
@@ -421,6 +419,37 @@ Scene GenerateScene(Scenes scene)
 		c_t.Rotate(-60.0, Vec3(0.0, 1.0, 1.0));
 		c_t.Scale(4.0);
 		world.Add(std::make_shared<ConstantMedium>(std::make_shared<HittableList>(Box(c_t, white_material)), 0.2, Color(0.73)));
+
+		break;
+	}
+
+	case TriangleMesh:
+	{
+		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
+
+		/* Materials */
+		auto checker_texture = std::make_shared<CheckerTexture>(2.5, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
+		auto red = std::make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
+		auto smooth_metal = std::make_shared<Metal>(Color(0.7, 0.5, 0.4), 0.0);
+		auto rough_metal = std::make_shared<Metal>(Color(0.7, 0.5, 0.4), 0.1);
+		auto glass = std::make_shared<Dielectric>(1.5);
+
+		/* Ground plane */
+		Transform tg;
+		tg.Scale(100.0);
+		world.Add(std::make_shared<Parallelogram>(tg, std::make_shared<Lambertian>(checker_texture)));
+
+		/* Bunny */
+		Transform t;
+
+		//t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
+		//t.Scale(10.0);
+		//auto bunny = LoadMesh(t, "stanford-bunny.obj", red);
+
+		t.Rotate(90.0, Vec3(0.0, 0.0, 1.0));
+		t.Scale(0.075);
+		auto bunny = LoadMesh(t, "low-poly-bunny.obj", red);
+		world.Add(std::make_shared<BVH_Node>(bunny));
 
 		break;
 	}

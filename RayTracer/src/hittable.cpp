@@ -1,6 +1,6 @@
 #include "hittable.h"
 
-//#include "OBJ-Loader.h"
+#include "OBJ-Loader.h"
 
 namespace rt
 {
@@ -247,7 +247,9 @@ bool Triangle::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) con
 	/* Moller-Trumbore intersection algorithm */
 	/* https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm */
 
-	Ray model_ray = transform.WorldToModel(ray);
+	Ray temp = ray;
+	temp.direction = glm::normalize(temp.direction);
+	Ray model_ray = transform.WorldToModel(temp);
 
 	Vec3 ray_cross_e02 = glm::cross(model_ray.direction, e02);
 	double det = glm::dot(e01, ray_cross_e02);
@@ -262,7 +264,7 @@ bool Triangle::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) con
 	if (u < 0.0 || u > 1.0) return false;
 
 	Vec3 s_cross_e01 = glm::cross(s, e01);
-	double v = inv_det * glm::dot(s, ray_cross_e02);
+	double v = inv_det * glm::dot(model_ray.direction, s_cross_e01);
 	if (v < 0.0 || u + v > 1.0) return false;
 
 	/* The ray is within the triangle, test the intersection point */
@@ -280,10 +282,13 @@ bool Triangle::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) con
 
 void Triangle::SetBoundingBox()
 {
-	auto w_v0 = transform.model_to_world * Vec4(v0, 1.0);
-	auto w_v1 = transform.model_to_world * Vec4(v1, 1.0);
-	auto w_v2 = transform.model_to_world * Vec4(v2, 1.0);
-	bounding_box = AABB(AABB(v0, v1), AABB(v0, v2));
+	/* Transform triangle vertices to world space */
+	Point3 w_v0 = transform.model_to_world * Vec4(v0, 1.0);
+	Point3 w_v1 = transform.model_to_world * Vec4(v1, 1.0);
+	Point3 w_v2 = transform.model_to_world * Vec4(v2, 1.0);
+
+	/* Create a bounding box enclosing world space bounds of the triangle's vertices */
+	bounding_box = AABB(AABB(w_v0, w_v1), AABB(w_v0, w_v2));
 }
 
 /* ============================== */
@@ -425,9 +430,43 @@ std::shared_ptr<rt::HittableList> Box(const Transform& t_transform, std::shared_
 }
 
 /* === Triangle Meshes === */
-std::shared_ptr<rt::HittableList> LoadMesh(const Transform& t_transform, const std::string& filepath, std::shared_ptr<Material> material)
+HittableList LoadMesh(const Transform& t_transform, const std::string& filepath, std::shared_ptr<Material> material)
 {
+	/* Store mesh as a hittable list */
+	HittableList hittable_mesh;
 
+	/* Load mesh triangle vertices from file */
+	objl::Loader loader;
+	bool loadout = loader.LoadFile("../RayTracer/res/meshes/" + filepath);
+	if (!loadout)
+	{
+		std::cout << "[rt::LoadMesh] ERROR! Failed to load mesh file '" << filepath << "'" << std::endl;
+		return hittable_mesh;
+	}
+
+	if (loader.LoadedMeshes.size() > 1)
+	{
+		std::cout << "[rt::LoadMesh] WARNING: More than 1 mesh found in file '" << filepath << "'. Loading only the first mesh!" << std::endl;
+	}
+
+	objl::Mesh mesh = loader.LoadedMeshes[0];
+
+	/* Iterate through all indices and create triangles with corresponding vertices */
+	for (int i = 0; i < mesh.Indices.size(); i += 3)
+	{
+		auto p0 = mesh.Vertices[mesh.Indices[i + 0]].Position;
+		Point3 v0 = Point3(p0.X, p0.Y, p0.Z);
+
+		auto p1 = mesh.Vertices[mesh.Indices[i + 1]].Position;
+		Point3 v1 = Point3(p1.X, p1.Y, p1.Z);
+
+		auto p2 = mesh.Vertices[mesh.Indices[i + 2]].Position;
+		Point3 v2 = Point3(p2.X, p2.Y, p2.Z);
+
+		hittable_mesh.Add(std::make_shared<Triangle>(t_transform, v0, v1, v2, material));
+	}
+
+	return hittable_mesh;
 }
 
 }
