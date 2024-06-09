@@ -247,9 +247,7 @@ bool Triangle::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) con
 	/* Moller-Trumbore intersection algorithm */
 	/* https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm */
 
-	Ray temp = ray;
-	temp.direction = glm::normalize(temp.direction);
-	Ray model_ray = transform.WorldToModel(temp);
+	Ray model_ray = transform.WorldToModel(ray);
 
 	Vec3 ray_cross_e02 = glm::cross(model_ray.direction, e02);
 	double det = glm::dot(e01, ray_cross_e02);
