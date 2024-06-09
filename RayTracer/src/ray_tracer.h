@@ -79,7 +79,7 @@ Scene GenerateScene(Scenes scene)
 		//s4->transform.Scale(3.0, 3.0, 1.0);
 		//world.Add(s4);
 
-		auto material4 = std::make_shared<Metal>(Color(0.5, 0.6, 0.7), 0.01);
+		auto material4 = std::make_shared<Metal>(Color(0.5, 0.6, 0.7), 0.0001);
 		Transform t4;
 		t4.Translate(-10.0, 0.0, 5.0);
 		t4.Rotate(90.0, Vec3(0.0, 1.0, 0.0));
@@ -91,6 +91,9 @@ Scene GenerateScene(Scenes scene)
 		t5.Rotate(45.0, Vec3(0.0, 1.0, 1.0));
 		t5.Scale(4.0);
 		world.Add(std::make_shared<ConstantMedium>(std::make_shared<HittableList>(Box(t5, material3)), 0.1, Color(0.0)));
+
+		Transform t6;
+		world.Add(std::make_shared<Triangle>(t6, Point3(0.0, -1.0, 1.0), Point3(0.0, 1.0, 1.0), Point3(1.0, 0.0, 1.0), material4));
 
 		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
 
@@ -309,6 +312,14 @@ Scene GenerateScene(Scenes scene)
 		//box_t.Scale(3.0);
 		//world.Add(std::make_shared<ConstantMedium>(std::make_shared<HittableList>(Box(box_t, white)), 0.1, Color(0.0)));
 
+		Transform t;
+		t.Translate(0.0, 0.0, -1.0);
+		t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
+		t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
+		t.Scale(30.0);
+		auto bunny = LoadMesh(t, "stanford-bunny.obj", glass);
+		world.Add(std::make_shared<BVH_Node>(bunny));
+
 		break;
 	}
 
@@ -441,15 +452,16 @@ Scene GenerateScene(Scenes scene)
 
 		/* Bunny */
 		Transform t;
+		t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
+		t.Scale(20.0);
+		auto bunny = LoadMesh(t, "stanford-bunny.obj", red);
 
-		//t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
-		//t.Scale(10.0);
-		//auto bunny = LoadMesh(t, "stanford-bunny.obj", red);
-
-		t.Rotate(90.0, Vec3(0.0, 0.0, 1.0));
-		t.Scale(0.075);
-		auto bunny = LoadMesh(t, "low-poly-bunny.obj", red);
+		//t.Rotate(90.0, Vec3(0.0, 0.0, 1.0));
+		//t.Scale(0.1);
+		//auto bunny = LoadMesh(t, "low-poly-bunny.obj", red);
 		world.Add(std::make_shared<BVH_Node>(bunny));
+
+		//world.Add(std::make_shared<Triangle>(t, Point3(0.0, -1.0, 1.0), Point3(0.0, 1.0, 1.0), Point3(1.0, 0.0, 1.0), red));
 
 		break;
 	}
