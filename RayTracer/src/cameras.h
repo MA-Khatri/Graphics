@@ -4,6 +4,8 @@
 #include "hittable.h"
 #include "material.h"
 
+#include <algorithm>
+
 namespace rt
 {
 
@@ -31,6 +33,11 @@ public:
 	bool simulate_time = false; /* Determines if camera has a "shutter speed" to simulate effects like motion blur.
 								   Note: Timescale for the cameras is always defined within 0-1; it is up to the user
 								   to decide how much/where objects move within that time frame. */
+	int stratified_side_length = 32; /* Used for stratified sampling. Each pixel is divided into statified_side_length**2 
+									    sub pixels. On each sample, a random sub pixel is chosen to generate a ray using a 
+									    point within that sub pixel. Usually, this should be set to the square root of 
+										the number of samples you wish to do a final render with. So, if its 32, we are 
+										assuming a final render with 1024 samples. */
 
 	/* Post-process params */
 	bool gamma_correct = false; /* OpenGL gamma corrects for us so this is optional */
@@ -41,6 +48,10 @@ protected:
 	/* Store previous sample's view params */
 	unsigned int old_image_width = 100;
 	unsigned int old_image_height = 100;
+
+protected:
+	/* Choose a sub pixel to generate stratified samples from. */
+	Vec3 GetSubPixelOffset(Vec3 pixel_delta_u, Vec3 pixel_delta_v); 
 };
 
 

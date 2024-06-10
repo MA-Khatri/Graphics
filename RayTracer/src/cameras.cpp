@@ -2,14 +2,32 @@
 
 namespace rt
 {
+
+Vec3 Camera::GetSubPixelOffset(Vec3 pixel_delta_u, Vec3 pixel_delta_v)
+{
+	/* Choose a random sub-pixel to generate a sample from */
+	int sub_pixel = RandomInt(0, stratified_side_length * stratified_side_length - 1);
+
+	/* Return the starting offset to that subpixel */
+	int i = sub_pixel % stratified_side_length;
+	int j = sub_pixel / stratified_side_length;
+	return (double(i) / stratified_side_length) * pixel_delta_u + (double(j) / stratified_side_length) * pixel_delta_v;
+}
+
 /* ========================== */
 /* === Perspective Camera === */
 /* ========================== */
 Ray PerspectiveCamera::GenerateRay(unsigned int i, unsigned int j)
 {
+	Vec3 sub_pixel_offset = GetSubPixelOffset(pixel_delta_u, pixel_delta_u);
+
 	/* Generate a camera ray from the origin to a randomly sampled point around the pixel location i, j */
-	Point2 offset = SampleSquare();
-	Vec3 pixel_sample = pixel00_loc + (((double)i + offset.x) * pixel_delta_u) + (((double)j + offset.y) * pixel_delta_v);
+	Point2 offset = SampleSquare() / stratified_side_length;
+	Vec3 pixel_sample = pixel00_loc 
+					  + sub_pixel_offset
+					  + (((double)i + offset.x) * pixel_delta_u) 
+					  + (((double)j + offset.y) * pixel_delta_v);
+
 	Vec3 direction = pixel_sample - origin;
 
 	return Ray(origin, direction, simulate_time ? RandomDouble() : 0.0);
