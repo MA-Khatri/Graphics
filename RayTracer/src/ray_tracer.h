@@ -282,22 +282,22 @@ Scene GenerateScene(Scenes scene)
 		auto light   = std::make_shared<DiffuseLight>(Color(15.0, 15.0, 15.0));
 		auto glass   = std::make_shared<Dielectric>(1.5);
 		auto bubble  = std::make_shared<Dielectric>(0.666666);
-		auto checker = std::make_shared<Lambertian>(std::make_shared<CheckerTexture>(2.5, Color(0.1, 0.1, 0.4), Color(0.73, 0.73, 0.73)));
+		auto checker = std::make_shared<Lambertian>(std::make_shared<CheckerTexture>(1.0, Color(0.1, 0.1, 0.4), Color(0.73, 0.73, 0.73)));
 
 		/* Cornell box */
 		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 0.0, 10.0), green)); /* left */
 		world.Add(std::make_shared<Parallelogram>(Point3(5.0, 5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 0.0, 10.0), red)); /* right */
-		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 10.0, 0.0), checker)); /* bottom */
+		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 10.0, 0.0), white)); /* bottom */
 		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 10.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 10.0, 0.0), white)); /* top */
-		world.Add(std::make_shared<Parallelogram>(Point3(-5.0, -5.0, 0.0), Vec3(0.0, 10.0, 0.0), Vec3(0.0, 0.0, 10.0), white)); /* back */
+		world.Add(std::make_shared<Parallelogram>(Point3(-5.0, -5.0, 0.0), Vec3(0.0, 10.0, 0.0), Vec3(0.0, 0.0, 10.0), checker)); /* back */
 		world.Add(std::make_shared<Parallelogram>(Point3(-1.5, -1.5, 10.0-Eps), Vec3(3.0, 0.0, 0.0), Vec3(0.0, 3.0, 0.0), light)); /* light */
 
 		/* Cornell box contents */
-		//auto material2 = std::make_shared<Dielectric>(1.5);
-		//Transform t2;
-		//t2.Translate(0.0, 0.0, 4.0);
-		//t2.Scale(3.0, 3.0, 1.0);
-		//world.Add(std::make_shared<Sphere>(t2, material2));
+		auto material2 = std::make_shared<Dielectric>(1.5);
+		Transform t2;
+		t2.Translate(0.0, 0.0, 4.0);
+		t2.Scale(3.5);
+		world.Add(std::make_shared<Sphere>(t2, material2));
 
 		//auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
 		//Transform t3;
@@ -313,11 +313,11 @@ Scene GenerateScene(Scenes scene)
 		//world.Add(std::make_shared<ConstantMedium>(std::make_shared<HittableList>(Box(box_t, white)), 0.1, Color(0.0)));
 
 		Transform t;
-		t.Translate(0.0, 0.0, -1.0);
+		t.Translate(0.0, 0.5, 2.0);
 		t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
 		t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
-		t.Scale(30.0);
-		auto bunny = LoadMesh(t, "stanford-bunny.obj", glass);
+		t.Scale(20.0);
+		auto bunny = LoadMesh(t, "stanford-bunny.obj", bubble);
 		world.Add(std::make_shared<BVH_Node>(bunny));
 
 		break;
@@ -440,6 +440,7 @@ Scene GenerateScene(Scenes scene)
 
 		/* Materials */
 		auto checker_texture = std::make_shared<CheckerTexture>(2.5, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
+		auto checker_material = std::make_shared<Lambertian>(checker_texture);
 		auto red = std::make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
 		auto smooth_metal = std::make_shared<Metal>(Color(0.7, 0.5, 0.4), 0.0);
 		auto rough_metal = std::make_shared<Metal>(Color(0.7, 0.5, 0.4), 0.1);
@@ -448,20 +449,16 @@ Scene GenerateScene(Scenes scene)
 		/* Ground plane */
 		Transform tg;
 		tg.Scale(100.0);
-		world.Add(std::make_shared<Parallelogram>(tg, std::make_shared<Lambertian>(checker_texture)));
+		world.Add(std::make_shared<Parallelogram>(tg, checker_material));
 
-		/* Bunny */
+		/* Mesh */
 		Transform t;
-		t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
-		t.Scale(20.0);
-		auto bunny = LoadMesh(t, "stanford-bunny.obj", red);
-
-		//t.Rotate(90.0, Vec3(0.0, 0.0, 1.0));
-		//t.Scale(0.1);
-		//auto bunny = LoadMesh(t, "low-poly-bunny.obj", red);
-		world.Add(std::make_shared<BVH_Node>(bunny));
-
-		//world.Add(std::make_shared<Triangle>(t, Point3(0.0, -1.0, 1.0), Point3(0.0, 1.0, 1.0), Point3(1.0, 0.0, 1.0), red));
+		t.Translate(0.0, 0.0, 1.0);
+		t.Rotate(90.0, Vec3(0.0, 0.0, 1.0));
+		t.Scale(3.0);
+		auto mesh = LoadMesh(t, "low-poly-bunny.obj", red);
+		//auto mesh = LoadMesh(t, "stanford-bunny-s.obj", smooth_metal);
+		world.Add(std::make_shared<BVH_Node>(mesh));
 
 		break;
 	}

@@ -229,18 +229,52 @@ bool Parallelogram::IsInterior(double a, double b, Interaction& interaction) con
 /* ====== Triangles ====== */
 /* ======================= */
 
-Triangle::Triangle(const Transform& t_transform, const Point3& v0, const Point3& v1, const Point3& v2, std::shared_ptr<Material> material)
-	: v0(v0), v1(v1), v2(v2), material(material)
+Triangle::Triangle(const Transform& t_transform, const Point3& v0p, const Point3& v1p, const Point3& v2p, std::shared_ptr<Material> material)
+	: v0p(v0p), v1p(v1p), v2p(v2p), material(material)
 {
 	transform = t_transform;
 
 	/* Edge vectors and normal in model space */
-	e01 = v1 - v0;
-	e02 = v2 - v0;
-	normal = glm::normalize(glm::cross(e01, e02));
+	e01 = v1p - v0p;
+	e02 = v2p - v0p;
+
+	Vec3 normal = glm::normalize(glm::cross(e01, e02));
+	v0n = normal;
+	v1n = normal;
+	v2n = normal;
 
 	SetBoundingBox();
 }
+
+
+Triangle::Triangle(const Transform& t_transform, const objl::Vertex& v0, const objl::Vertex& v1, const objl::Vertex& v2, std::shared_ptr<Material> material)
+	: material(material)
+{
+	transform = t_transform;
+
+	v0p = Point3(v0.Position.X, v0.Position.Y, v0.Position.Z);
+	v1p = Point3(v1.Position.X, v1.Position.Y, v1.Position.Z);
+	v2p = Point3(v2.Position.X, v2.Position.Y, v2.Position.Z);
+
+	e01 = v1p - v0p;
+	e02 = v2p - v0p;
+
+	v0n = Vec3(v0.Normal.X, v0.Normal.Y, v0.Normal.Z);
+	v1n = Vec3(v1.Normal.X, v1.Normal.Y, v1.Normal.Z);
+	v2n = Vec3(v2.Normal.X, v2.Normal.Y, v2.Normal.Z);
+
+	/* if normals are not provided, compute them manually */
+	if (NearZero(v0n) || NearZero(v1n) || NearZero(v2n))
+	{
+		Vec3 normal = glm::normalize(glm::cross(e01, e02));
+		v0n = normal;
+		v1n = normal;
+		v2n = normal;
+	}
+
+	SetBoundingBox();
+}
+
 
 bool Triangle::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
 {
@@ -257,7 +291,7 @@ bool Triangle::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) con
 
 	/* Is the ray within the bounds of the triangle? */
 	double inv_det = 1.0 / det;
-	Vec3 s = model_ray.origin - v0;
+	Vec3 s = model_ray.origin - v0p;
 	double u = inv_det * glm::dot(s, ray_cross_e02);
 	if (u < 0.0 || u > 1.0) return false;
 
@@ -272,8 +306,12 @@ bool Triangle::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) con
 	interaction.t = t;
 	interaction.posn = model_ray.At(t);
 	interaction.material = material;
+	Vec3 normal = ComputeInterpolatedNormal(u, v);
 	interaction.SetFaceNormal(model_ray.direction, normal);
 	interaction.transform = transform;
+
+	interaction.u = u;
+	interaction.v = v;
 
 	return true;
 }
@@ -281,12 +319,18 @@ bool Triangle::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) con
 void Triangle::SetBoundingBox()
 {
 	/* Transform triangle vertices to world space */
-	Point3 w_v0 = transform.model_to_world * Vec4(v0, 1.0);
-	Point3 w_v1 = transform.model_to_world * Vec4(v1, 1.0);
-	Point3 w_v2 = transform.model_to_world * Vec4(v2, 1.0);
+	Point3 w_v0p = transform.model_to_world * Vec4(v0p, 1.0);
+	Point3 w_v1p = transform.model_to_world * Vec4(v1p, 1.0);
+	Point3 w_v2p = transform.model_to_world * Vec4(v2p, 1.0);
 
 	/* Create a bounding box enclosing world space bounds of the triangle's vertices */
-	bounding_box = AABB(AABB(w_v0, w_v1), AABB(w_v0, w_v2));
+	bounding_box = AABB(AABB(w_v0p, w_v1p), AABB(w_v0p, w_v2p));
+}
+
+
+Vec3 Triangle::ComputeInterpolatedNormal(double u, double v) const
+{
+	return v0n + u * (v1n - v0n) + v * (v2n - v0n);
 }
 
 /* ============================== */
@@ -452,15 +496,9 @@ HittableList LoadMesh(const Transform& t_transform, const std::string& filepath,
 	/* Iterate through all indices and create triangles with corresponding vertices */
 	for (int i = 0; i < mesh.Indices.size(); i += 3)
 	{
-		auto p0 = mesh.Vertices[mesh.Indices[i + 0]].Position;
-		Point3 v0 = Point3(p0.X, p0.Y, p0.Z);
-
-		auto p1 = mesh.Vertices[mesh.Indices[i + 1]].Position;
-		Point3 v1 = Point3(p1.X, p1.Y, p1.Z);
-
-		auto p2 = mesh.Vertices[mesh.Indices[i + 2]].Position;
-		Point3 v2 = Point3(p2.X, p2.Y, p2.Z);
-
+		auto v0 = mesh.Vertices[mesh.Indices[i + 0]];
+		auto v1 = mesh.Vertices[mesh.Indices[i + 1]];
+		auto v2 = mesh.Vertices[mesh.Indices[i + 2]];
 		hittable_mesh.Add(std::make_shared<Triangle>(t_transform, v0, v1, v2, material));
 	}
 

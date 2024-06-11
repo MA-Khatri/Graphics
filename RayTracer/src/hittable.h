@@ -92,31 +92,37 @@ private:
 };
 
 
+/* Forward declaration */
+namespace objl { struct Vertex; }
 
 class Triangle : public Hittable
 {
 public:
 	/* Construct a triangle (in model space!) using the positions of its three vertices.
 	The normal is computed from the triangle vertices. */
-	Triangle(const Transform& t_transform, const Point3& v0, const Point3& v1, const Point3& v2, std::shared_ptr<Material> material);
+	Triangle(const Transform& t_transform, const Point3& v0p, const Point3& v1p, const Point3& v2p, std::shared_ptr<Material> material);
 
-	///* TODO: Construct a triangle (in model space!) using three vertices returned by the obj loader. */
-	//Triangle(const Transform& t_transform, const objl::Vertex& v0, const objl::Vertex& v1, const objl::Vertex& v2, std::shared_ptr<Material> material);
+	/* Construct a triangle using the vertices provided by objl */
+	Triangle(const Transform& t_transform, const objl::Vertex& v0, const objl::Vertex& v1, const objl::Vertex& v2, std::shared_ptr<Material> material);
 
 	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
 
 private:
-	Point3 v0;
-	Point3 v1;
-	Point3 v2;
+	Point3 v0p; /* Vertex 0 position */
+	Point3 v1p; /* Vertex 1 position */
+	Point3 v2p; /* Vertex 2 position */
+	Vec3 v0n; /* Vertex 0 normal */
+	Vec3 v1n; /* Vertex 1 normal */
+	Vec3 v2n; /* Vertex 2 normal */
+	Vec3 e01; /* Vector from v0p to v1p */
+	Vec3 e02; /* Vector from v0p to v2p */
 	std::shared_ptr<Material> material;
-
-	Vec3 e01; /* Vector from v0 to v1 */
-	Vec3 e02; /* Vector from v0 to v2 */
-	Vec3 normal; /* Unit normal vector in model space */
 
 private:
 	void SetBoundingBox();
+
+	/* Computes the interpolated normal vector for the triangle using the provided barycentric coordinates */
+	Vec3 ComputeInterpolatedNormal(double u, double v) const;
 };
 
 
