@@ -167,8 +167,9 @@ int main(void)
 	rt::PerspectiveCamera ray_camera;
 
 	ray_camera.max_depth = 16;
+	ray_camera.simulate_time = true;
 
-	rt::Scene scene = rt::GenerateScene(rt::Scenes::TriangleMesh);
+	rt::Scene scene = rt::GenerateScene(rt::Scenes::CornellBox);
 
 	/* ====== Local Variables ====== */
 	unsigned char r = 0;

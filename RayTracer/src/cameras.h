@@ -51,7 +51,7 @@ protected:
 
 protected:
 	/* Choose a sub pixel to generate stratified samples from. */
-	Vec3 GetSubPixelOffset(Vec3 pixel_delta_u, Vec3 pixel_delta_v); 
+	Point2 GetSubPixelOffset(); 
 };
 
 
