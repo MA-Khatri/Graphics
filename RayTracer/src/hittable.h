@@ -22,11 +22,14 @@ public:
 
 
 	/* Functions for importance sampling of the hittable (useful for emissive objects) */
+
+	/* Determine the value of the PDF for a given origin and direction in world space */
 	virtual double PDF_Value(const Point3& origin, const Vec3& direction) const
 	{
 		return 0.0;
 	}
 
+	/* Create a random vector from the provided world space origin to a point on the surface */
 	virtual Vec3 Random(const Point3& origin) const
 	{
 		return Vec3(0.0, 0.0, 1.0);
@@ -177,6 +180,9 @@ public:
 	void Add(std::shared_ptr<Hittable> hittable);
 
 	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
+
+	double PDF_Value(const Point3& origin, const Vec3& direction) const override;
+	Vec3 Random(const Point3& origin) const override;
 };
 
 

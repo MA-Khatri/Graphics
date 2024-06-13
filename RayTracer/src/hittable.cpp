@@ -467,6 +467,19 @@ bool HittableList::Hit(const Ray& ray, Interval ray_t, Interaction& interaction)
 }
 
 
+double HittableList::PDF_Value(const Point3& origin, const Vec3& direction) const
+{
+	int index = (int)(objects.size() * RandomDouble());
+	return objects[index]->PDF_Value(origin, direction);
+}
+
+
+Vec3 HittableList::Random(const Point3& origin) const
+{
+	return Vec3(0.0, 0.0, 1.0);
+}
+
+
 /* ============================= */
 /* ====== Compound Shapes ====== */
 /* ============================= */

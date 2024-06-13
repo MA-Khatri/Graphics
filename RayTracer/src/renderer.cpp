@@ -67,11 +67,11 @@ Color TraceRay(const Ray& ray_in, int depth, const Scene& scene)
 	auto p1 = std::make_shared<CosinePDF>(t.GetWorldNormal(interaction.normal));
 	MixturePDF mixed_pdf(p0, p1);
 
-	ray_out = Ray(t.PointModelToWorld(interaction.posn), mixed_pdf.Generate(), ray_in.time);
-	pdf_value = mixed_pdf.Value(ray_out.direction);
+	//ray_out = Ray(t.PointModelToWorld(interaction.posn), mixed_pdf.Generate(), ray_in.time);
+	pdf_value = mixed_pdf.Value(mixed_pdf.Generate());
 
 	double scattering_pdf = interaction.material->ScatteringPDF(ray_in, interaction, ray_out);
-	pdf_value = scattering_pdf;
+	pdf_value = pdf_value > 0.0 ? pdf_value : scattering_pdf;
 
 	/* Otherwise, determine the scattered color by recursively tracing the ray */
 	Color color_from_scatter = (attenuation * scattering_pdf * TraceRay(ray_out, depth - 1, scene)) / pdf_value;
@@ -92,6 +92,11 @@ void PixelColor(std::vector<unsigned char>& rendered_image, unsigned int i, unsi
 	double r = pixel_color.r;
 	double g = pixel_color.g;
 	double b = pixel_color.b;
+
+	/* Replace NaNs with zero */
+	if (r != r) r = 0.0;
+	if (g != g) g = 0.0;
+	if (b != b) b = 0.0;
 
 	/* Extract accumulated color */
 	double cr = camera.image_accumulator[pixel + 0];

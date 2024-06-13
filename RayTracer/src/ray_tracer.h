@@ -274,8 +274,8 @@ Scene GenerateScene(Scenes scene)
 	case CornellBox:
 	{
 		/* Black background */
-		//sky = new SolidColor(0.0, 0.0, 0.0);
-		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
+		sky = new SolidColor(0.0, 0.0, 0.0);
+		//sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
 
 		/* Materials */
 		auto red     = std::make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
@@ -298,6 +298,7 @@ Scene GenerateScene(Scenes scene)
 		light_t.Rotate(180.0, Vec3(1.0, 0.0, 0.0));
 		light_t.Scale(3.0);
 		lights.Add(std::make_shared<Parallelogram>(light_t, light)); /* light */
+		world.Add(std::make_shared<Parallelogram>(light_t, light));
 
 		/* Cornell box contents */
 		//auto material2 = std::make_shared<Dielectric>(1.5);
