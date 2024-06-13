@@ -4,7 +4,7 @@
 
 #include "cameras.h"
 #include "renderer.h"
-#include "interaction.h"
+#include "hit_record.h"
 #include "hittable.h"
 #include "material.h"
 #include "bvh.h"
@@ -273,9 +273,9 @@ Scene GenerateScene(Scenes scene)
 
 	case CornellBox:
 	{
-		/* Black background */
-		sky = new SolidColor(0.0, 0.0, 0.0);
-		//sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
+		/* Background */
+		//sky = new SolidColor(0.0, 0.0, 0.0);
+		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
 
 		/* Materials */
 		auto red     = std::make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
@@ -287,11 +287,33 @@ Scene GenerateScene(Scenes scene)
 		auto checker = std::make_shared<Lambertian>(std::make_shared<CheckerTexture>(1.0, Color(0.1, 0.1, 0.4), Color(0.73, 0.73, 0.73)));
 
 		/* Cornell box */
-		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 0.0, 10.0), green)); /* left */
-		world.Add(std::make_shared<Parallelogram>(Point3(5.0, 5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 0.0, 10.0), red)); /* right */
-		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 10.0, 0.0), white)); /* bottom */
-		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 10.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 10.0, 0.0), white)); /* top */
-		world.Add(std::make_shared<Parallelogram>(Point3(-5.0, -5.0, 0.0), Vec3(0.0, 10.0, 0.0), Vec3(0.0, 0.0, 10.0), checker)); /* back */
+		Transform left_t;
+		left_t.Translate(0.0, -5.0, 5.0);
+		left_t.Rotate(-90.0, Vec3(1.0, 0.0, 0.0));
+		left_t.Scale(10.0);
+		world.Add(std::make_shared<Parallelogram>(left_t, green));
+
+		Transform right_t;
+		right_t.Translate(0.0, 5.0, 5.0);
+		right_t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
+		right_t.Scale(10.0);
+		world.Add(std::make_shared<Parallelogram>(right_t, red));
+
+		Transform bottom_t;
+		bottom_t.Scale(10.0);
+		world.Add(std::make_shared<Parallelogram>(bottom_t, white));
+
+		Transform top_t;
+		top_t.Translate(0.0, 0.0, 10.0);
+		top_t.Rotate(180.0, Vec3(1.0, 0.0, 0.0));
+		top_t.Scale(10.0);
+		world.Add(std::make_shared<Parallelogram>(top_t, white));
+
+		Transform back_t;
+		back_t.Translate(-5.0, 0.0, 5.0);
+		back_t.Rotate(-90.0, Vec3(0.0, 1.0, 0.0));
+		back_t.Scale(10.0);
+		world.Add(std::make_shared<Parallelogram>(back_t, checker));
 		
 		Transform light_t;
 		light_t.Translate(0.0, 0.0, 10.0 - Eps);

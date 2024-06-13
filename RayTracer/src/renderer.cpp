@@ -45,36 +45,37 @@ Color TraceRay(const Ray& ray_in, int depth, const Scene& scene)
 	/* If we exceed the ray bounce limit, no more light is gathered */
 	if (depth <= 0) return Color(0.0, 0.0, 0.0);
 
-	Interaction interaction;
+	HitRecord hrec;
 	
 	/* If the ray hits nothing, sample the sky texture */
-	if (!scene.world.Hit(ray_in, Interval(Eps, Inf), interaction))
+	if (!scene.world.Hit(ray_in, Interval(Eps, Inf), hrec))
 	{
 		return scene.SampleSky(ray_in);
 	}
 
-	Transform t = interaction.transform;
-	Ray ray_out;
-	Color attenuation;
-	double pdf_value;
-	Color color_from_emission = interaction.material->Emitted(ray_in, interaction, interaction.u, interaction.v, interaction.posn); /* The emitted function could just take in ray_in and interaction? */
+	ScatterRecord srec;
+	Color color_from_emission = hrec.material->Emitted(ray_in, hrec);
 
 	/* If ray does not scatter, return the emitted color */
-	if (!interaction.material->Scatter(ray_in, interaction, attenuation, ray_out, pdf_value)) return color_from_emission;
+	if (!hrec.material->Scatter(ray_in, hrec, srec)) return color_from_emission;
 
-	/* Sample the probability distribution */
-	auto p0 = std::make_shared<HittablePDF>(scene.lights, t.PointModelToWorld(interaction.posn));
-	auto p1 = std::make_shared<CosinePDF>(t.GetWorldNormal(interaction.normal));
-	MixturePDF mixed_pdf(p0, p1);
+	/* If the material does not use a pdf... */
+	if (srec.skip_pdf)
+	{
+		return srec.attenuation * TraceRay(srec.skip_pdf_ray, depth - 1, scene);
+	}
 
-	//ray_out = Ray(t.PointModelToWorld(interaction.posn), mixed_pdf.Generate(), ray_in.time);
-	pdf_value = mixed_pdf.Value(mixed_pdf.Generate());
+	/* Combine the light pdf with existing pdfs */
+	auto light_ptr = std::make_shared<HittablePDF>(scene.lights, hrec.posn);
+	MixturePDF pdf(light_ptr, srec.pdf_ptr);
 
-	double scattering_pdf = interaction.material->ScatteringPDF(ray_in, interaction, ray_out);
-	pdf_value = pdf_value > 0.0 ? pdf_value : scattering_pdf;
+	Ray scattered = Ray(hrec.posn, pdf.Generate(), ray_in.time);
+	double pdf_value = pdf.Value(scattered.direction);
+
+	double scattering_pdf = hrec.material->ScatteringPDF(ray_in, hrec, scattered);
 
 	/* Otherwise, determine the scattered color by recursively tracing the ray */
-	Color color_from_scatter = (attenuation * scattering_pdf * TraceRay(ray_out, depth - 1, scene)) / pdf_value;
+	Color color_from_scatter = (srec.attenuation * scattering_pdf * TraceRay(scattered, depth - 1, scene)) / pdf_value;
 
 	return color_from_emission + color_from_scatter;
 }

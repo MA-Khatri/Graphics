@@ -11,14 +11,14 @@ namespace rt
 
 class Material;
 
-class Interaction
+class HitRecord
 {
 public:
 	Point3 posn; /* Model space position */
 	Vec3 normal; /* Model space normal */
 	std::shared_ptr<Material> material;
 	double t; /* position of hit along the ray */
-	double u;
+	double u; /* uv coordinates of hit (for textures) */
 	double v;
 	bool front_face;
 
@@ -27,7 +27,7 @@ public:
 	Transform transform; 
 
 public:
-	Interaction() {} /* No constructor is actually used for this class */
+	HitRecord() {} /* No constructor is actually used for this class */
 
 	void SetFaceNormal(const Vec3& ray_direction, const Vec3& outward_normal)
 	{
