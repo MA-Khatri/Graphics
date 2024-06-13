@@ -20,6 +20,18 @@ public:
 	/* Return this object's axis aligned bounding box in world space coordinates */
 	inline AABB BoundingBox() const { return bounding_box; }
 
+
+	/* Functions for importance sampling of the hittable (useful for emissive objects) */
+	virtual double PDF_Value(const Point3& origin, const Vec3& direction) const
+	{
+		return 0.0;
+	}
+
+	virtual Vec3 Random(const Point3& origin) const
+	{
+		return Vec3(0.0, 0.0, 1.0);
+	}
+
 public:
 	/* Store the transformation matrices for this object */
 	Transform transform;
@@ -75,12 +87,17 @@ public:
 
 	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
 
+	double PDF_Value(const Point3& origin, const Vec3& direction) const override;
+	Vec3 Random(const Point3& origin) const override;
+
+
 private:
 	Point3 Q;
 	Vec3 u, v, w;
 	std::shared_ptr<Material> material;
 	Vec3 normal;
 	double D;
+	double area;
 
 private:
 	/* Given the hit point in plane coordinates, return false if it is outside the primitive.

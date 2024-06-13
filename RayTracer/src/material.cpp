@@ -7,23 +7,27 @@ namespace rt
 /* ====== Lambertian ====== */
 /* ======================== */
 
-bool Lambertian::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
+bool Lambertian::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out, double& pdf) const
 {
-	Vec3 scatter_direction = interaction.normal + RandomUnitVector();
-
-	/* Catch degenerate scatter direction */
-	if (NearZero(scatter_direction)) scatter_direction = interaction.normal;
+	Vec3 scatter_direction = RandomCosineDirection(interaction.normal);
 
 	ray_out = interaction.transform.ModelToWorld(Ray(interaction.posn + Eps * interaction.normal, scatter_direction, ray_in.time));
 	attenuation = texture->Value(interaction.u, interaction.v, ray_out.origin);
+	pdf = glm::dot(interaction.normal, scatter_direction) / Pi;
 	return true;
+}
+
+
+double Lambertian::ScatteringPDF(const Ray& ray_in, const Interaction& interaction, const Ray& ray_out) const
+{
+	return 1.0 / (2.0 * Pi);
 }
 
 /* =================== */
 /* ====== Metal ====== */
 /* =================== */
 
-bool Metal::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
+bool Metal::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out, double& pdf) const
 {
 	Ray model_ray = interaction.transform.WorldToModel(ray_in);
 	
@@ -42,7 +46,7 @@ bool Metal::Scatter(const Ray& ray_in, const Interaction& interaction, Color& at
 /* ====== Dielectric ====== */
 /* ======================== */
 
-bool Dielectric::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
+bool Dielectric::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out, double& pdf) const
 {
 	attenuation = Color(1.0, 1.0, 1.0);
 	double eta_in_over_out = eta_in / eta_out;
@@ -75,23 +79,28 @@ double Dielectric::Reflectance(double cosine, double refraction_index)
 /* ====== Isotropic ====== */
 /* ======================= */
 
-bool Isotropic::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
+bool Isotropic::Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out, double& pdf) const
 {
 	/* Scatter the ray in a uniform random direction */
 	ray_out = Ray(interaction.transform.model_to_world * Vec4(interaction.posn, 1.0), RandomUnitVector(), ray_in.time);
-	//ray_out = Ray(interaction.posn, RandomUnitVector(), ray_in.time);
 	attenuation = texture->Value(interaction.u, interaction.v, ray_out.origin);
+	pdf = 1.0 / (4.0 * Pi); /* I.e., over surface of unit sphere */
 	return true;
 }
 
 
+double Isotropic::ScatteringPDF(const Ray& ray_in, const Interaction& interaction, const Ray& ray_out) const
+{
+	return 1.0 / (4.0 * Pi);
+}
 
 /* =========================== */
 /* ====== Diffuse Light ====== */
 /* =========================== */
 
-Color DiffuseLight::Emitted(double u, double v, const Point3& p) const
+Color DiffuseLight::Emitted(const Ray& ray_in, const Interaction& interaction, double u, double v, const Point3& p) const
 {
+	if (!interaction.front_face) return Color(0.0, 0.0, 0.0); /* No light emitted from back face of light sources */
 	return texture->Value(u, v, p);
 }
 

@@ -38,6 +38,7 @@ enum Scenes
 Scene GenerateScene(Scenes scene)
 {
 	HittableList world;
+	HittableList lights;
 	Texture* sky = new SolidColor(0.7, 0.8, 1.0);
 
 	switch (scene)
@@ -45,6 +46,8 @@ Scene GenerateScene(Scenes scene)
 
 	case BasicMaterials:
 	{
+		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
+
 		/* Ground plane with checker texture */
 		auto checker_texture = std::make_shared<CheckerTexture>(2.5, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
 		Transform tg;
@@ -94,8 +97,6 @@ Scene GenerateScene(Scenes scene)
 
 		Transform t6;
 		world.Add(std::make_shared<Triangle>(t6, Point3(0.0, -1.0, 1.0), Point3(0.0, 1.0, 1.0), Point3(1.0, 0.0, 1.0), material4));
-
-		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
 
 		break;
 	}
@@ -273,7 +274,8 @@ Scene GenerateScene(Scenes scene)
 	case CornellBox:
 	{
 		/* Black background */
-		sky = new SolidColor(0.0, 0.0, 0.0);
+		//sky = new SolidColor(0.0, 0.0, 0.0);
+		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
 
 		/* Materials */
 		auto red     = std::make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
@@ -290,7 +292,12 @@ Scene GenerateScene(Scenes scene)
 		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 10.0, 0.0), white)); /* bottom */
 		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 10.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 10.0, 0.0), white)); /* top */
 		world.Add(std::make_shared<Parallelogram>(Point3(-5.0, -5.0, 0.0), Vec3(0.0, 10.0, 0.0), Vec3(0.0, 0.0, 10.0), checker)); /* back */
-		world.Add(std::make_shared<Parallelogram>(Point3(-1.5, -1.5, 10.0-Eps), Vec3(3.0, 0.0, 0.0), Vec3(0.0, 3.0, 0.0), light)); /* light */
+		
+		Transform light_t;
+		light_t.Translate(0.0, 0.0, 10.0 - Eps);
+		light_t.Rotate(180.0, Vec3(1.0, 0.0, 0.0));
+		light_t.Scale(3.0);
+		lights.Add(std::make_shared<Parallelogram>(light_t, light)); /* light */
 
 		/* Cornell box contents */
 		//auto material2 = std::make_shared<Dielectric>(1.5);
@@ -299,33 +306,33 @@ Scene GenerateScene(Scenes scene)
 		//t2.Scale(3.5);
 		//world.Add(std::make_shared<Sphere>(t2, material2));
 
-		////auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
-		////Transform t3;
-		////t3.Translate(-2.0, 0.0, 4.0);
-		////t3.Rotate(35.0, Vec3(0.0, 1.0, 1.0));
-		////t3.Scale(4.0, 2.0, 4.0);
-		////world.Add(std::make_shared<Sphere>(t3, material3));
+		//auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
+		//Transform t3;
+		//t3.Translate(-2.0, 0.0, 4.0);
+		//t3.Rotate(35.0, Vec3(0.0, 1.0, 1.0));
+		//t3.Scale(4.0, 2.0, 4.0);
+		//world.Add(std::make_shared<Sphere>(t3, material3));
 
-		////Transform box_t;
-		////box_t.Translate(0.0, 0.0, 3.0);
-		////box_t.Rotate(30.0, Vec3(0.0, 1.0, 1.0));
-		////box_t.Scale(3.0);
-		////world.Add(std::make_shared<ConstantMedium>(std::make_shared<HittableList>(Box(box_t, white)), 0.1, Color(0.0)));
+		Transform box_t;
+		box_t.Translate(0.0, 0.0, 3.0);
+		box_t.Rotate(30.0, Vec3(0.0, 1.0, 1.0));
+		box_t.Scale(3.0);
+		world.Add(std::make_shared<HittableList>(Box(box_t, red)));
 
 		//Transform t;
-		//t.Translate(0.0, 0.5, 2.0);
+		//t.Translate(0.0, 1.0, -1.0);
 		//t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
 		//t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
-		//t.Scale(20.0);
-		//auto bunny = LoadMesh(t, "stanford-bunny.obj", bubble);
+		//t.Scale(40.0);
+		//auto bunny = LoadMesh(t, "stanford-bunny.obj", white);
 		//world.Add(std::make_shared<BVH_Node>(bunny));
 
-		Transform t;
-		t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
-		t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
-		t.Scale(5.0);
-		auto mesh = LoadMesh(t, "dragon.obj", glass);
-		world.Add(std::make_shared<BVH_Node>(mesh));
+		//Transform t;
+		//t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
+		//t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
+		//t.Scale(5.0);
+		//auto mesh = LoadMesh(t, "dragon.obj", red);
+		//world.Add(std::make_shared<BVH_Node>(mesh));
 
 		break;
 	}
@@ -489,7 +496,7 @@ Scene GenerateScene(Scenes scene)
 	/* Construct BVH */
 	world = HittableList(std::make_shared<BVH_Node>(world));
 
-	return Scene(world, sky);
+	return Scene(world, lights, sky);
 }
 
 } /* namespace rt */

@@ -1,5 +1,5 @@
 #include "renderer.h"
-
+#include "pdf.h"
 
 namespace rt
 {
@@ -48,20 +48,33 @@ Color TraceRay(const Ray& ray_in, int depth, const Scene& scene)
 	Interaction interaction;
 	
 	/* If the ray hits nothing, sample the sky texture */
-	if (!scene.World().Hit(ray_in, Interval(Eps, Inf), interaction))
+	if (!scene.world.Hit(ray_in, Interval(Eps, Inf), interaction))
 	{
 		return scene.SampleSky(ray_in);
 	}
 
+	Transform t = interaction.transform;
 	Ray ray_out;
 	Color attenuation;
-	Color color_from_emission = interaction.material->Emitted(interaction.u, interaction.v, interaction.posn);
+	double pdf_value;
+	Color color_from_emission = interaction.material->Emitted(ray_in, interaction, interaction.u, interaction.v, interaction.posn); /* The emitted function could just take in ray_in and interaction? */
 
 	/* If ray does not scatter, return the emitted color */
-	if (!interaction.material->Scatter(ray_in, interaction, attenuation, ray_out)) return color_from_emission;
+	if (!interaction.material->Scatter(ray_in, interaction, attenuation, ray_out, pdf_value)) return color_from_emission;
+
+	/* Sample the probability distribution */
+	auto p0 = std::make_shared<HittablePDF>(scene.lights, t.PointModelToWorld(interaction.posn));
+	auto p1 = std::make_shared<CosinePDF>(t.GetWorldNormal(interaction.normal));
+	MixturePDF mixed_pdf(p0, p1);
+
+	ray_out = Ray(t.PointModelToWorld(interaction.posn), mixed_pdf.Generate(), ray_in.time);
+	pdf_value = mixed_pdf.Value(ray_out.direction);
+
+	double scattering_pdf = interaction.material->ScatteringPDF(ray_in, interaction, ray_out);
+	pdf_value = scattering_pdf;
 
 	/* Otherwise, determine the scattered color by recursively tracing the ray */
-	Color color_from_scatter = attenuation * TraceRay(ray_out, depth - 1, scene);
+	Color color_from_scatter = (attenuation * scattering_pdf * TraceRay(ray_out, depth - 1, scene)) / pdf_value;
 
 	return color_from_emission + color_from_scatter;
 }

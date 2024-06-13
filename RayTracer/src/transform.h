@@ -25,6 +25,9 @@ public:
 	Transform() {}
 	Transform(Mat4 model_to_world) : model_to_world(model_to_world), world_to_model(glm::inverse(model_to_world)), normal_to_world(glm::inverseTranspose(model_to_world)) {}
 
+
+	/* === Functions that apply the transformation === */
+
 	/* Transform ray from world space to model space */
 	Ray WorldToModel(const Ray& world_ray) const
 	{
@@ -33,6 +36,7 @@ public:
 		return Ray(origin, direction, world_ray.time);
 	}
 
+	/* Transform ray from model space to world space */
 	Ray ModelToWorld(const Ray& model_ray) const
 	{
 		Point3 origin = model_to_world * Vec4(model_ray.origin, 1.0);
@@ -40,11 +44,38 @@ public:
 		return Ray(origin, direction, model_ray.time);
 	}
 
+	/* Transform point from model space to world space */
+	Point3 PointModelToWorld(const Point3& model_point)
+	{
+		return model_to_world * Vec4(model_point, 1.0);
+	}
+
+	/* Transform vector from model space to world space */
+	Vec3 VectorModelToWorld(const Vec3& model_vector)
+	{
+		return model_to_world * Vec4(model_vector, 0.0);
+	}
+
+	/* Transform point from world space to model space */
+	Point3 PointWorldToModel(const Point3& world_point)
+	{
+		return world_to_model * Vec4(world_point, 1.0);
+	}
+
+	/* Transform vector from world space to model space */
+	Vec3 VectorWorldToModel(const Vec3& world_vector)
+	{
+		return world_to_model * Vec4(world_vector, 0.0);
+	}
+
 	/* Transform the normal from model space to world space */
 	Vec3 GetWorldNormal(const Vec3& model_normal) const
 	{
 		return normal_to_world * Vec4(model_normal, 0.0);
 	}
+
+
+	/* === Functions for setting/updating the transform === */
 
 	void SetIdentity()
 	{

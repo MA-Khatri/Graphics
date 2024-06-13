@@ -146,6 +146,7 @@ Parallelogram::Parallelogram(const Point3& Q, const Vec3& u, const Vec3& v, std:
 	: Q(Q), u(u), v(v), material(material)
 {
 	Vec3 n = glm::cross(u, v);
+	area = glm::length(n);
 	normal = glm::normalize(n);
 
 	/* In the equation for a plane (Ax + By + Cz = D), (A,B,C) is the normal vector. We can then solve for D 
@@ -212,6 +213,41 @@ bool Parallelogram::Hit(const Ray& ray, Interval ray_t, Interaction& interaction
 
 	return true;
 }
+
+
+double Parallelogram::PDF_Value(const Point3& origin, const Vec3& direction) const
+{
+	/* Assume input origin and direction are in world space! */
+
+	Interaction interaction;
+	if (!this->Hit(Ray(origin, direction), Interval(Eps, Inf), interaction))
+	{
+		return 0.0;
+	}
+
+	double distance_squared = interaction.t * interaction.t * glm::length2(direction);
+	Vec3 world_normal = interaction.transform.model_to_world * Vec4(interaction.normal, 0.0); /* Note: interaction.transform is the same as this->transform here */
+	double cosine = std::fabs(glm::dot(direction, world_normal)) / glm::length(direction);
+
+	return distance_squared / (cosine * area);
+}
+
+
+rt::Vec3 Parallelogram::Random(const Point3& origin) const
+{
+	/* Note: assume origin is provided in world space. 
+	Q, u, v are in model space and need to be converted to world space! */
+	Point3 world_space_Q = transform.model_to_world * Vec4(Q, 1.0);
+	Vec3 world_space_u = transform.model_to_world * Vec4(u, 0.0);
+	Vec3 world_space_v = transform.model_to_world * Vec4(v, 0.0);
+
+	/* Pick a random point on this parallelogram */
+	Vec3 p = world_space_Q + (RandomDouble() * world_space_u) + (RandomDouble() * world_space_v);
+
+	/* Return a vector to a random point on this parallelogram in world space */
+	return p - origin;
+}
+
 
 bool Parallelogram::IsInterior(double a, double b, Interaction& interaction) const
 {

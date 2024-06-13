@@ -16,15 +16,21 @@ class Material
 public:
 	virtual ~Material() = default;
 
-	virtual Color Emitted(double u, double v, const Point3& p) const
+	virtual Color Emitted(const Ray& ray_in, const Interaction& interaction, double u, double v, const Point3& p) const
 	{
 		return Color(0.0, 0.0, 0.0);
 	}
 
 	/* Update ray_out with the appropriate scatter function for this material */
-	virtual bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const
+	virtual bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out, double& pdf) const
 	{
 		return false;
+	}
+
+	/* Sample a probability distribution */
+	virtual double ScatteringPDF(const Ray& ray_in, const Interaction& interaction, const Ray& ray_out) const
+	{
+		return 0.0;
 	}
 };
 
@@ -35,7 +41,9 @@ public:
 	Lambertian(const Color& albedo) : texture(std::make_shared<SolidColor>(albedo)) {}
 	Lambertian(std::shared_ptr<Texture> texture) : texture(texture) {}
 
-	bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const override;
+	bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out, double& pdf) const override;
+
+	double ScatteringPDF(const Ray& ray_in, const Interaction& interaction, const Ray& ray_out) const override;
 
 private:
 	std::shared_ptr<Texture> texture;
@@ -47,7 +55,7 @@ class Metal : public Material
 public:
 	Metal(const Color& albedo, double roughness) : albedo(albedo), roughness(roughness < 1.0 ? roughness : 1.0) {}
 
-	bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const override;
+	bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out, double& pdf) const override;
 
 private:
 	Color albedo;
@@ -61,7 +69,7 @@ public:
 	Dielectric(double eta_out, double eta_in) : eta_out(eta_out), eta_in(eta_in) {}
 	Dielectric(double eta_in_over_out) : eta_out(1.0), eta_in(eta_in_over_out) {}
 
-	bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const override;
+	bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out, double& pdf) const override;
 
 private:
 	double eta_out; /* Refractive index of the enclosing media */
@@ -78,7 +86,9 @@ public:
 	Isotropic(const Color& albedo) : texture(std::make_shared<SolidColor>(albedo)) {}
 	Isotropic(std::shared_ptr<Texture> texture) : texture(texture) {}
 
-	bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out) const override;
+	bool Scatter(const Ray& ray_in, const Interaction& interaction, Color& attenuation, Ray& ray_out, double& pdf) const override;
+
+	double ScatteringPDF(const Ray& ray_in, const Interaction& interaction, const Ray& ray_out) const override;
 
 private:
 	std::shared_ptr<Texture> texture;
@@ -91,7 +101,7 @@ public:
 	DiffuseLight(std::shared_ptr<Texture> texture) : texture(texture) {}
 	DiffuseLight(const Color& emit) : texture(std::make_shared<SolidColor>(emit)) {}
 
-	Color Emitted(double u, double v, const Point3& p) const override;
+	Color Emitted(const Ray& ray_in, const Interaction& interaction, double u, double v, const Point3& p) const override;
 
 private:
 	std::shared_ptr<Texture> texture;
