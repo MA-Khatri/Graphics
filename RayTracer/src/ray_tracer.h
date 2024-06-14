@@ -274,8 +274,8 @@ Scene GenerateScene(Scenes scene)
 	case CornellBox:
 	{
 		/* Background */
-		//sky = new SolidColor(0.0, 0.0, 0.0);
-		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
+		sky = new SolidColor(0.0, 0.0, 0.0);
+		//sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
 
 		/* Materials */
 		auto red     = std::make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
@@ -284,7 +284,7 @@ Scene GenerateScene(Scenes scene)
 		auto light   = std::make_shared<DiffuseLight>(Color(15.0, 15.0, 15.0));
 		auto glass   = std::make_shared<Dielectric>(1.5);
 		auto bubble  = std::make_shared<Dielectric>(0.666666);
-		auto checker = std::make_shared<Lambertian>(std::make_shared<CheckerTexture>(1.0, Color(0.1, 0.1, 0.4), Color(0.73, 0.73, 0.73)));
+		auto checker = std::make_shared<Lambertian>(std::make_shared<CheckerTexture>(0.1, Color(0.1, 0.1, 0.4), Color(0.73, 0.73, 0.73)));
 
 		/* Cornell box */
 		Transform left_t;
@@ -305,13 +305,12 @@ Scene GenerateScene(Scenes scene)
 
 		Transform top_t;
 		top_t.Translate(0.0, 0.0, 10.0);
-		top_t.Rotate(180.0, Vec3(1.0, 0.0, 0.0));
 		top_t.Scale(10.0);
 		world.Add(std::make_shared<Parallelogram>(top_t, white));
 
 		Transform back_t;
 		back_t.Translate(-5.0, 0.0, 5.0);
-		back_t.Rotate(-90.0, Vec3(0.0, 1.0, 0.0));
+		back_t.Rotate(90.0, Vec3(0.0, 1.0, 0.0));
 		back_t.Scale(10.0);
 		world.Add(std::make_shared<Parallelogram>(back_t, checker));
 		
@@ -319,7 +318,7 @@ Scene GenerateScene(Scenes scene)
 		light_t.Translate(0.0, 0.0, 10.0 - Eps);
 		light_t.Rotate(180.0, Vec3(1.0, 0.0, 0.0));
 		light_t.Scale(3.0);
-		lights.Add(std::make_shared<Parallelogram>(light_t, light)); /* light */
+		//lights.Add(std::make_shared<Parallelogram>(light_t, light)); /* light */
 		world.Add(std::make_shared<Parallelogram>(light_t, light));
 
 		/* Cornell box contents */
@@ -340,7 +339,7 @@ Scene GenerateScene(Scenes scene)
 		box_t.Translate(0.0, 0.0, 3.0);
 		box_t.Rotate(30.0, Vec3(0.0, 1.0, 1.0));
 		box_t.Scale(3.0);
-		world.Add(std::make_shared<HittableList>(Box(box_t, red)));
+		world.Add(std::make_shared<HittableList>(Box(box_t, green)));
 
 		//Transform t;
 		//t.Translate(0.0, 1.0, -1.0);

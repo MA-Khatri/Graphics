@@ -3,13 +3,13 @@
 #include "common.h"
 #include "ray.h"
 #include "texture.h"
-#include "pdf.h"
 
 namespace rt 
 {
 
-/* Forward declaration of the HitRecord class */
+/* Forward declaration of the HitRecord and PDF classes */
 class HitRecord;
+class PDF;
 
 class ScatterRecord
 {

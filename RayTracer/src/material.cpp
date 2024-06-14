@@ -1,5 +1,6 @@
 #include "material.h"
 #include "hit_record.h"
+#include "pdf.h"
 
 namespace rt
 {

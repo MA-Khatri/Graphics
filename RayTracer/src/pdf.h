@@ -1,9 +1,10 @@
 #pragma once
 
+#include <vector>
+
 #include "common.h"
 #include "hittable.h"
 
-#include <vector>
 
 namespace rt
 {
@@ -60,7 +61,7 @@ private:
 };
 
 
-class HittablePDF : public PDF
+class HittablePDF : public PDF 
 {
 public:
 	HittablePDF(const Hittable& objects, const Point3& origin)
@@ -128,4 +129,4 @@ private:
 };
 
 
-}
+} /* namespace rt */

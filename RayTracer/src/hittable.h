@@ -109,10 +109,10 @@ private:
 private:
 	/* Given the hit point in plane coordinates, return false if it is outside the primitive.
 	Otherwise, set the UV coordinates of the hit and return true. */
-	virtual bool IsInterior(double a, double b, HitRecord& hrec) const; /* why virtual? */
+	bool IsInterior(double a, double b, HitRecord& hrec) const;
 
 	/* Compute the bounding box encapsulating all four vertices */
-	virtual void SetBoundingBox(); /* why virtual? */
+	void SetBoundingBox();
 };
 
 

@@ -1,5 +1,4 @@
 #include "renderer.h"
-#include "pdf.h"
 
 namespace rt
 {
@@ -66,10 +65,15 @@ Color TraceRay(const Ray& ray_in, int depth, const Scene& scene)
 	}
 
 	/* Combine the light pdf with existing pdfs */
-	auto light_ptr = std::make_shared<HittablePDF>(scene.lights, hrec.posn);
-	MixturePDF pdf(light_ptr, srec.pdf_ptr);
+	MixturePDF pdf(srec.pdf_ptr, srec.pdf_ptr);
+	if (!scene.lights.objects.empty())
+	{
+		auto light_ptr = std::make_shared<HittablePDF>(scene.lights, hrec.transform.PointModelToWorld(hrec.posn));
+		pdf = MixturePDF(light_ptr, srec.pdf_ptr);
+	}
 
-	Ray scattered = Ray(hrec.posn, pdf.Generate(), ray_in.time);
+
+	Ray scattered = Ray(hrec.transform.PointModelToWorld(hrec.posn), pdf.Generate(), ray_in.time);
 	double pdf_value = pdf.Value(scattered.direction);
 
 	double scattering_pdf = hrec.material->ScatteringPDF(ray_in, hrec, scattered);

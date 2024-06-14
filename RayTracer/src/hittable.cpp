@@ -229,7 +229,7 @@ bool Parallelogram::Hit(const Ray& ray, Interval ray_t, HitRecord& hrec) const
 	double beta = glm::dot(w, glm::cross(u, planar_hitpoint_vector));
 	if (!IsInterior(alpha, beta, hrec)) return false;
 
-	/* Ray hits within the plane bounds... return hrec */
+	/* Ray hits within the plane bounds... update hrec */
 	hrec.t = t;
 	hrec.posn = intersection;
 	hrec.material = material;
