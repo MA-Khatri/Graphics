@@ -76,10 +76,8 @@ Color TraceRay(const Ray& ray_in, int depth, const Scene& scene)
 		pdf = MixturePDF(light_ptr, srec.pdf_ptr);
 	}
 
-
 	Ray scattered = Ray(world_posn, pdf.Generate(), ray_in.time);
 	double pdf_value = pdf.Value(scattered.direction);
-	scattered = hrec.transform.ModelToWorld(scattered); /* all pdf calculations happen in model space. So, convert to world space */
 
 	double scattering_pdf = hrec.material->ScatteringPDF(ray_in, hrec, scattered);
 

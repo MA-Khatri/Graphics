@@ -193,7 +193,7 @@ Parallelogram::Parallelogram(const Transform& t_transform, std::shared_ptr<Mater
 
 	auto world_u = transform.VectorModelToWorld(u);
 	auto world_v = transform.VectorModelToWorld(v);
-	auto world_n = glm::cross(u, v);
+	auto world_n = glm::cross(world_u, world_v);
 	area = glm::length(world_n);
 
 	SetBoundingBox();
@@ -255,8 +255,14 @@ double Parallelogram::PDF_Value(const Point3& origin, const Vec3& direction) con
 		return 0.0;
 	}
 
-	/* Might need to compute the world space hit distance?? */
-	double distance_squared = hrec.t * hrec.t * glm::length2(direction);
+	/* convert the model space distance to world space distance */
+	Ray model_ray = hrec.transform.WorldToModel(Ray(origin, direction));
+	Vec3 model_vec = model_ray.direction * hrec.t;
+	Vec3 world_vec = hrec.transform.VectorModelToWorld(model_vec);
+	double distance_squared = glm::length2(world_vec);
+
+	//double distance_squared = hrec.t * hrec.t * glm::length2(direction);
+
 	Vec3 world_normal = transform.GetWorldNormal(hrec.normal);
 	double cosine = std::fabs(glm::dot(direction, world_normal)) / glm::length(direction);
 

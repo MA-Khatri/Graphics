@@ -19,7 +19,8 @@ bool Lambertian::Scatter(const Ray& ray_in, const HitRecord& hrec, ScatterRecord
 
 double Lambertian::ScatteringPDF(const Ray& ray_in, const HitRecord& hrec, const Ray& ray_out) const
 {
-	double cosine = glm::dot(hrec.normal, glm::normalize(ray_out.direction));
+	Vec3 world_normal = glm::normalize(hrec.transform.GetWorldNormal(hrec.normal));
+	double cosine = glm::dot(world_normal, glm::normalize(ray_out.direction));
 	return cosine < 0.0 ? 0.0 : cosine / Pi;
 }
 
@@ -41,7 +42,6 @@ bool Metal::Scatter(const Ray& ray_in, const HitRecord& hrec, ScatterRecord& sre
 	srec.skip_pdf_ray = hrec.transform.ModelToWorld(Ray(hrec.posn + Eps * hrec.normal, reflected, ray_in.time));
 		
 	return true;
-	//return (glm::dot(reflected, hrec.normal) > 0.0); /* Ignore if produced ray direction is within the object */
 }
 
 /* ======================== */
