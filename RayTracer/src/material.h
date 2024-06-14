@@ -16,7 +16,7 @@ class Material
 public:
 	virtual ~Material() = default;
 
-	virtual Color Emitted(double u, double v, const Point3& p) const
+	virtual Color Emitted(const Interaction& interaction) const
 	{
 		return Color(0.0, 0.0, 0.0);
 	}
@@ -91,7 +91,7 @@ public:
 	DiffuseLight(std::shared_ptr<Texture> texture) : texture(texture) {}
 	DiffuseLight(const Color& emit) : texture(std::make_shared<SolidColor>(emit)) {}
 
-	Color Emitted(double u, double v, const Point3& p) const override;
+	Color Emitted(const Interaction& interaction) const override;
 
 private:
 	std::shared_ptr<Texture> texture;

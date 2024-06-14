@@ -80,12 +80,9 @@ int main(void)
 	glfwMakeContextCurrent(window);
 
 	/* Window settings */
-	// Enable vsync
-	glfwSwapInterval(1);
-	// Register the resize function
-	glfwSetFramebufferSizeCallback(window, glfw_framebuffer_size_callback);
-	// Register the scroll function
-	glfwSetScrollCallback(window, glfw_scroll_callback);
+	glfwSwapInterval(1); /* Enable vsync */
+	glfwSetFramebufferSizeCallback(window, glfw_framebuffer_size_callback); /* Register the resize function */
+	glfwSetScrollCallback(window, glfw_scroll_callback); /* Register the scroll function */
 
 	/* GLEW can only be initialized after creating a valid context */
 	GLenum err = glewInit();
@@ -161,24 +158,22 @@ int main(void)
 		we cannot get until we're in the main loop. 
 	*/
 	camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
+	
 
 	/* ====== Ray tracer setup ====== */
 	//rt::ThinLensCamera ray_camera;
 	rt::PerspectiveCamera ray_camera;
-
-	ray_camera.max_depth = 16;
 	ray_camera.simulate_time = true;
+	ray_camera.max_depth = 16;
 
 	rt::Scene scene = rt::GenerateScene(rt::Scenes::CornellBox);
-
-	/* ====== Local Variables ====== */
-	unsigned char r = 0;
 
 
 	/* ========================== */
 	/* ====== Framebuffers ====== */
 	/* ========================== */
 	Framebuffer rasterized_framebuffer = Framebuffer(viewport_width, viewport_height, framebuffer_scale);
+
 
 	/* ========================= */
 	/* ====== ImGui SETUP ====== */
@@ -221,9 +216,6 @@ int main(void)
 			/* Update the camera matrix */ 
 			camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
 		}
-
-		/* Update local vars */
-		r += 1;
 
 		/* ====== IMGUI ====== */
 		ImGui_ImplOpenGL3_NewFrame();
@@ -287,7 +279,6 @@ int main(void)
 				viewport_height = (unsigned int)wsize.y;
 
 				/* RayTracer camera setup */
-				ray_camera.simulate_time = true;
 				ray_camera.image_width = viewport_width;
 				ray_camera.image_height = viewport_height;
 				ray_camera.vfov = camera.vfov;

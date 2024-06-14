@@ -55,7 +55,7 @@ Color TraceRay(const Ray& ray_in, int depth, const Scene& scene)
 
 	Ray ray_out;
 	Color attenuation;
-	Color color_from_emission = interaction.material->Emitted(interaction.u, interaction.v, interaction.posn);
+	Color color_from_emission = interaction.material->Emitted(interaction);
 
 	/* If ray does not scatter, return the emitted color */
 	if (!interaction.material->Scatter(ray_in, interaction, attenuation, ray_out)) return color_from_emission;

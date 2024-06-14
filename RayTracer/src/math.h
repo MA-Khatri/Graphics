@@ -25,6 +25,48 @@ using Vec4 = glm::dvec4;
 using Mat4 = glm::dmat4;
 
 
+/* =============================== */
+/* === Orthonormal basis class === */
+/* =============================== */
+
+class OrthonormalBasis
+{
+public:
+	OrthonormalBasis() {}
+
+	OrthonormalBasis(const Vec3& normal) 
+	{
+		BuildFromW(normal);
+	}
+
+	Vec3 Local(double a, double b, double c) const
+	{
+		return a * u + b * v + c * w;
+	}
+
+	Vec3 Local(const Vec3& a) const
+	{
+		return a.x * u + a.y * v + a.z * w;
+	}
+
+	void BuildFromW(const Vec3& w_in)
+	{
+		/* Normalize the input vector, just in case */
+		w = glm::normalize(w_in);
+
+		/* Create an arbitrary other vector... */
+		Vec3 a = std::fabs(w.x) > 0.9 ? Vec3(0.0, 1.0, 0.0) : Vec3(1.0, 0.0, 0.0);
+
+		/* Use that vector to generate an orthonormal basis */
+		v = glm::normalize(glm::cross(w, a));
+		u = glm::cross(w, v);
+	}
+
+public:
+	Vec3 u, v, w;
+};
+
+
 /* ================= */
 /* === GLM Utils === */
 /* ================= */
@@ -91,6 +133,32 @@ inline Vec3 RandomOnHemisphere(const Vec3& normal)
 	else return -on_unit_sphere;
 }
 
+/* Generate a cosine weighted random direction along +z */
+inline Vec3 RandomCosineDirection()
+{
+	double r1 = RandomDouble();
+	double r2 = RandomDouble();
+
+	double phi = 2.0 * Pi * r1;
+	double x = std::cos(phi) * std::sqrt(r2);
+	double y = std::sin(phi) * std::sqrt(r2);
+	double z = std::sqrt(1 - r2);
+
+	return Vec3(x, y, z);
+}
+
+/* Generate a (normalized) cosine weighted random direction along the normal */
+inline Vec3 RandomCosineDirection(const Vec3& normal)
+{
+	/* Generate a cosine direction relative to +z */
+	Vec3 dir = RandomCosineDirection();
+
+	/* Create an orthonormal basis using the normal vector */
+	auto onb = OrthonormalBasis(normal);
+
+	/* Transform and return the generated direction w.r.t. the onb */
+	return onb.Local(dir);
+}
 
 /* Returns a random point in the [-0.5, -0.5] to [0.5, 0.5] unit square */
 inline Point2 SampleSquare()

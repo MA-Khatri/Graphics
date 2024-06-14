@@ -90,9 +90,10 @@ bool Isotropic::Scatter(const Ray& ray_in, const Interaction& interaction, Color
 /* ====== Diffuse Light ====== */
 /* =========================== */
 
-Color DiffuseLight::Emitted(double u, double v, const Point3& p) const
+Color DiffuseLight::Emitted(const Interaction& interaction) const
 {
-	return texture->Value(u, v, p);
+	if (!interaction.front_face) return Color(0.0, 0.0, 0.0); /* No light emitted from back face of light sources */
+	return texture->Value(interaction.u, interaction.v, interaction.posn);
 }
 
 }

@@ -318,6 +318,7 @@
     <ClInclude Include="src\scene.h" />
     <ClInclude Include="src\transform.h" />
     <ClInclude Include="src\external\OBJ-Loader.h" />
+    <ClInclude Include="src\pdf.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\external\glm\detail\func_common.inl" />

@@ -17,6 +17,18 @@ public:
 	/* Handle ray-object interaction */
 	virtual bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const = 0;
 
+	/* */
+	virtual double PDF_Value(const Point3& origin, const Vec3& direction) const
+	{
+		return 0.0;
+	}
+
+	virtual Vec3 Random(const Point3& origin) const
+	{
+		return Vec3(0.0, 0.0, 1.0);
+	}
+
+
 	/* Return this object's axis aligned bounding box in world space coordinates */
 	inline AABB BoundingBox() const { return bounding_box; }
 
