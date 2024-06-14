@@ -255,6 +255,7 @@ double Parallelogram::PDF_Value(const Point3& origin, const Vec3& direction) con
 		return 0.0;
 	}
 
+	/* Might need to compute the world space hit distance?? */
 	double distance_squared = hrec.t * hrec.t * glm::length2(direction);
 	Vec3 world_normal = transform.GetWorldNormal(hrec.normal);
 	double cosine = std::fabs(glm::dot(direction, world_normal)) / glm::length(direction);

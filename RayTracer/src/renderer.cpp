@@ -47,6 +47,7 @@ Color TraceRay(const Ray& ray_in, int depth, const Scene& scene)
 	HitRecord hrec;
 	
 	/* If the ray hits nothing, sample the sky texture */
+	/* Check if the ray hits anything in the scene and update the hrec if it does */
 	if (!scene.world.Hit(ray_in, Interval(Eps, Inf), hrec))
 	{
 		return scene.SampleSky(ray_in);
@@ -55,25 +56,28 @@ Color TraceRay(const Ray& ray_in, int depth, const Scene& scene)
 	ScatterRecord srec;
 	Color color_from_emission = hrec.material->Emitted(ray_in, hrec);
 
-	/* If ray does not scatter, return the emitted color */
+	/* If the material the ray hit does not cause it to scatter, return the emitted color */
 	if (!hrec.material->Scatter(ray_in, hrec, srec)) return color_from_emission;
 
 	/* If the material does not use a pdf... */
 	if (srec.skip_pdf)
 	{
+		/* Recursively trace the ray without modifying the attenuation with the pdf */
 		return srec.attenuation * TraceRay(srec.skip_pdf_ray, depth - 1, scene);
 	}
 
 	/* Combine the light pdf with existing pdfs */
+	Point3 world_posn = hrec.transform.PointModelToWorld(hrec.posn);
 	MixturePDF pdf(srec.pdf_ptr, srec.pdf_ptr);
 	if (!scene.lights.objects.empty())
 	{
-		auto light_ptr = std::make_shared<HittablePDF>(scene.lights, hrec.posn);
+		/* Set up the light pdfs with the origin for the scattered ray set in world space */
+		auto light_ptr = std::make_shared<HittablePDF>(scene.lights, world_posn);
 		pdf = MixturePDF(light_ptr, srec.pdf_ptr);
 	}
 
 
-	Ray scattered = Ray(hrec.posn, pdf.Generate(), ray_in.time);
+	Ray scattered = Ray(world_posn, pdf.Generate(), ray_in.time);
 	double pdf_value = pdf.Value(scattered.direction);
 	scattered = hrec.transform.ModelToWorld(scattered); /* all pdf calculations happen in model space. So, convert to world space */
 
