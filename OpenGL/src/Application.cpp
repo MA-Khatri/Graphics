@@ -166,13 +166,10 @@ int main(void)
 	//rt::ThinLensCamera ray_camera;
 	rt::PerspectiveCamera ray_camera;
 
-	ray_camera.max_depth = 8;
+	ray_camera.max_depth = 10;
 	ray_camera.simulate_time = true;
 
 	rt::Scene scene = rt::GenerateScene(rt::Scenes::CornellBox);
-
-	/* ====== Local Variables ====== */
-	unsigned char r = 0;
 
 
 	/* ========================== */
@@ -221,9 +218,6 @@ int main(void)
 			/* Update the camera matrix */ 
 			camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
 		}
-
-		/* Update local vars */
-		r += 1;
 
 		/* ====== IMGUI ====== */
 		ImGui_ImplOpenGL3_NewFrame();

@@ -305,7 +305,7 @@ Scene GenerateScene(Scenes scene)
 
 		Transform top_t;
 		top_t.Translate(0.0, 0.0, 10.0);
-		//top_t.Rotate(180.0, Vec3(1.0, 0.0, 0.0));
+		//top_t.Rotate(180.0, Vec3(1.0, 0.0, 0.0)); /* we should be flipping it but it causes problems? */
 		top_t.Scale(10.0);
 		world.Add(std::make_shared<Parallelogram>(top_t, white));
 
@@ -324,24 +324,15 @@ Scene GenerateScene(Scenes scene)
 		world.Add(light_p);
 
 		/* Cornell box contents */
-		//auto material2 = std::make_shared<Dielectric>(1.5);
-		//Transform t2;
-		//t2.Translate(0.0, 0.0, 4.0);
-		//t2.Scale(3.5);
-		//world.Add(std::make_shared<Sphere>(t2, material2));
-
-		//auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
-		//Transform t3;
-		//t3.Translate(-2.0, 0.0, 4.0);
-		//t3.Rotate(35.0, Vec3(0.0, 1.0, 1.0));
-		//t3.Scale(4.0, 2.0, 4.0);
-		//world.Add(std::make_shared<Sphere>(t3, material3));
 
 		Transform box_t;
-		box_t.Translate(0.0, 0.0, 3.0);
-		box_t.Rotate(30.0, Vec3(0.0, 1.0, 1.0));
-		box_t.Scale(3.0);
-		world.Add(std::make_shared<HittableList>(Box(box_t, green)));
+		box_t.Translate(-1.0, -1.5, 3.0);
+		box_t.Rotate(20.0, Vec3(0.0, 0.0, 1.0));
+		box_t.Scale(2.5, 2.5, 6.0);
+		world.Add(std::make_shared<HittableList>(Box(box_t, white)));
+
+		Transform sphere_t;
+
 
 		//Transform t;
 		//t.Translate(0.0, 1.0, -1.0);

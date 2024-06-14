@@ -97,9 +97,37 @@ double Sphere::PDF_Value(const Point3& origin, const Vec3& direction) const
 
 Vec3 Sphere::Random(const Point3& origin) const
 {
-	/* TODO */
-	return Vec3(0.0, 0.0, 1.0);
+	Point3 sphere_center = transform.PointModelToWorld(Point3(0.0));
+	Vec3 direction = sphere_center - origin;
+	double distance_squared = glm::length2(direction);
+	OrthonormalBasis onb(direction);
 
+	/* Determine the maximum radius of the transformed sphere along all directions */
+	Vec3 model_x = Vec3(1.0, 0.0, 0.0);
+	Vec3 model_y = Vec3(0.0, 1.0, 0.0);
+	Vec3 model_z = Vec3(0.0, 0.0, 1.0);
+	/* Determine world-space lengths squared */
+	double wlx = glm::length2(transform.VectorModelToWorld(model_x));
+	double wly = glm::length2(transform.VectorModelToWorld(model_y));
+	double wlz = glm::length2(transform.VectorModelToWorld(model_z));
+	/* Pick the longest radius axis */
+	double max_radius = (wlx > wly) ? (wlx > wlz ? wlx : wlz) : (wly > wlz ? wly : wlz);
+
+	return onb.Local(RandomToSphere(max_radius, distance_squared));
+}
+
+
+Vec3 Sphere::RandomToSphere(double radius_squared, double distance_squared)
+{
+	double r1 = RandomDouble();
+	double r2 = RandomDouble();
+	auto z = 1.0 + r2 * (std::sqrt(1.0 - radius_squared / distance_squared));
+
+	double phi = 2.0 * Pi * r1;
+	double x = std::cos(phi) * std::sqrt(1.0 - z * z);
+	double y = std::sin(phi) * std::sqrt(1.0 - z * z);
+
+	return Vec3(x, y, z);
 }
 
 
@@ -255,16 +283,8 @@ double Parallelogram::PDF_Value(const Point3& origin, const Vec3& direction) con
 		return 0.0;
 	}
 
-	/* convert the model space distance to world space distance */
-	Ray model_ray = hrec.transform.WorldToModel(Ray(origin, direction));
-	Vec3 model_vec = model_ray.direction * hrec.t;
-	Vec3 world_vec = hrec.transform.VectorModelToWorld(model_vec);
-	double distance_squared = glm::length2(world_vec);
-
-	//double distance_squared = hrec.t * hrec.t * glm::length2(direction);
-
-	Vec3 world_normal = transform.GetWorldNormal(hrec.normal);
-	double cosine = std::fabs(glm::dot(direction, world_normal)) / glm::length(direction);
+	double distance_squared = hrec.t * hrec.t * glm::length2(direction);
+	double cosine = std::fabs(glm::dot(direction, hrec.normal)) / glm::length(direction);
 
 	return distance_squared / (cosine * area);
 }

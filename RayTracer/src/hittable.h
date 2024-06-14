@@ -72,6 +72,8 @@ private:
 	Vec3 motion_vector;
 
 private:
+	static Vec3 RandomToSphere(double radius_squared, double distance_squared);
+
 	/* Return the center of the sphere (in model space) at time t */
 	Point3 SphereCenter(double time) const;
 

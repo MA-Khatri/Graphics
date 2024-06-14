@@ -45,25 +45,25 @@ public:
 	}
 
 	/* Transform point from model space to world space */
-	Point3 PointModelToWorld(const Point3& model_point)
+	Point3 PointModelToWorld(const Point3& model_point) const
 	{
 		return model_to_world * Vec4(model_point, 1.0);
 	}
 
 	/* Transform vector from model space to world space */
-	Vec3 VectorModelToWorld(const Vec3& model_vector)
+	Vec3 VectorModelToWorld(const Vec3& model_vector) const
 	{
 		return model_to_world * Vec4(model_vector, 0.0);
 	}
 
 	/* Transform point from world space to model space */
-	Point3 PointWorldToModel(const Point3& world_point)
+	Point3 PointWorldToModel(const Point3& world_point) const
 	{
 		return world_to_model * Vec4(world_point, 1.0);
 	}
 
 	/* Transform vector from world space to model space */
-	Vec3 VectorWorldToModel(const Vec3& world_vector)
+	Vec3 VectorWorldToModel(const Vec3& world_vector) const
 	{
 		return world_to_model * Vec4(world_vector, 0.0);
 	}

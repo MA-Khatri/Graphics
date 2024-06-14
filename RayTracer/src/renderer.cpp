@@ -1,5 +1,7 @@
 #include "renderer.h"
 
+#include <limits>
+
 namespace rt
 {
 std::vector<unsigned char> Render(const Scene& scene, Camera& camera)
@@ -82,7 +84,11 @@ Color TraceRay(const Ray& ray_in, int depth, const Scene& scene)
 	double scattering_pdf = hrec.material->ScatteringPDF(ray_in, hrec, scattered);
 
 	/* Otherwise, determine the scattered color by recursively tracing the ray */
-	Color color_from_scatter = (srec.attenuation * scattering_pdf * TraceRay(scattered, depth - 1, scene)) / pdf_value;
+	Color color_from_scatter = Color(0.0);
+	if (pdf_value > Eps) /* Prevent near-zero values... this is a hack */
+	{
+		color_from_scatter = (srec.attenuation * scattering_pdf * TraceRay(scattered, depth - 1, scene)) / pdf_value;
+	}
 
 	return color_from_emission + color_from_scatter;
 }
@@ -105,6 +111,12 @@ void PixelColor(std::vector<unsigned char>& rendered_image, unsigned int i, unsi
 	if (r != r) r = 0.0;
 	if (g != g) g = 0.0;
 	if (b != b) b = 0.0;
+
+	/* pre-clamp (this is a hack to handle run-away brightness problems) */
+	double limit = 5.0;
+	if (r > limit) r = limit;
+	if (g > limit) g = limit;
+	if (b > limit) b = limit;
 
 	/* Extract accumulated color */
 	double cr = camera.image_accumulator[pixel + 0];
