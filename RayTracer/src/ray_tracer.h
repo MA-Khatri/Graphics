@@ -305,6 +305,7 @@ Scene GenerateScene(Scenes scene)
 
 		Transform top_t;
 		top_t.Translate(0.0, 0.0, 10.0);
+		//top_t.Rotate(180.0, Vec3(1.0, 0.0, 0.0));
 		top_t.Scale(10.0);
 		world.Add(std::make_shared<Parallelogram>(top_t, white));
 
@@ -318,8 +319,9 @@ Scene GenerateScene(Scenes scene)
 		light_t.Translate(0.0, 0.0, 10.0 - Eps);
 		light_t.Rotate(180.0, Vec3(1.0, 0.0, 0.0));
 		light_t.Scale(3.0);
-		//lights.Add(std::make_shared<Parallelogram>(light_t, light)); /* light */
-		world.Add(std::make_shared<Parallelogram>(light_t, light));
+		auto light_p = std::make_shared<Parallelogram>(light_t, light);
+		lights.Add(light_p);
+		world.Add(light_p);
 
 		/* Cornell box contents */
 		//auto material2 = std::make_shared<Dielectric>(1.5);

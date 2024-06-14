@@ -68,13 +68,14 @@ Color TraceRay(const Ray& ray_in, int depth, const Scene& scene)
 	MixturePDF pdf(srec.pdf_ptr, srec.pdf_ptr);
 	if (!scene.lights.objects.empty())
 	{
-		auto light_ptr = std::make_shared<HittablePDF>(scene.lights, hrec.transform.PointModelToWorld(hrec.posn));
+		auto light_ptr = std::make_shared<HittablePDF>(scene.lights, hrec.posn);
 		pdf = MixturePDF(light_ptr, srec.pdf_ptr);
 	}
 
 
-	Ray scattered = Ray(hrec.transform.PointModelToWorld(hrec.posn), pdf.Generate(), ray_in.time);
+	Ray scattered = Ray(hrec.posn, pdf.Generate(), ray_in.time);
 	double pdf_value = pdf.Value(scattered.direction);
+	scattered = hrec.transform.ModelToWorld(scattered); /* all pdf calculations happen in model space. So, convert to world space */
 
 	double scattering_pdf = hrec.material->ScatteringPDF(ray_in, hrec, scattered);
 

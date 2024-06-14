@@ -191,6 +191,11 @@ Parallelogram::Parallelogram(const Transform& t_transform, std::shared_ptr<Mater
 	transform = t_transform;
 	D = glm::dot(normal, Q);
 
+	auto world_u = transform.VectorModelToWorld(u);
+	auto world_v = transform.VectorModelToWorld(v);
+	auto world_n = glm::cross(u, v);
+	area = glm::length(world_n);
+
 	SetBoundingBox();
 }
 
@@ -251,7 +256,7 @@ double Parallelogram::PDF_Value(const Point3& origin, const Vec3& direction) con
 	}
 
 	double distance_squared = hrec.t * hrec.t * glm::length2(direction);
-	Vec3 world_normal = hrec.transform.model_to_world * Vec4(hrec.normal, 0.0); /* Note: hrec.transform is the same as this->transform here */
+	Vec3 world_normal = transform.GetWorldNormal(hrec.normal);
 	double cosine = std::fabs(glm::dot(direction, world_normal)) / glm::length(direction);
 
 	return distance_squared / (cosine * area);
