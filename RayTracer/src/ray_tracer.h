@@ -326,30 +326,29 @@ Scene GenerateScene(Scenes scene)
 
 		/* Cornell box contents */
 
-		Transform box_t;
-		box_t.Translate(-2.0, -2.0, 3.0);
-		box_t.Rotate(20.0, Vec3(0.0, 0.0, 1.0));
-		box_t.Scale(2.5, 2.5, 6.0);
-		auto box = std::make_shared<HittableList>(Box(box_t, mirror));
-		world.Add(box);
-		lights.Add(box);
+		//Transform box_t;
+		//box_t.Translate(-2.0, -2.0, 3.0);
+		//box_t.Rotate(20.0, Vec3(0.0, 0.0, 1.0));
+		//box_t.Scale(2.5, 2.5, 6.0);
+		//auto box = std::make_shared<HittableList>(Box(box_t, mirror));
+		//world.Add(box);
+		//lights.Add(box);
 
-		Transform sphere_t;
-		sphere_t.Translate(1.5, 1.5, 2.0);
-		sphere_t.Scale(2.0);
-		auto sphere = std::make_shared<Sphere>(sphere_t, glass);
-		world.Add(sphere);
-		lights.Add(sphere);
+		//Transform sphere_t;
+		//sphere_t.Translate(1.5, 1.5, 2.0);
+		//sphere_t.Scale(2.0);
+		//auto sphere = std::make_shared<Sphere>(sphere_t, glass);
+		//world.Add(sphere);
+		//lights.Add(sphere);
 
-		//Transform t;
-		//t.Translate(0.0, 1.0, -1.0);
-		//t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
-		//t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
-		//t.Scale(40.0);
-		//auto mesh = LoadMesh(t, "stanford-bunny.obj", mirror);
-		//auto mesh_ = std::make_shared<BVH_Node>(mesh);
-		//world.Add(mesh_);
-		////lights.Add(mesh_);
+		Transform t;
+		t.Translate(0.0, 1.0, -1.0);
+		t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
+		t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
+		t.Scale(40.0);
+		auto mesh = std::make_shared<BVH_Node>(LoadMesh(t, "stanford-bunny.obj", glass));
+		world.Add(mesh);
+		//lights.Add(mesh);
 
 		//Transform t;
 		//t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
@@ -370,8 +369,11 @@ Scene GenerateScene(Scenes scene)
 		auto light_material = std::make_shared<DiffuseLight>(Color(7.0));
 		Transform light_t;
 		light_t.Translate(0.0, 0.0, 15.0);
+		light_t.Rotate(180.0, Vec3(1.0, 0.0, 0.0));
 		light_t.Scale(10.0);
-		world.Add(std::make_shared<Parallelogram>(light_t, light_material));
+		auto light = std::make_shared<Parallelogram>(light_t, light_material);
+		world.Add(light);
+		lights.Add(light);
 
 		/* Fog throughout the scene */
 		auto white_material = std::make_shared<Lambertian>(Color(0.73));
@@ -444,7 +446,9 @@ Scene GenerateScene(Scenes scene)
 		Transform glass_t;
 		glass_t.Translate(4.0, -2.0, 3.5);
 		glass_t.Scale(1.75);
-		world.Add(std::make_shared<Sphere>(glass_t, glass_material));
+		auto glass_ball = std::make_shared<Sphere>(glass_t, glass_material);
+		world.Add(glass_ball);
+		lights.Add(glass_ball);
 
 		/* Metal spheroid */
 		auto smooth_metal_material = std::make_shared<Metal>(Color(0.7, 0.5, 0.4), 0.0);
@@ -492,18 +496,18 @@ Scene GenerateScene(Scenes scene)
 		/* Mesh */
 		Transform t;
 
-		//t.Rotate(90.0, Vec3(0.0, 0.0, 1.0));
-		//t.Scale(6.0);
-		//auto mesh = LoadMesh(t, "stanford-bunny-s.obj", glass);
+		t.Rotate(90.0, Vec3(0.0, 0.0, 1.0));
+		t.Scale(6.0);
+		auto mesh = LoadMesh(t, "stanford-bunny-s.obj", glass);
 
 		//t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
 		//t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
 		//t.Scale(6.0);
 		//auto mesh = LoadMesh(t, "dragon.obj", glass);
 
-		t.Rotate(180.0, Vec3(0.0, 0.0, 1.0));
-		t.Scale(6.0);
-		auto mesh = LoadMesh(t, "low-poly-bunny.obj", glass);
+		//t.Rotate(180.0, Vec3(0.0, 0.0, 1.0));
+		//t.Scale(6.0);
+		//auto mesh = LoadMesh(t, "low-poly-bunny.obj", glass);
 		
 		world.Add(std::make_shared<BVH_Node>(mesh));
 

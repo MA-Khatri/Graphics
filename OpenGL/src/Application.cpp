@@ -169,7 +169,7 @@ int main(void)
 	ray_camera.max_depth = 10;
 	ray_camera.simulate_time = true;
 
-	rt::Scene scene = rt::GenerateScene(rt::Scenes::CornellBox);
+	rt::Scene scene = rt::GenerateScene(rt::Scenes::TriangleMesh);
 
 
 	/* ========================== */
