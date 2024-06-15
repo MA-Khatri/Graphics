@@ -133,6 +133,10 @@ public:
 
 	bool Hit(const Ray& ray, Interval ray_t, HitRecord& hrec) const override;
 
+	double PDF_Value(const Point3& origin, const Vec3& direction) const override;
+
+	Vec3 Random(const Point3& origin) const override;
+
 private:
 	Point3 v0p; /* Vertex 0 position */
 	Point3 v1p; /* Vertex 1 position */
@@ -143,9 +147,11 @@ private:
 	Vec3 e01; /* Vector from v0p to v1p */
 	Vec3 e02; /* Vector from v0p to v2p */
 	std::shared_ptr<Material> material;
+	double area; /* world space area */
 
 private:
 	void SetBoundingBox();
+	void ComputeArea();
 
 	/* Computes the interpolated normal vector for the triangle using the provided barycentric coordinates */
 	Vec3 ComputeInterpolatedNormal(double u, double v) const;

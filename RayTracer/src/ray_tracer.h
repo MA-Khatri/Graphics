@@ -284,6 +284,7 @@ Scene GenerateScene(Scenes scene)
 		auto light   = std::make_shared<DiffuseLight>(Color(15.0, 15.0, 15.0));
 		auto glass   = std::make_shared<Dielectric>(1.5);
 		auto bubble  = std::make_shared<Dielectric>(0.666666);
+		auto mirror  = std::make_shared<Metal>(Color(0.73), 0.0);
 		auto checker = std::make_shared<Lambertian>(std::make_shared<CheckerTexture>(0.1, Color(0.1, 0.1, 0.4), Color(0.73, 0.73, 0.73)));
 
 		/* Cornell box */
@@ -326,21 +327,29 @@ Scene GenerateScene(Scenes scene)
 		/* Cornell box contents */
 
 		Transform box_t;
-		box_t.Translate(-1.0, -1.5, 3.0);
+		box_t.Translate(-2.0, -2.0, 3.0);
 		box_t.Rotate(20.0, Vec3(0.0, 0.0, 1.0));
 		box_t.Scale(2.5, 2.5, 6.0);
-		world.Add(std::make_shared<HittableList>(Box(box_t, white)));
+		auto box = std::make_shared<HittableList>(Box(box_t, mirror));
+		world.Add(box);
+		lights.Add(box);
 
 		Transform sphere_t;
-
+		sphere_t.Translate(1.5, 1.5, 2.0);
+		sphere_t.Scale(2.0);
+		auto sphere = std::make_shared<Sphere>(sphere_t, glass);
+		world.Add(sphere);
+		lights.Add(sphere);
 
 		//Transform t;
 		//t.Translate(0.0, 1.0, -1.0);
 		//t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
 		//t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
 		//t.Scale(40.0);
-		//auto bunny = LoadMesh(t, "stanford-bunny.obj", white);
-		//world.Add(std::make_shared<BVH_Node>(bunny));
+		//auto mesh = LoadMesh(t, "stanford-bunny.obj", mirror);
+		//auto mesh_ = std::make_shared<BVH_Node>(mesh);
+		//world.Add(mesh_);
+		////lights.Add(mesh_);
 
 		//Transform t;
 		//t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
@@ -487,14 +496,14 @@ Scene GenerateScene(Scenes scene)
 		//t.Scale(6.0);
 		//auto mesh = LoadMesh(t, "stanford-bunny-s.obj", glass);
 
-		t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
-		t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
-		t.Scale(6.0);
-		auto mesh = LoadMesh(t, "dragon.obj", glass);
-
-		//t.Rotate(180.0, Vec3(0.0, 0.0, 1.0));
+		//t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
+		//t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
 		//t.Scale(6.0);
-		//auto mesh = LoadMesh(t, "low-poly-bunny.obj", red);
+		//auto mesh = LoadMesh(t, "dragon.obj", glass);
+
+		t.Rotate(180.0, Vec3(0.0, 0.0, 1.0));
+		t.Scale(6.0);
+		auto mesh = LoadMesh(t, "low-poly-bunny.obj", glass);
 		
 		world.Add(std::make_shared<BVH_Node>(mesh));
 

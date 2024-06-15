@@ -11,7 +11,7 @@ namespace rt
 bool Lambertian::Scatter(const Ray& ray_in, const HitRecord& hrec, ScatterRecord& srec) const
 {
 	srec.attenuation = texture->Value(hrec.u, hrec.v, hrec.posn);
-	srec.pdf_ptr = std::make_shared<CosinePDF>(hrec.normal);
+	srec.pdf_ptr = std::make_shared<CosinePDF>(hrec.transform.GetWorldNormal(hrec.normal));
 	srec.skip_pdf = false;
 	return true;
 }

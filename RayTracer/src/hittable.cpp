@@ -336,6 +336,7 @@ Triangle::Triangle(const Transform& t_transform, const Point3& v0p, const Point3
 	v1n = normal;
 	v2n = normal;
 
+	ComputeArea();
 	SetBoundingBox();
 }
 
@@ -365,6 +366,7 @@ Triangle::Triangle(const Transform& t_transform, const objl::Vertex& v0, const o
 		v2n = normal;
 	}
 
+	ComputeArea();
 	SetBoundingBox();
 }
 
@@ -409,6 +411,41 @@ bool Triangle::Hit(const Ray& ray, Interval ray_t, HitRecord& hrec) const
 	return true;
 }
 
+
+double Triangle::PDF_Value(const Point3& origin, const Vec3& direction) const
+{
+	HitRecord hrec;
+	if (!this->Hit(Ray(origin, direction), Interval(Eps, Inf), hrec))
+	{
+		return 0.0;
+	}
+
+	double distance_squared = hrec.t * hrec.t * glm::length2(direction);
+	double cosine = std::fabs(glm::dot(direction, hrec.normal)) / glm::length(direction);
+
+	return distance_squared / (cosine * area);
+}
+
+
+Vec3 Triangle::Random(const Point3& origin) const
+{
+	Point3 world_space_v0p = transform.PointModelToWorld(v0p);
+	Vec3 world_space_e01 = transform.VectorModelToWorld(e01);
+	Vec3 world_space_e02 = transform.VectorModelToWorld(e02);
+
+	double r1 = RandomDouble();
+	double r2 = RandomDouble();
+
+	Vec3 p = world_space_v0p + (r1 * world_space_e01) + (r2 * world_space_e02);
+
+	if (r1 + r2 > 1.0)
+	{
+		p = world_space_v0p + ((1.0 - r1) * world_space_e01) + ((1.0 - r2) * world_space_e02);
+	}
+
+	return p - origin;
+}
+
 void Triangle::SetBoundingBox()
 {
 	/* Transform triangle vertices to world space */
@@ -420,6 +457,12 @@ void Triangle::SetBoundingBox()
 	bounding_box = AABB(AABB(w_v0p, w_v1p), AABB(w_v0p, w_v2p));
 }
 
+void Triangle::ComputeArea()
+{
+	Vec3 world_e01 = transform.VectorModelToWorld(e01);
+	Vec3 world_e02 = transform.VectorModelToWorld(e02);
+	area = 0.5 * glm::length(glm::cross(world_e01, world_e02));
+}
 
 Vec3 Triangle::ComputeInterpolatedNormal(double u, double v) const
 {
