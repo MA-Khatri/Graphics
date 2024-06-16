@@ -113,7 +113,7 @@ void PixelColor(std::vector<unsigned char>& rendered_image, unsigned int i, unsi
 	if (b != b) b = 0.0;
 
 	/* pre-clamp (this is a hack to handle run-away brightness problems) */
-	double limit = 10.0;
+	double limit = 5.0;
 	if (r > limit) r = limit;
 	if (g > limit) g = limit;
 	if (b > limit) b = limit;

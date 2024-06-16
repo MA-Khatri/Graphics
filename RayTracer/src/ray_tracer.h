@@ -341,21 +341,27 @@ Scene GenerateScene(Scenes scene)
 		//world.Add(sphere);
 		//lights.Add(sphere);
 
-		Transform t;
-		t.Translate(0.0, 1.0, -1.0);
-		t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
-		t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
-		t.Scale(40.0);
-		auto mesh = std::make_shared<BVH_Node>(LoadMesh(t, "stanford-bunny.obj", glass));
-		world.Add(mesh);
+		Transform sphere_t;
+		sphere_t.Translate(0.0, 0.0, 5.0);
+		sphere_t.Scale(2.0);
+		auto sphere = std::make_shared<Sphere>(sphere_t, glass);
+		world.Add(sphere);
+		lights.Add(sphere);
+
+		//Transform t;
+		//t.Rotate(90.0, Vec3(0.0, 0.0, 1.0));
+		//t.Scale(6.0);
+		//auto mesh = std::make_shared<BVH_Node>(LoadMesh(t, "stanford-bunny-s.obj", glass));
+		//world.Add(mesh);
 		//lights.Add(mesh);
 
 		//Transform t;
 		//t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
 		//t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
 		//t.Scale(5.0);
-		//auto mesh = LoadMesh(t, "dragon.obj", red);
-		//world.Add(std::make_shared<BVH_Node>(mesh));
+		//auto mesh = std::make_shared<BVH_Node>(LoadMesh(t, "dragon.obj", glass));
+		//world.Add(mesh);
+		//lights.Add(mesh);
 
 		break;
 	}
@@ -486,6 +492,7 @@ Scene GenerateScene(Scenes scene)
 		auto red = std::make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
 		auto smooth_metal = std::make_shared<Metal>(Color(0.7, 0.5, 0.4), 0.0);
 		auto rough_metal = std::make_shared<Metal>(Color(0.7, 0.5, 0.4), 0.1);
+		auto mirror = std::make_shared<Metal>(Color(0.73), 0.0);
 		auto glass = std::make_shared<Dielectric>(1.5);
 
 		/* Ground plane */
@@ -498,7 +505,7 @@ Scene GenerateScene(Scenes scene)
 
 		t.Rotate(90.0, Vec3(0.0, 0.0, 1.0));
 		t.Scale(6.0);
-		auto mesh = LoadMesh(t, "stanford-bunny-s.obj", glass);
+		auto mesh = LoadMesh(t, "stanford-bunny-s.obj", mirror);
 
 		//t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
 		//t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
