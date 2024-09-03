@@ -503,10 +503,12 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="res\shaders\World.shader" />
-    <None Include="res\shaders\Default.shader" />
+    <None Include="res\shaders\Normals.shader" />
     <None Include="res\shaders\Floor.shader" />
     <None Include="res\shaders\DrawTextureToFullScreen.shader" />
     <None Include="res\shaders\RayTrace.shader" />
+    <None Include="res\shaders\Default.shader" />
+    <None Include="res\shaders\Environment.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\renderer.h">

@@ -164,6 +164,8 @@
     <None Include="res\shaders\Basic.shader" />
     <None Include="res\shaders\BasicTexture.shader" />
     <None Include="res\shaders\Default.shader" />
+    <None Include="res\shaders\Environment.shader" />
+    <None Include="res\shaders\Normals.shader" />
     <None Include="res\shaders\Floor.shader" />
     <None Include="res\shaders\DrawTextureToFullScreen.shader" />
     <None Include="res\shaders\RayTrace.shader" />

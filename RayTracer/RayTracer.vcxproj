@@ -35,7 +35,7 @@
     <ClInclude Include="src\external\OBJ-Loader.h" />
     <ClInclude Include="src\external\stb_image\stb_image.h" />
     <ClInclude Include="src\image.h" />
-    <ClInclude Include="src\interaction.h" />
+    <ClInclude Include="src\hit_record.h" />
     <ClInclude Include="src\interval.h" />
     <ClInclude Include="src\material.h" />
     <ClInclude Include="src\math.h" />

@@ -18,21 +18,17 @@ void Camera::Update(float FOVdeg, float nearPlane, float farPlane, int inWidth, 
 {
 	vfov = FOVdeg;
 
-	// Initialize the view and projection matrices to the identity matrix
-	glm::mat4 view = glm::mat4(1.0f);
-	glm::mat4 projection = glm::mat4(1.0f);
-
 	width = inWidth;
 	height = inHeight;
 
 	// Set the view and projection matrices using the lookAt and perspective glm functions
-	view = glm::lookAt(position, position + orientation, up);
+	view_matrix = glm::lookAt(position, position + orientation, up);
 
 	//if (width >= height) projection = glm::perspective(glm::radians(FOVdeg), (float)(width / height), nearPlane, farPlane);
 	//else glm::perspective(glm::radians(FOVdeg), (float)(width / height), nearPlane, farPlane);
-	projection = glm::perspective(glm::radians(FOVdeg), (float)(width) / float(height), nearPlane, farPlane);
+	projection_matrix = glm::perspective(glm::radians(FOVdeg), (float)(width) / float(height), nearPlane, farPlane);
 
-	matrix = projection * view;
+	matrix = projection_matrix * view_matrix;
 }
 
 void Camera::Inputs(GLFWwindow* window)

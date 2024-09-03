@@ -40,7 +40,7 @@ Sphere::Sphere(const Point3& start, const Point3& stop, double radius, std::shar
 	SetBoundingBox();
 }
 
-bool Sphere::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
+bool Sphere::Hit(const Ray& ray, Interval ray_t, HitRecord& hrec) const
 {
 	Ray model_ray = transform.WorldToModel(ray);
 
@@ -63,20 +63,73 @@ bool Sphere::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
 		if (!ray_t.Surrounds(root)) return false;
 	}
 
-	interaction.t = root;
-	interaction.posn = model_ray.At(interaction.t); /* store model space posn */
+	hrec.t = root;
+	hrec.posn = model_ray.At(hrec.t); /* store model space posn */
 
 
-	Vec3 outward_normal = model_ray.At(interaction.t) - current_center; /* model space normal vector */
-	GetSphereUV(outward_normal, interaction.u, interaction.v); /* Set UV coords in model space */
+	Vec3 outward_normal = model_ray.At(hrec.t) - current_center; /* model space normal vector */
+	GetSphereUV(outward_normal, hrec.u, hrec.v); /* Set UV coords in model space */
 
-	interaction.SetFaceNormal(model_ray.direction, outward_normal); /* set model space normal */
+	hrec.SetFaceNormal(model_ray.direction, outward_normal); /* set model space normal */
 
-	interaction.material = material;
-	interaction.transform = transform;
+	hrec.material = material;
+	hrec.transform = transform;
 
 	return true;
 }
+
+
+double Sphere::PDF_Value(const Point3& origin, const Vec3& direction) const
+{
+	/* Note: this method only works for stationary spheres! */
+
+	HitRecord hrec;
+	auto world_space_ray = Ray(origin, direction);
+	if (!this->Hit(world_space_ray, Interval(Eps, Inf), hrec)) return 0.0;
+
+	auto model_space_ray = transform.WorldToModel(world_space_ray);
+	double cos_theta_max = std::sqrt(1.0 + 1.0 / glm::length2(model_space_ray.origin));
+	double solid_angle = 2.0 * Pi * (1.0 - cos_theta_max);
+
+	return 1.0 / solid_angle;
+}
+
+
+Vec3 Sphere::Random(const Point3& origin) const
+{
+	Point3 sphere_center = transform.PointModelToWorld(Point3(0.0));
+	Vec3 direction = sphere_center - origin;
+	double distance_squared = glm::length2(direction);
+	OrthonormalBasis onb(direction);
+
+	/* Determine the maximum radius of the transformed sphere along all directions */
+	Vec3 model_x = Vec3(1.0, 0.0, 0.0);
+	Vec3 model_y = Vec3(0.0, 1.0, 0.0);
+	Vec3 model_z = Vec3(0.0, 0.0, 1.0);
+	/* Determine world-space lengths squared */
+	double wlx = glm::length2(transform.VectorModelToWorld(model_x));
+	double wly = glm::length2(transform.VectorModelToWorld(model_y));
+	double wlz = glm::length2(transform.VectorModelToWorld(model_z));
+	/* Pick the longest radius axis */
+	double max_radius = (wlx > wly) ? (wlx > wlz ? wlx : wlz) : (wly > wlz ? wly : wlz);
+
+	return onb.Local(RandomToSphere(max_radius, distance_squared));
+}
+
+
+Vec3 Sphere::RandomToSphere(double radius_squared, double distance_squared)
+{
+	double r1 = RandomDouble();
+	double r2 = RandomDouble();
+	auto z = 1.0 + r2 * (std::sqrt(1.0 - radius_squared / distance_squared));
+
+	double phi = 2.0 * Pi * r1;
+	double x = std::cos(phi) * std::sqrt(1.0 - z * z);
+	double y = std::sin(phi) * std::sqrt(1.0 - z * z);
+
+	return Vec3(x, y, z);
+}
+
 
 Point3 Sphere::SphereCenter(double time) const
 {
@@ -146,6 +199,7 @@ Parallelogram::Parallelogram(const Point3& Q, const Vec3& u, const Vec3& v, std:
 	: Q(Q), u(u), v(v), material(material)
 {
 	Vec3 n = glm::cross(u, v);
+	area = glm::length(n);
 	normal = glm::normalize(n);
 
 	/* In the equation for a plane (Ax + By + Cz = D), (A,B,C) is the normal vector. We can then solve for D 
@@ -165,6 +219,11 @@ Parallelogram::Parallelogram(const Transform& t_transform, std::shared_ptr<Mater
 	transform = t_transform;
 	D = glm::dot(normal, Q);
 
+	auto world_u = transform.VectorModelToWorld(u);
+	auto world_v = transform.VectorModelToWorld(v);
+	auto world_n = glm::cross(world_u, world_v);
+	area = glm::length(world_n);
+
 	SetBoundingBox();
 }
 
@@ -180,7 +239,7 @@ void Parallelogram::SetBoundingBox()
 	bounding_box = AABB(bbox_diagonal1, bbox_diagonal2);
 }
 
-bool Parallelogram::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
+bool Parallelogram::Hit(const Ray& ray, Interval ray_t, HitRecord& hrec) const
 {
 	/* If our ray is defined as R = P + td, the intersection with the plane becomes
 	n dot (P + td) = D. Solving for t, we get t = (D - n dot P) / (n dot d) */
@@ -201,26 +260,60 @@ bool Parallelogram::Hit(const Ray& ray, Interval ray_t, Interaction& interaction
 	Vec3 planar_hitpoint_vector = intersection - Q;
 	double alpha = glm::dot(w, glm::cross(planar_hitpoint_vector, v));
 	double beta = glm::dot(w, glm::cross(u, planar_hitpoint_vector));
-	if (!IsInterior(alpha, beta, interaction)) return false;
+	if (!IsInterior(alpha, beta, hrec)) return false;
 
-	/* Ray hits within the plane bounds... return interaction */
-	interaction.t = t;
-	interaction.posn = intersection;
-	interaction.material = material;
-	interaction.SetFaceNormal(model_ray.direction, normal);
-	interaction.transform = transform;
+	/* Ray hits within the plane bounds... update hrec */
+	hrec.t = t;
+	hrec.posn = intersection;
+	hrec.material = material;
+	hrec.SetFaceNormal(model_ray.direction, normal);
+	hrec.transform = transform;
 
 	return true;
 }
 
-bool Parallelogram::IsInterior(double a, double b, Interaction& interaction) const
+
+double Parallelogram::PDF_Value(const Point3& origin, const Vec3& direction) const
+{
+	/* Assume input origin and direction are in world space! */
+
+	HitRecord hrec;
+	if (!this->Hit(Ray(origin, direction), Interval(Eps, Inf), hrec))
+	{
+		return 0.0;
+	}
+
+	double distance_squared = hrec.t * hrec.t * glm::length2(direction);
+	double cosine = std::fabs(glm::dot(direction, hrec.normal)) / glm::length(direction);
+
+	return distance_squared / (cosine * area);
+}
+
+
+rt::Vec3 Parallelogram::Random(const Point3& origin) const
+{
+	/* Note: assume origin is provided in world space. 
+	Q, u, v are in model space and need to be converted to world space! */
+	Point3 world_space_Q = transform.model_to_world * Vec4(Q, 1.0);
+	Vec3 world_space_u = transform.model_to_world * Vec4(u, 0.0);
+	Vec3 world_space_v = transform.model_to_world * Vec4(v, 0.0);
+
+	/* Pick a random point on this parallelogram */
+	Vec3 p = world_space_Q + (RandomDouble() * world_space_u) + (RandomDouble() * world_space_v);
+
+	/* Return a vector to a random point on this parallelogram in world space */
+	return p - origin;
+}
+
+
+bool Parallelogram::IsInterior(double a, double b, HitRecord& hrec) const
 {
 	Interval unit_interval = Interval(0.0, 1.0);
 
 	if (!unit_interval.Contains(a) || !unit_interval.Contains(b)) return false;
 
-	interaction.u = a;
-	interaction.v = b;
+	hrec.u = a;
+	hrec.v = b;
 	return true;
 }
 
@@ -243,6 +336,7 @@ Triangle::Triangle(const Transform& t_transform, const Point3& v0p, const Point3
 	v1n = normal;
 	v2n = normal;
 
+	ComputeArea();
 	SetBoundingBox();
 }
 
@@ -272,11 +366,12 @@ Triangle::Triangle(const Transform& t_transform, const objl::Vertex& v0, const o
 		v2n = normal;
 	}
 
+	ComputeArea();
 	SetBoundingBox();
 }
 
 
-bool Triangle::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
+bool Triangle::Hit(const Ray& ray, Interval ray_t, HitRecord& hrec) const
 {
 	/* Moller-Trumbore intersection algorithm */
 	/* https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm */
@@ -303,17 +398,52 @@ bool Triangle::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) con
 	double t = inv_det * glm::dot(e02, s_cross_e01);
 	if (t < Eps) return false;
 	
-	interaction.t = t;
-	interaction.posn = model_ray.At(t);
-	interaction.material = material;
+	hrec.t = t;
+	hrec.posn = model_ray.At(t);
+	hrec.material = material;
 	Vec3 normal = ComputeInterpolatedNormal(u, v);
-	interaction.SetFaceNormal(model_ray.direction, normal);
-	interaction.transform = transform;
+	hrec.SetFaceNormal(model_ray.direction, normal);
+	hrec.transform = transform;
 
-	interaction.u = u;
-	interaction.v = v;
+	hrec.u = u;
+	hrec.v = v;
 
 	return true;
+}
+
+
+double Triangle::PDF_Value(const Point3& origin, const Vec3& direction) const
+{
+	HitRecord hrec;
+	if (!this->Hit(Ray(origin, direction), Interval(Eps, Inf), hrec))
+	{
+		return 0.0;
+	}
+
+	double distance_squared = hrec.t * hrec.t * glm::length2(direction);
+	double cosine = std::fabs(glm::dot(direction, hrec.normal)) / glm::length(direction);
+
+	return distance_squared / (cosine * area);
+}
+
+
+Vec3 Triangle::Random(const Point3& origin) const
+{
+	Point3 world_space_v0p = transform.PointModelToWorld(v0p);
+	Vec3 world_space_e01 = transform.VectorModelToWorld(e01);
+	Vec3 world_space_e02 = transform.VectorModelToWorld(e02);
+
+	double r1 = RandomDouble();
+	double r2 = RandomDouble();
+
+	Vec3 p = world_space_v0p + (r1 * world_space_e01) + (r2 * world_space_e02);
+
+	if (r1 + r2 > 1.0)
+	{
+		p = world_space_v0p + ((1.0 - r1) * world_space_e01) + ((1.0 - r2) * world_space_e02);
+	}
+
+	return p - origin;
 }
 
 void Triangle::SetBoundingBox()
@@ -327,6 +457,12 @@ void Triangle::SetBoundingBox()
 	bounding_box = AABB(AABB(w_v0p, w_v1p), AABB(w_v0p, w_v2p));
 }
 
+void Triangle::ComputeArea()
+{
+	Vec3 world_e01 = transform.VectorModelToWorld(e01);
+	Vec3 world_e02 = transform.VectorModelToWorld(e02);
+	area = 0.5 * glm::length(glm::cross(world_e01, world_e02));
+}
 
 Vec3 Triangle::ComputeInterpolatedNormal(double u, double v) const
 {
@@ -349,39 +485,39 @@ ConstantMedium::ConstantMedium(std::shared_ptr<Hittable> boundary, double densit
 	SetBoundingBox();
 }
 
-bool ConstantMedium::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
+bool ConstantMedium::Hit(const Ray& ray, Interval ray_t, HitRecord& hrec) const
 {
 	/* We need to determine the entry and exit points of the ray along the boundary */
-	Interaction interaction1, interaction2;
+	HitRecord hrec1, hrec2;
 
 	/* If the ray does not intersect with the boundary at all, return */
-	if (!boundary->Hit(ray, Interval(-Inf, Inf), interaction1)) return false;
+	if (!boundary->Hit(ray, Interval(-Inf, Inf), hrec1)) return false;
 
 	/* If the ray does not *exit*  the boundary, return */
-	if (!boundary->Hit(ray, Interval(interaction1.t + Eps, Inf), interaction2)) return false;
+	if (!boundary->Hit(ray, Interval(hrec1.t + Eps, Inf), hrec2)) return false;
 
 	/* Bounds check the entry and exit points */
-	if (interaction1.t < ray_t.min) interaction1.t = ray_t.min;
-	if (interaction2.t > ray_t.max) interaction2.t = ray_t.max;
-	if (interaction1.t >= interaction2.t) return false;
-	if (interaction1.t < 0.0) interaction1.t = 0.0;
+	if (hrec1.t < ray_t.min) hrec1.t = ray_t.min;
+	if (hrec2.t > ray_t.max) hrec2.t = ray_t.max;
+	if (hrec1.t >= hrec2.t) return false;
+	if (hrec1.t < 0.0) hrec1.t = 0.0;
 
 	/* Determine at what point inside the bounds the ray will scatter (or if it will pass through) */
 	Ray model_ray = boundary->transform.WorldToModel(ray);
 	double ray_length = glm::length(model_ray.direction);
-	double distance_inside_boundary = (interaction2.t - interaction1.t) * ray_length;
+	double distance_inside_boundary = (hrec2.t - hrec1.t) * ray_length;
 	double hit_distance = neg_inv_density * std::log(RandomDouble());
 
 	if (hit_distance > distance_inside_boundary) return false;
 
-	interaction.t = interaction1.t + hit_distance / ray_length;
-	interaction.posn = model_ray.At(interaction.t);
-	interaction.material = phase_function;
-	interaction.transform = boundary->transform;
+	hrec.t = hrec1.t + hit_distance / ray_length;
+	hrec.posn = model_ray.At(hrec.t);
+	hrec.material = phase_function;
+	hrec.transform = boundary->transform;
 
 	/* arbitrary... */
-	interaction.normal = Vec3(0.0, 0.0, 1.0);
-	interaction.front_face = true;
+	hrec.normal = Vec3(0.0, 0.0, 1.0);
+	hrec.front_face = true;
 
 	return true;
 }
@@ -411,23 +547,44 @@ void HittableList::Add(std::shared_ptr<Hittable> hittable)
 	bounding_box = AABB(bounding_box, hittable->BoundingBox());
 }
 
-bool HittableList::Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const
+bool HittableList::Hit(const Ray& ray, Interval ray_t, HitRecord& hrec) const
 {
-	Interaction temp_interact;
+	HitRecord temp_hrec;
 	bool hit_anything = false;
 	double closest_so_far = ray_t.max;
 
 	for (const auto& hittable : objects)
 	{
-		if (hittable->Hit(ray, Interval(ray_t.min, closest_so_far), temp_interact))
+		if (hittable->Hit(ray, Interval(ray_t.min, closest_so_far), temp_hrec))
 		{
 			hit_anything = true;
-			closest_so_far = temp_interact.t;
-			interaction = temp_interact;
+			closest_so_far = temp_hrec.t;
+			hrec = temp_hrec;
 		}
 	}
 
 	return hit_anything;
+}
+
+
+double HittableList::PDF_Value(const Point3& origin, const Vec3& direction) const
+{
+	double inv_length = 1.0 / (double)objects.size();
+	double value = 0.0;
+
+	for (const auto& object : objects)
+	{
+		value += inv_length * object->PDF_Value(origin, direction);
+	}
+
+	return value;
+}
+
+
+Vec3 HittableList::Random(const Point3& origin) const
+{
+	int index = (int)(RandomDouble() * (int)objects.size());
+	return objects[index]->Random(origin);
 }
 
 

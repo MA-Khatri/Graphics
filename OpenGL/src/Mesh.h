@@ -31,4 +31,6 @@ Mesh CreateCube();
 
 Mesh CreateUVSphere(unsigned int div = 32);
 
+Mesh CreateEnvironmentMapTriangle();
+
 Mesh LoadOBJ(const std::string& filepath);

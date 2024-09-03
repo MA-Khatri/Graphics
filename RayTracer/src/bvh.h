@@ -60,7 +60,7 @@ public:
 		}
 	}
 
-	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override
+	bool Hit(const Ray& ray, Interval ray_t, HitRecord& interaction) const override
 	{
 		if (!bounding_box.Hit(ray, ray_t)) return false;
 

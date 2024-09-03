@@ -171,8 +171,8 @@ unsigned int Shader::CreateShader(const std::string& vertexShader, const std::st
 
 	// Detach and clean up the intermediate programs
 	// Might want to keep the shaders for debugging and profiling
-	//glDetachShader(program, vs);
-	//glDetachShader(program, fs);
+	//GLCall(glDetachShader(program, vs));
+	//GLCall(glDetachShader(program, fs));
 	GLCall(glDeleteShader(vs));
 	GLCall(glDeleteShader(fs));
 
