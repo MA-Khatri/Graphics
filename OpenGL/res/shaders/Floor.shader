@@ -13,11 +13,11 @@ out vec2 v_TexCoord;
 
 void main()
 {
-	v_Position = a_Position.xyz;
-	v_Normal = a_Normal;
-	v_TexCoord = a_Tex;
+    v_Position = a_Position.xyz;
+    v_Normal = a_Normal;
+    v_TexCoord = a_Tex;
 
-	gl_Position = u_MVP * a_Position;
+    gl_Position = u_MVP * a_Position;
 };
 
 

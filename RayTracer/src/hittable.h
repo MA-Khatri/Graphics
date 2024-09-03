@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hit_record.h"
+#include "interaction.h"
 #include "aabb.h"
 #include "texture.h"
 #include "transform.h"
@@ -15,7 +15,7 @@ public:
 	virtual ~Hittable() = default;
 
 	/* Handle ray-object interaction */
-	virtual bool Hit(const Ray& ray, Interval ray_t, HitRecord& hrec) const = 0;
+	virtual bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const = 0;
 
 	/* */
 	virtual double PDF_Value(const Point3& origin, const Vec3& direction) const
@@ -31,21 +31,6 @@ public:
 
 	/* Return this object's axis aligned bounding box in world space coordinates */
 	inline AABB BoundingBox() const { return bounding_box; }
-
-
-	/* Functions for importance sampling of the hittable (useful for emissive objects) */
-
-	/* Determine the value of the PDF for a given origin and direction in world space */
-	virtual double PDF_Value(const Point3& origin, const Vec3& direction) const
-	{
-		return 0.0;
-	}
-
-	/* Create a random vector from the provided world space origin to a point on the surface */
-	virtual Vec3 Random(const Point3& origin) const
-	{
-		return Vec3(0.0, 0.0, 1.0);
-	}
 
 public:
 	/* Store the transformation matrices for this object */
@@ -73,19 +58,13 @@ public:
 	/* For motion blur spheres, provide a start and stopping position and radius */
 	Sphere(const Point3& start, const Point3& stop, double radius, std::shared_ptr<Material> material);
 
-	bool Hit(const Ray& ray, Interval ray_t, HitRecord& hrec) const override;
-
-	double PDF_Value(const Point3& origin, const Vec3& direction) const override;
-
-	Vec3 Random(const Point3& origin) const override;
+	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
 
 private:
 	std::shared_ptr<Material> material;
 	Vec3 motion_vector;
 
 private:
-	static Vec3 RandomToSphere(double radius_squared, double distance_squared);
-
 	/* Return the center of the sphere (in model space) at time t */
 	Point3 SphereCenter(double time) const;
 
@@ -106,11 +85,7 @@ public:
 	/* Construct a unit quad centered at the origin with normal along +z transformed by the given transform */
 	Parallelogram(const Transform& t_transform, std::shared_ptr<Material> material);
 
-	bool Hit(const Ray& ray, Interval ray_t, HitRecord& hrec) const override;
-
-	double PDF_Value(const Point3& origin, const Vec3& direction) const override;
-	Vec3 Random(const Point3& origin) const override;
-
+	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
 
 private:
 	Point3 Q;
@@ -118,15 +93,14 @@ private:
 	std::shared_ptr<Material> material;
 	Vec3 normal;
 	double D;
-	double area;
 
 private:
 	/* Given the hit point in plane coordinates, return false if it is outside the primitive.
 	Otherwise, set the UV coordinates of the hit and return true. */
-	bool IsInterior(double a, double b, HitRecord& hrec) const;
+	virtual bool IsInterior(double a, double b, Interaction& interaction) const; /* why virtual? */
 
 	/* Compute the bounding box encapsulating all four vertices */
-	void SetBoundingBox();
+	virtual void SetBoundingBox(); /* why virtual? */
 };
 
 
@@ -143,11 +117,7 @@ public:
 	/* Construct a triangle using the vertices provided by objl */
 	Triangle(const Transform& t_transform, const objl::Vertex& v0, const objl::Vertex& v1, const objl::Vertex& v2, std::shared_ptr<Material> material);
 
-	bool Hit(const Ray& ray, Interval ray_t, HitRecord& hrec) const override;
-
-	double PDF_Value(const Point3& origin, const Vec3& direction) const override;
-
-	Vec3 Random(const Point3& origin) const override;
+	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
 
 private:
 	Point3 v0p; /* Vertex 0 position */
@@ -159,11 +129,9 @@ private:
 	Vec3 e01; /* Vector from v0p to v1p */
 	Vec3 e02; /* Vector from v0p to v2p */
 	std::shared_ptr<Material> material;
-	double area; /* world space area */
 
 private:
 	void SetBoundingBox();
-	void ComputeArea();
 
 	/* Computes the interpolated normal vector for the triangle using the provided barycentric coordinates */
 	Vec3 ComputeInterpolatedNormal(double u, double v) const;
@@ -177,7 +145,7 @@ public:
 	ConstantMedium(std::shared_ptr<Hittable> boundary, double density, std::shared_ptr<Texture> texture);
 	ConstantMedium(std::shared_ptr<Hittable> boundary, double density, const Color& albedo);
 
-	bool Hit(const Ray& ray, Interval ray_t, HitRecord& hrec) const override;
+	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
 
 private:
 	std::shared_ptr<Hittable> boundary;
@@ -203,10 +171,7 @@ public:
 
 	void Add(std::shared_ptr<Hittable> hittable);
 
-	bool Hit(const Ray& ray, Interval ray_t, HitRecord& hrec) const override;
-
-	double PDF_Value(const Point3& origin, const Vec3& direction) const override;
-	Vec3 Random(const Point3& origin) const override;
+	bool Hit(const Ray& ray, Interval ray_t, Interaction& interaction) const override;
 };
 
 

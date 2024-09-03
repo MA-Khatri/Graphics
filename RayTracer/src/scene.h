@@ -9,8 +9,7 @@ namespace rt
 class Scene
 {
 public:
-	Scene(HittableList& world, HittableList& lights, Texture* sky) 
-		: world(world), lights(lights), sky(sky) {}
+	Scene(HittableList& world, Texture* sky) : world(world), sky(sky) {}
 
 	Color SampleSky(const Ray& ray) const
 	{
@@ -21,9 +20,10 @@ public:
 		return sky->Value(u, v, ray.origin); /* Note the ray.origin is not used for most sky textures... Maybe later? */
 	}
 
-public:
+	inline HittableList World() const { return world; }
+
+private:
 	HittableList world;
-	HittableList lights;
 	Texture* sky;
 };
 

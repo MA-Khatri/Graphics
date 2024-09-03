@@ -6,9 +6,9 @@ namespace rt
 class Interval
 {
 public:
-	Interval() : min(+Inf), max(-Inf) {} /* Default interval is empty */
+	Interval() : min(+Inf), max(-Inf) {}; /* Default interval is empty */
 
-	Interval(double min, double max) : min(min), max(max) {}
+	Interval(double min, double max) : min(min), max(max) {};
 
 	Interval(const Interval& a, const Interval& b)
 	{
@@ -17,9 +17,9 @@ public:
 		max = a.max >= b.max ? a.max : b.max;
 	}
 
-	double Size() const { return max - min; }
-	bool Contains(double x) const { return min <= x && x <= max; }
-	bool Surrounds(double x) const { return min < x && x < max; }
+	double Size() const { return max - min; };
+	bool Contains(double x) const { return min <= x && x <= max; };
+	bool Surrounds(double x) const { return min < x && x < max; };
 	
 	double Clamp(double x) const 
 	{

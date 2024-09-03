@@ -1,15 +1,13 @@
 #pragma once
 
-#include <algorithm>
-#include <execution>
-
 #include "common.h"
 #include "hittable.h"
 #include "material.h"
 #include "cameras.h"
 #include "scene.h"
-#include "pdf.h"
 
+#include <algorithm>
+#include <execution>
 
 namespace rt 
 {

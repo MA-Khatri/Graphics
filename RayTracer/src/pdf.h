@@ -1,10 +1,9 @@
 #pragma once
 
-#include <vector>
-
 #include "common.h"
 #include "hittable.h"
 
+#include <vector>
 
 namespace rt
 {
@@ -61,7 +60,7 @@ private:
 };
 
 
-class HittablePDF : public PDF 
+class HittablePDF : public PDF
 {
 public:
 	HittablePDF(const Hittable& objects, const Point3& origin)
@@ -88,45 +87,47 @@ class MixturePDF : public PDF
 {
 public:
 	/* Generate a mixture PDF from two PDFs */
-	MixturePDF(std::shared_ptr<PDF> pdf0, std::shared_ptr<PDF> pdf1)
+	MixturePDF(std::shared_ptr<PDF> p0, std::shared_ptr<PDF> p1)
 	{
-		pdfs.push_back(pdf0);
-		pdfs.push_back(pdf1);
+		p.clear();
+		p.push_back(p0);
+		p.push_back(p1);
 
-		length = (int)pdfs.size();
-		inv_length = 1.0 / (double)pdfs.size();
+		length = p.size();
+		inv_length = 1.0 / (double)p.size();
 	}
 
 	/* Generate a mixture PDF from an arbitrary length vector of PDFs */
-	MixturePDF(std::vector<std::shared_ptr<PDF>> pdfs) 
-		: pdfs(pdfs) 
+	MixturePDF(std::vector<std::shared_ptr<PDF>> p) 
+		: p(p) 
 	{
-		length = (int)pdfs.size();
-		inv_length = 1.0 / (double)pdfs.size();
+		length = p.size();
+		inv_length = 1.0 / (double)p.size();
 	}
 
 
 	double Value(const Vec3& direction) const override
 	{
 		double value = 0.0;
-		for (const auto& pdf : pdfs)
+		for (const auto& p_i : p)
 		{
-			value += inv_length * pdf->Value(direction);
+			value += inv_length * p_i->Value(direction);
 		}
 		return value;
 	}
 
 	Vec3 Generate() const override
 	{
-		int index = (int)(RandomDouble() * length);
-		return pdfs[index]->Generate();
+		/* Generate a random int as in index into the PDFs */
+		int index = (int)(length * RandomDouble()); /* For some reason, random int is not working?? :( */
+		return p[index]->Generate();
 	}
 
 private:
-	std::vector<std::shared_ptr<PDF>> pdfs;
+	std::vector<std::shared_ptr<PDF>> p;
 	int length;
 	double inv_length;
 };
 
 
-} /* namespace rt */
+}

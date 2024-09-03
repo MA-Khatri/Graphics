@@ -4,7 +4,7 @@
 
 #include "cameras.h"
 #include "renderer.h"
-#include "hit_record.h"
+#include "interaction.h"
 #include "hittable.h"
 #include "material.h"
 #include "bvh.h"
@@ -38,7 +38,6 @@ enum Scenes
 Scene GenerateScene(Scenes scene)
 {
 	HittableList world;
-	HittableList lights;
 	Texture* sky = new SolidColor(0.7, 0.8, 1.0);
 
 	switch (scene)
@@ -46,8 +45,6 @@ Scene GenerateScene(Scenes scene)
 
 	case BasicMaterials:
 	{
-		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
-
 		/* Ground plane with checker texture */
 		auto checker_texture = std::make_shared<CheckerTexture>(2.5, Color(0.2, 0.3, 0.1), Color(0.9, 0.9, 0.9));
 		Transform tg;
@@ -97,6 +94,8 @@ Scene GenerateScene(Scenes scene)
 
 		Transform t6;
 		world.Add(std::make_shared<Triangle>(t6, Point3(0.0, -1.0, 1.0), Point3(0.0, 1.0, 1.0), Point3(1.0, 0.0, 1.0), material4));
+
+		sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
 
 		break;
 	}
@@ -273,9 +272,8 @@ Scene GenerateScene(Scenes scene)
 
 	case CornellBox:
 	{
-		/* Background */
+		/* Black background */
 		sky = new SolidColor(0.0, 0.0, 0.0);
-		//sky = new ImageTexture("overcast_soil_puresky_4k.hdr");
 
 		/* Materials */
 		auto red     = std::make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
@@ -284,84 +282,55 @@ Scene GenerateScene(Scenes scene)
 		auto light   = std::make_shared<DiffuseLight>(Color(15.0, 15.0, 15.0));
 		auto glass   = std::make_shared<Dielectric>(1.5);
 		auto bubble  = std::make_shared<Dielectric>(0.666666);
-		auto mirror  = std::make_shared<Metal>(Color(0.73), 0.0);
-		auto checker = std::make_shared<Lambertian>(std::make_shared<CheckerTexture>(0.1, Color(0.1, 0.1, 0.4), Color(0.73, 0.73, 0.73)));
+		auto checker = std::make_shared<Lambertian>(std::make_shared<CheckerTexture>(1.0, Color(0.1, 0.1, 0.4), Color(0.73, 0.73, 0.73)));
 
-		/* Cornell box */
-		Transform left_t;
-		left_t.Translate(0.0, -5.0, 5.0);
-		left_t.Rotate(-90.0, Vec3(1.0, 0.0, 0.0));
-		left_t.Scale(10.0);
-		world.Add(std::make_shared<Parallelogram>(left_t, green));
-
-		Transform right_t;
-		right_t.Translate(0.0, 5.0, 5.0);
-		right_t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
-		right_t.Scale(10.0);
-		world.Add(std::make_shared<Parallelogram>(right_t, red));
-
-		Transform bottom_t;
-		bottom_t.Scale(10.0);
-		world.Add(std::make_shared<Parallelogram>(bottom_t, white));
-
-		Transform top_t;
-		top_t.Translate(0.0, 0.0, 10.0);
-		//top_t.Rotate(180.0, Vec3(1.0, 0.0, 0.0)); /* we should be flipping it but it causes problems? */
-		top_t.Scale(10.0);
-		world.Add(std::make_shared<Parallelogram>(top_t, white));
-
-		Transform back_t;
-		back_t.Translate(-5.0, 0.0, 5.0);
-		back_t.Rotate(90.0, Vec3(0.0, 1.0, 0.0));
-		back_t.Scale(10.0);
-		world.Add(std::make_shared<Parallelogram>(back_t, checker));
+		/* Cornell box with bounds [-5:5, -5:5, 0:10] */
+		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 0.0, 10.0), green)); /* left */
+		world.Add(std::make_shared<Parallelogram>(Point3(5.0, 5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 0.0, 10.0), red)); /* right */
+		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 0.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 10.0, 0.0), white)); /* bottom */
+		world.Add(std::make_shared<Parallelogram>(Point3(5.0, -5.0, 10.0), Vec3(-10.0, 0.0, 0.0), Vec3(0.0, 10.0, 0.0), white)); /* top */
+		world.Add(std::make_shared<Parallelogram>(Point3(-5.0, -5.0, 0.0), Vec3(0.0, 10.0, 0.0), Vec3(0.0, 0.0, 10.0), checker)); /* back */
 		
 		Transform light_t;
 		light_t.Translate(0.0, 0.0, 10.0 - Eps);
 		light_t.Rotate(180.0, Vec3(1.0, 0.0, 0.0));
 		light_t.Scale(3.0);
-		auto light_p = std::make_shared<Parallelogram>(light_t, light);
-		lights.Add(light_p);
-		world.Add(light_p);
+		world.Add(std::make_shared<Parallelogram>(light_t, light));
 
 		/* Cornell box contents */
+		//auto material2 = std::make_shared<Dielectric>(1.5);
+		//Transform t2;
+		//t2.Translate(0.0, 0.0, 4.0);
+		//t2.Scale(3.5);
+		//world.Add(std::make_shared<Sphere>(t2, material2));
 
-		//Transform box_t;
-		//box_t.Translate(-2.0, -2.0, 3.0);
-		//box_t.Rotate(20.0, Vec3(0.0, 0.0, 1.0));
-		//box_t.Scale(2.5, 2.5, 6.0);
-		//auto box = std::make_shared<HittableList>(Box(box_t, mirror));
-		//world.Add(box);
-		//lights.Add(box);
+		//auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
+		//Transform t3;
+		//t3.Translate(-2.0, 0.0, 4.0);
+		//t3.Rotate(35.0, Vec3(0.0, 1.0, 1.0));
+		//t3.Scale(4.0, 2.0, 4.0);
+		//world.Add(std::make_shared<Sphere>(t3, material3));
 
-		//Transform sphere_t;
-		//sphere_t.Translate(1.5, 1.5, 2.0);
-		//sphere_t.Scale(2.0);
-		//auto sphere = std::make_shared<Sphere>(sphere_t, glass);
-		//world.Add(sphere);
-		//lights.Add(sphere);
-
-		Transform sphere_t;
-		sphere_t.Translate(0.0, 0.0, 5.0);
-		sphere_t.Scale(2.0);
-		auto sphere = std::make_shared<Sphere>(sphere_t, glass);
-		world.Add(sphere);
-		lights.Add(sphere);
+		Transform box_t;
+		box_t.Translate(0.0, 0.0, 3.0);
+		box_t.Rotate(30.0, Vec3(0.0, 1.0, 1.0));
+		box_t.Scale(3.0);
+		world.Add(std::make_shared<HittableList>(Box(box_t, green)));
 
 		//Transform t;
-		//t.Rotate(90.0, Vec3(0.0, 0.0, 1.0));
-		//t.Scale(6.0);
-		//auto mesh = std::make_shared<BVH_Node>(LoadMesh(t, "stanford-bunny-s.obj", glass));
-		//world.Add(mesh);
-		//lights.Add(mesh);
+		//t.Translate(0.0, 0.5, 2.0);
+		//t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
+		//t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
+		//t.Scale(20.0);
+		//auto bunny = LoadMesh(t, "stanford-bunny.obj", bubble);
+		//world.Add(std::make_shared<BVH_Node>(bunny));
 
 		//Transform t;
 		//t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
 		//t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
 		//t.Scale(5.0);
-		//auto mesh = std::make_shared<BVH_Node>(LoadMesh(t, "dragon.obj", glass));
-		//world.Add(mesh);
-		//lights.Add(mesh);
+		//auto mesh = LoadMesh(t, "dragon.obj", glass);
+		//world.Add(std::make_shared<BVH_Node>(mesh));
 
 		break;
 	}
@@ -375,11 +344,8 @@ Scene GenerateScene(Scenes scene)
 		auto light_material = std::make_shared<DiffuseLight>(Color(7.0));
 		Transform light_t;
 		light_t.Translate(0.0, 0.0, 15.0);
-		light_t.Rotate(180.0, Vec3(1.0, 0.0, 0.0));
 		light_t.Scale(10.0);
-		auto light = std::make_shared<Parallelogram>(light_t, light_material);
-		world.Add(light);
-		lights.Add(light);
+		world.Add(std::make_shared<Parallelogram>(light_t, light_material));
 
 		/* Fog throughout the scene */
 		auto white_material = std::make_shared<Lambertian>(Color(0.73));
@@ -452,9 +418,7 @@ Scene GenerateScene(Scenes scene)
 		Transform glass_t;
 		glass_t.Translate(4.0, -2.0, 3.5);
 		glass_t.Scale(1.75);
-		auto glass_ball = std::make_shared<Sphere>(glass_t, glass_material);
-		world.Add(glass_ball);
-		lights.Add(glass_ball);
+		world.Add(std::make_shared<Sphere>(glass_t, glass_material));
 
 		/* Metal spheroid */
 		auto smooth_metal_material = std::make_shared<Metal>(Color(0.7, 0.5, 0.4), 0.0);
@@ -492,7 +456,6 @@ Scene GenerateScene(Scenes scene)
 		auto red = std::make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
 		auto smooth_metal = std::make_shared<Metal>(Color(0.7, 0.5, 0.4), 0.0);
 		auto rough_metal = std::make_shared<Metal>(Color(0.7, 0.5, 0.4), 0.1);
-		auto mirror = std::make_shared<Metal>(Color(0.73), 0.0);
 		auto glass = std::make_shared<Dielectric>(1.5);
 
 		/* Ground plane */
@@ -503,18 +466,18 @@ Scene GenerateScene(Scenes scene)
 		/* Mesh */
 		Transform t;
 
-		t.Rotate(90.0, Vec3(0.0, 0.0, 1.0));
-		t.Scale(6.0);
-		auto mesh = LoadMesh(t, "stanford-bunny-s.obj", mirror);
-
-		//t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
-		//t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
+		//t.Rotate(90.0, Vec3(0.0, 0.0, 1.0));
 		//t.Scale(6.0);
-		//auto mesh = LoadMesh(t, "dragon.obj", glass);
+		//auto mesh = LoadMesh(t, "stanford-bunny-s.obj", glass);
+
+		t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
+		t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
+		t.Scale(6.0);
+		auto mesh = LoadMesh(t, "dragon.obj", glass);
 
 		//t.Rotate(180.0, Vec3(0.0, 0.0, 1.0));
 		//t.Scale(6.0);
-		//auto mesh = LoadMesh(t, "low-poly-bunny.obj", glass);
+		//auto mesh = LoadMesh(t, "low-poly-bunny.obj", red);
 		
 		world.Add(std::make_shared<BVH_Node>(mesh));
 
@@ -531,7 +494,7 @@ Scene GenerateScene(Scenes scene)
 	/* Construct BVH */
 	world = HittableList(std::make_shared<BVH_Node>(world));
 
-	return Scene(world, lights, sky);
+	return Scene(world, sky);
 }
 
 } /* namespace rt */
