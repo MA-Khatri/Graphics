@@ -33,8 +33,12 @@ public:
 	glm::vec3 orientation;
 	/* The up vector(think orientation of the viewport) */
 	glm::vec3 up;
-	/* The camera matrix(initialized to identity matrix) */
+	/* The camera matrix (initialized to identity matrix) -- will store the combined view-projection matrix */
 	glm::mat4 matrix = glm::mat4(1.0f);
+	/* The matrix representing the camera's position and orientation */
+	glm::mat4 view_matrix = glm::mat4(1.0f);
+	/* The matrix representing the projection of the camera */
+	glm::mat4 projection_matrix = glm::mat4(1.0f);
 	/* The vertical field of view (in degrees) */
 	float vfov;
 

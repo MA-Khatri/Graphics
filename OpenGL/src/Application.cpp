@@ -43,7 +43,7 @@ unsigned int viewport_width = 912;
 unsigned int viewport_height = 765;
 
 /* Framebuffer scale allows rendering viewport at higher/lower resolution */
-float framebuffer_scale = 2.0f; // set to 2 is expensive but it looks better...
+float framebuffer_scale = 2.0f; // By setting to 2, we are effectively forcing 4x MSAA
 
 /* Vertical field of view */
 float yfov = 45.0f;
@@ -100,22 +100,28 @@ int main(void)
 	/* ============================= */
 	/* ====== OpenGL SETTINGS ====== */
 	/* ============================= */
+	/* Blending */
 	GLCall(glEnable(GL_BLEND));
 	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 	
-	//GLCall(glEnable(GL_CULL_FACE));
-	//GLCall(glCullFace(GL_FRONT));
+	/* Back face culling */
 	//GLCall(glFrontFace(GL_CCW));
+	//GLCall(glCullFace(GL_FRONT));
+	//GLCall(glEnable(GL_CULL_FACE));
 
+	/* Depth testing */
 	GLCall(glEnable(GL_DEPTH_TEST));
 	GLCall(glDepthFunc(GL_LESS));
 
+	/* Cube map bilinear filtering on edges */
+	GLCall(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
 
 	/* ========================= */
 	/* ====== SCENE SETUP ====== */
 	/* ========================= */
 
 	/* ====== Shaders ====== */
+	Shader* shader_environment = new Shader("res/shaders/Environment.shader");
 	Shader* shader_world = new Shader("res/shaders/World.shader");
 	//Shader* shader_basic = new Shader("res/shaders/Basic.shader");
 	//Shader* shader_light = new Shader("res/shaders/Light.shader");
@@ -129,13 +135,23 @@ int main(void)
 		new Texture("res/textures/planks_specular.png", "Specular", GL_RED, GL_UNSIGNED_BYTE)
 	};
 
+	std::vector<Texture*> environmentTextures = {
+		new Texture("res/textures/city_park_cube_map/", 2048)
+	};
+
 	std::vector<unsigned char> image(4*4*3); /* Initialize to smallest possible empty texture */
 	Texture* ray_traced_texture = new Texture(&image[0], 4, 4, "Diffuse", GL_RGB, GL_UNSIGNED_BYTE);
 
 	/* ====== Objects ====== */
+	Object environmentTriangle = Object(CreateEnvironmentMapTriangle(), environmentTextures);
 	Object groundGrid = Object(CreateGroundPlaneGrid(101, 101, 50.0, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)));
 	Object plane = Object(CreatePlane(), floorTextures);
 
+
+	Object bunny = Object(LoadOBJ("res/meshes/bunny.obj"));
+	bunny.Translate(0.0, -0.5, 0.0);
+	bunny.Rotate(glm::vec3(0.0, 1.0, 0.0), 225.0);
+	bunny.Scale(0.5);
 
 	/* ====== Light ====== */
 	Light light = Light(glm::vec3(0.0f, 0.0f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f));
@@ -175,7 +191,10 @@ int main(void)
 	/* ========================== */
 	/* ====== Framebuffers ====== */
 	/* ========================== */
-	Framebuffer rasterized_framebuffer = Framebuffer(viewport_width, viewport_height, framebuffer_scale);
+	Framebuffer rasterized_framebuffer = Framebuffer(viewport_width, viewport_height, framebuffer_scale); // primary rendering frame buffer
+
+	Framebuffer texture_framebuffer = Framebuffer(viewport_width, viewport_height, framebuffer_scale); // render to texture...
+	Texture* rendered_texture = new Texture(texture_framebuffer.GetTexture());
 
 	/* ========================= */
 	/* ====== ImGui SETUP ====== */
@@ -239,25 +258,44 @@ int main(void)
 				viewport_height = (unsigned int)wsize.y;
 
 				rasterized_framebuffer.UpdateFramebufferSizeAndScale(viewport_width, viewport_height, framebuffer_scale);
+				texture_framebuffer.UpdateFramebufferSizeAndScale(viewport_width, viewport_height, framebuffer_scale);
 			}
 
 			/* Draw scene... */
 			//if (ImGui::IsWindowFocused())
 			{
+				/* Render to the texture framebuffer first... */
+				texture_framebuffer.Bind();
+				{
+					GLCall(glClearColor(0.1f, 0.1f, 0.1f, 1.0f));
+					GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+					bunny.Draw();
+				}
+				texture_framebuffer.Unbind();
+
+
 				/* Bind our frame buffer so that we render to it instead of the default viewport */
 				rasterized_framebuffer.Bind();
+				{
+					GLCall(glClearColor(0.075f, 0.133f, 0.173f, 1.0f));
+					GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-				GLCall(glClearColor(0.075f, 0.133f, 0.173f, 1.0f));
-				GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+					groundGrid.Draw(camera, *shader_world);
 
-				groundGrid.Draw(camera, *shader_world);
+					shader_floor->Bind();
+					shader_floor->SetUniform3f("u_LightPosition", light.position.x, light.position.y, light.position.z);
+					shader_floor->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
 
-				shader_floor->Bind();
-				shader_floor->SetUniform3f("u_LightPosition", light.position.x, light.position.y, light.position.z);
-				shader_floor->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
+					plane.UpdateTextures(std::vector<Texture*>{rendered_texture});
+					plane.Draw(camera, *shader_floor);
+					//bunny.Draw(camera);
+					//bunny.Draw();
 
-				plane.Draw(camera, *shader_floor);
-
+					/* Draw environment map */
+					GLCall(glDepthMask(GL_FALSE));
+					environmentTriangle.Draw(camera, *shader_environment, 1);
+					GLCall(glDepthMask(GL_TRUE));
+				}
 				/* Unbind the frame buffer so that ImGui can do its thing */
 				rasterized_framebuffer.Unbind();
 			}

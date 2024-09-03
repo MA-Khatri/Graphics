@@ -350,6 +350,42 @@ Mesh CreateUVSphere(unsigned int div)
 	return Mesh{ va, vb, ib, GL_TRIANGLES };
 }
 
+Mesh CreateEnvironmentMapTriangle()
+{
+	float z = 0.99999f;
+
+	std::vector<float> vertices = {
+	//    positions,           normals,      uv tex coord
+		-1.0f, -1.0f, z,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f, // 0
+		 3.0f, -1.0f, z,  0.0f, 0.0f, 1.0f,  2.0f, 0.0f, // 1
+		-1.0f,  3.0f, z,  0.0f, 0.0f, 1.0f,  0.0f, 2.0f  // 2
+	};
+
+	std::vector<unsigned int> indices = {
+		0, 1, 2,
+	};
+
+	VertexArray* va = new VertexArray();
+	va->Bind();
+
+	VertexBuffer* vb = new VertexBuffer(&vertices[0], vertices.size() * sizeof(float));
+	vb->Bind();
+	VertexBufferLayout layout;
+	layout.Push<float>(3); // xyz posn
+	layout.Push<float>(3); // xyz normal
+	layout.Push<float>(2); // uv tex coord
+	va->AddBuffer(*vb, layout);
+
+	IndexBuffer* ib = new IndexBuffer(&indices[0], indices.size());
+	ib->Bind();
+
+	va->Unbind();
+	vb->Unbind();
+	ib->Unbind();
+
+	return Mesh{ va, vb, ib, GL_TRIANGLES };
+}
+
 Mesh LoadOBJ(const std::string& filepath)
 { /* https://github.com/Bly7/OBJ-Loader */
 	objl::Loader Loader;

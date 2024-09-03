@@ -27,6 +27,50 @@ Texture::Texture(unsigned char* bytes, int width, int height, const std::string 
 	//	free(m_LocalBuffer);
 }
 
+Texture::Texture(const std::string& cube_map_folder_path, int width)
+	: m_RendererID(0), m_TextureType("CubeMap"), m_Width(width), m_Height(width), m_PixelFormat(GL_RGBA), m_BPP(0), m_LocalBuffer(nullptr)
+{
+	GLCall(glGenTextures(1, &m_RendererID));
+	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID));
+
+	m_FilePath = cube_map_folder_path + "px.png";
+	LoadImage();
+	GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+		0,					// Mipmap level 0
+		GL_RGBA,			// Internal format
+		m_Width,			// Image width
+		m_Height,			// Image height
+		0,					// Border (must be 0)
+		GL_RGBA,			// Format
+		GL_UNSIGNED_BYTE,	// Data type
+		m_LocalBuffer));	// Pixel array data
+
+	m_FilePath = cube_map_folder_path + "ny.png"; /* NOTE: y-axis is flipped. Not sure why... */
+	LoadImage();
+	GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
+
+	m_FilePath = cube_map_folder_path + "pz.png";
+	LoadImage();
+	GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
+
+	m_FilePath = cube_map_folder_path + "nx.png";
+	LoadImage();
+	GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
+
+	m_FilePath = cube_map_folder_path + "py.png";
+	LoadImage();
+	GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
+
+	m_FilePath = cube_map_folder_path + "nz.png";
+	LoadImage();
+	GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
+
+
+	GLCall(glGenerateMipmap(GL_TEXTURE_CUBE_MAP));
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
+	GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+}
+
 Texture::~Texture()
 {
 	GLCall(glDeleteTextures(1, &m_RendererID));
@@ -63,10 +107,10 @@ void Texture::Update(unsigned char* bytes, int width, int height)
 	GLCall(glBindTexture(GL_TEXTURE_2D, 0)); // unbind
 }
 
-void Texture::Bind(unsigned int slot) const
+void Texture::Bind(unsigned int slot, GLenum texture_mode /* = GL_TEXTURE_2D */) const
 {
 	GLCall(glActiveTexture(GL_TEXTURE0 + slot)); // slots are unsigned ints. They are also ordered numerically. 32 total.
-	GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
+	GLCall(glBindTexture(texture_mode, m_RendererID));
 }
 
 void Texture::Unbind() const
@@ -88,8 +132,8 @@ void Texture::CreateTexture(GLenum min_filter, GLenum mag_filter, GLenum wrap_s,
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_RendererID));
 
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mag_filter));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_t));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s));
 	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t));
 
 	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, m_PixelFormat, m_PixelType, m_LocalBuffer));
