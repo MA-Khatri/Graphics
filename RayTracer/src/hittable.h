@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+
 #include "hit_record.h"
 #include "aabb.h"
 #include "texture.h"

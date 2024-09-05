@@ -629,6 +629,13 @@ std::shared_ptr<rt::HittableList> Box(const Transform& t_transform, std::shared_
 }
 
 /* === Triangle Meshes === */
+std::string AbsPath(std::string rel_path)
+{
+	std::filesystem::path cur = __FILE__;
+	std::string absPath = (cur.parent_path().parent_path() / rel_path).generic_string();
+	return absPath;
+}
+
 HittableList LoadMesh(const Transform& t_transform, const std::string& filepath, std::shared_ptr<Material> material)
 {
 	/* Store mesh as a hittable list */
@@ -636,7 +643,7 @@ HittableList LoadMesh(const Transform& t_transform, const std::string& filepath,
 
 	/* Load mesh triangle vertices from file */
 	objl::Loader loader;
-	bool loadout = loader.LoadFile("../RayTracer/res/meshes/" + filepath);
+	bool loadout = loader.LoadFile(AbsPath("../RayTracer/res/meshes/" + filepath));
 	if (!loadout)
 	{
 		std::cout << "[rt::LoadMesh] ERROR! Failed to load mesh file '" << filepath << "'" << std::endl;
@@ -662,4 +669,4 @@ HittableList LoadMesh(const Transform& t_transform, const std::string& filepath,
 	return hittable_mesh;
 }
 
-}
+} /* namespace rt */

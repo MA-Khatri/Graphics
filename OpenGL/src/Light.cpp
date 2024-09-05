@@ -3,13 +3,13 @@
 Light::Light(glm::vec3 position, glm::vec3 color)
 	: position(position), color(color)
 {
-
+	UpdateMatrix();
 }
 
 Light::Light(glm::vec3 position)
 	: position(position), color(glm::vec3(1.0f, 1.0f, 1.0f))
 {
-
+	UpdateMatrix();
 }
 
 Light::~Light()
@@ -17,14 +17,24 @@ Light::~Light()
 
 }
 
-void Light::UpdatePosition(glm::vec3 position)
+void Light::UpdatePosition(glm::vec3 posn)
 {
-	position = position;
+	position = posn;
+	UpdateMatrix();
 }
 
-void Light::UpdateColor(glm::vec3 color)
+void Light::UpdateColor(glm::vec3 clr)
 {
-	color = color;
+	color = clr;
+}
+
+void Light::UpdateMatrix()
+{
+	/* For now, setting the light matrix to look towards the origin with a 90 deg fov */
+	view_matrix = glm::lookAt(position, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	projection_matrix = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
+
+	matrix = projection_matrix * view_matrix;
 }
 
 //void Light::SetPositionUniform(Shader* shader, std::string& uniform_name)

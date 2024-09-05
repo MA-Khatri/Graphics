@@ -37,3 +37,10 @@ void glfw_process_input(GLFWwindow* window)
 		p_pressed = false;
 	}
 }
+
+std::string AbsPath(std::string rel_path)
+{
+	std::filesystem::path cur = __FILE__;
+	std::string absPath = (cur.parent_path().parent_path() / rel_path).generic_string();
+	return absPath;
+}

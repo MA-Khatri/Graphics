@@ -165,10 +165,12 @@
     <None Include="res\shaders\BasicTexture.shader" />
     <None Include="res\shaders\Default.shader" />
     <None Include="res\shaders\Environment.shader" />
+    <None Include="res\shaders\EnvironmentReflections.shader" />
     <None Include="res\shaders\Normals.shader" />
     <None Include="res\shaders\Floor.shader" />
     <None Include="res\shaders\DrawTextureToFullScreen.shader" />
     <None Include="res\shaders\RayTrace.shader" />
+    <None Include="res\shaders\ShadowedSurface.shader" />
     <None Include="res\shaders\World.shader" />
     <None Include="src\vendor\glm\detail\func_common.inl" />
     <None Include="src\vendor\glm\detail\func_common_simd.inl" />

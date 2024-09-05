@@ -1,16 +1,17 @@
 #shader vertex
 #version 460 core
 
-layout(location = 0) in vec4 position;
+layout(location = 0) in vec4 a_Position;
 
-out vec3 dir;
+out vec3 v_SampleDir;
 
-uniform mat4 u_iVP; // inverse of view-projection matrix of camera
+uniform mat4 u_MVP; // not used
+uniform mat4 u_VP; // view-projection matrix of camera
 
 void main()
 {
-    dir = (position * u_iVP).xyz;
-    gl_Position = position;
+    v_SampleDir = (a_Position * u_VP).xyz;
+    gl_Position = a_Position;
 };
 
 
@@ -19,11 +20,11 @@ void main()
 
 layout(location = 0) out vec4 color;
 
-in vec3 dir;
+in vec3 v_SampleDir;
 
 uniform samplerCube u_CubeMap0;
 
 void main()
 {
-    color = texture(u_CubeMap0, dir);
+    color = texture(u_CubeMap0, v_SampleDir);
 };

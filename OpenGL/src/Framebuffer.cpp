@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-Framebuffer::Framebuffer(unsigned int width, unsigned int height, float scale /*= 1.0f*/)
+Framebuffer::Framebuffer(unsigned int width, unsigned int height, float scale /*= 1.0f*/, bool depth_only /*= false*/)
 	: m_RendererID(0), m_RenderedTexture(0), m_DepthBuffer(0), m_Width(width), m_Height(height), m_Scale(scale)
 {
 	/* Generate the framebuffer */
@@ -13,29 +13,47 @@ Framebuffer::Framebuffer(unsigned int width, unsigned int height, float scale /*
 	GLCall(glGenTextures(1, &m_RenderedTexture));
 	GLCall(glBindTexture(GL_TEXTURE_2D, m_RenderedTexture));
 
-	/* Give an empty image to the texture (the last 0) */
-	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GLsizei(m_Scale * m_Width), GLsizei(m_Scale * m_Height), 0, GL_RGB, GL_UNSIGNED_BYTE, 0));
+	if (depth_only)
+	{
+		/* Data type set to fixed-point depth component */
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GLsizei(m_Scale * m_Width), GLsizei(m_Scale * m_Height), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0));
 
-	/* Set filtering for the texture (this is necessary!) */
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-	
-	/* Other (optional) params... */
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 
-	/* Setup the depth buffer */
-	GLCall(glGenRenderbuffers(1, &m_DepthBuffer));
-	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, m_DepthBuffer));
-	GLCall(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, GLsizei(m_Scale * m_Width), GLsizei(m_Scale * m_Height)));
-	GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_DepthBuffer));
+		/* Render the depth map to the framebuffer texture */
+		GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_RenderedTexture, 0));
 
-	/* Set "renderedTexture" as our color attachment #0 */
-	GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_RenderedTexture, 0));
+		/* Not drawing or reading anything with the framebuffer */
+		GLCall(glDrawBuffer(GL_NONE));
+		GLCall(glReadBuffer(GL_NONE));
+	}
+	else
+	{
+		/* Give an empty image to the texture (the last 0) */
+		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, GLsizei(m_Scale * m_Width), GLsizei(m_Scale * m_Height), 0, GL_RGB, GL_UNSIGNED_BYTE, 0));
 
-	/* Set the list of draw buffers. */
-	GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-	GLCall(glDrawBuffers(1, DrawBuffers)); // "1" is the size of DrawBuffers
+		/* Set filtering for the texture (this is necessary!) */
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+
+		/* Other (optional) params... */
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+
+		/* Setup the depth buffer */
+		GLCall(glGenRenderbuffers(1, &m_DepthBuffer));
+		GLCall(glBindRenderbuffer(GL_RENDERBUFFER, m_DepthBuffer));
+		GLCall(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, GLsizei(m_Scale * m_Width), GLsizei(m_Scale * m_Height)));
+		GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_DepthBuffer));
+
+		/* Set "renderedTexture" as our color attachment #0 */
+		GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_RenderedTexture, 0));
+
+		/* Set the list of draw buffers. */
+		GLenum DrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+		GLCall(glDrawBuffers(1, DrawBuffers)); // "1" is the size of DrawBuffers
+	}
 
 	/* Check that our framebuffer is ok */
 	GLCall(if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) std::cout << "ERROR creating framebuffer!" << std::endl; );

@@ -27,13 +27,13 @@ Texture::Texture(unsigned char* bytes, int width, int height, const std::string 
 	//	free(m_LocalBuffer);
 }
 
-Texture::Texture(const std::string& cube_map_folder_path, int width)
+Texture::Texture(const std::string& cube_map_folder_path, int width, const std::string& image_extension /* = ".png"*/)
 	: m_RendererID(0), m_TextureType("CubeMap"), m_Width(width), m_Height(width), m_PixelFormat(GL_RGBA), m_BPP(0), m_LocalBuffer(nullptr)
 {
 	GLCall(glGenTextures(1, &m_RendererID));
 	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID));
 
-	m_FilePath = cube_map_folder_path + "px.png";
+	m_FilePath = cube_map_folder_path + "px" + image_extension;
 	LoadImage();
 	GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X,
 		0,					// Mipmap level 0
@@ -45,23 +45,23 @@ Texture::Texture(const std::string& cube_map_folder_path, int width)
 		GL_UNSIGNED_BYTE,	// Data type
 		m_LocalBuffer));	// Pixel array data
 
-	m_FilePath = cube_map_folder_path + "ny.png"; /* NOTE: y-axis is flipped. Not sure why... */
+	m_FilePath = cube_map_folder_path + "ny" + image_extension; /* NOTE: y-axis is flipped. Not sure why... */
 	LoadImage();
 	GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
 
-	m_FilePath = cube_map_folder_path + "pz.png";
+	m_FilePath = cube_map_folder_path + "pz" + image_extension;
 	LoadImage();
 	GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
 
-	m_FilePath = cube_map_folder_path + "nx.png";
+	m_FilePath = cube_map_folder_path + "nx" + image_extension;
 	LoadImage();
 	GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
 
-	m_FilePath = cube_map_folder_path + "py.png";
+	m_FilePath = cube_map_folder_path + "py" + image_extension;
 	LoadImage();
 	GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
 
-	m_FilePath = cube_map_folder_path + "nz.png";
+	m_FilePath = cube_map_folder_path + "nz" + image_extension;
 	LoadImage();
 	GLCall(glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_LocalBuffer));
 

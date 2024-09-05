@@ -7,6 +7,7 @@
 #include "index_buffer.h"
 #include "texture.h"
 #include "camera.h"
+#include "light.h"
 #include "mesh.h"
 
 #include "glm/glm.hpp"
@@ -50,4 +51,5 @@ public:
 	void Draw(); // Draw with default shader
 	void Draw(Camera camera); // Draw with default shader
 	void Draw(Camera camera, Shader& shader, unsigned int uniforms_mode = 0);
+	void Draw(Light light); // Draw the shadow map of the provided light
 };

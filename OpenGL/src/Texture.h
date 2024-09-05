@@ -20,8 +20,13 @@ public:
 		GLenum min_filter = GL_LINEAR, GLenum mag_filter = GL_LINEAR, GLenum wrap_s = GL_REPEAT, GLenum wrap_t = GL_REPEAT);
 	Texture(unsigned char* bytes, int width, int height, const std::string texture_type = "Diffuse", GLenum pixel_format = GL_RGB, GLenum pixel_type = GL_UNSIGNED_BYTE,
 		GLenum min_filter = GL_NEAREST, GLenum mag_filter = GL_NEAREST, GLenum wrap_s = GL_CLAMP_TO_EDGE, GLenum wrap_t = GL_CLAMP_TO_EDGE);
-	Texture(GLuint textureID, const std::string texture_type = "Diffuse") : m_RendererID(textureID), m_TextureType(texture_type) {}; /* Internal textures, e.g., render to texture */
-	Texture(const std::string& cube_map_folder_path, int width); /* Load cubemap texture by providing the path to the folder containing the cubemap images */
+
+	/* Internal textures, e.g., render to texture */
+	Texture(GLuint textureID, int width, int height, const std::string texture_type = "Diffuse") : m_RendererID(textureID), m_TextureType(texture_type), m_Width(width), m_Height(height) {}; 
+	
+	/* Load cubemap texture by providing the path to the folder containing the cubemap images */
+	Texture(const std::string& cube_map_folder_path, int width, const std::string& image_extension = ".png");
+	
 	~Texture();
 
 	void Update(); /* Uses the predefined m_FilePath -- will print a warning if m_FilePath is empty */ 

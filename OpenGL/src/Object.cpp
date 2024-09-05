@@ -83,7 +83,7 @@ void Object::UpdateTextures(std::vector<Texture*> new_textures)
 
 void Object::Draw()
 {
-	Shader default_shader = Shader("res/shaders/Default.shader");
+	Shader default_shader = Shader(AbsPath("res/shaders/Default.shader"));
 	default_shader.Bind();
 	va->Bind();
 
@@ -97,7 +97,7 @@ void Object::Draw()
 
 void Object::Draw(Camera camera)
 {
-	Shader default_shader = Shader("res/shaders/Default.shader");
+	Shader default_shader = Shader(AbsPath("res/shaders/Default.shader"));
 	default_shader.Bind();
 	va->Bind();
 
@@ -144,11 +144,27 @@ void Object::Draw(Camera camera, Shader& shader, unsigned int uniforms_mode /* =
 	if (uniforms_mode == 0)
 	{
 		shader.SetUniformMat4f("u_MVP", camera.matrix * model_matrix);
+		shader.SetUniformMat4f("u_Model", model_matrix);
+		shader.SetUniformMat4f("u_ModelNormal", model_normal_matrix);
+		shader.SetUniform3f("u_LightPosition", camera.position.x, camera.position.y, camera.position.z);
 	}
 	else if (uniforms_mode == 1)
 	{
-		shader.SetUniformMat4f("u_iVP", camera.matrix * glm::rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+		shader.SetUniformMat4f("u_MVP", camera.matrix * model_matrix);
+		shader.SetUniformMat4f("u_VP", camera.matrix * glm::rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
 	}
 	
+	GLCall(glDrawElements(draw_mode, ib->GetCount(), GL_UNSIGNED_INT, nullptr));
+}
+
+void Object::Draw(Light light)
+{
+	Shader basic_shader = Shader(AbsPath("res/shaders/Basic.shader"));
+	basic_shader.Bind();
+	va->Bind();
+
+
+	basic_shader.SetUniformMat4f("u_MVP", light.matrix * model_matrix);
+
 	GLCall(glDrawElements(draw_mode, ib->GetCount(), GL_UNSIGNED_INT, nullptr));
 }

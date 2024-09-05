@@ -153,6 +153,12 @@ unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 		return 0;
 	}
 
+	//std::cout << "Shader Compiled: " << std::to_string(id) << std::endl;
+	//if (id == 25)
+	//{
+	//	std::cout << source << std::endl;
+	//}
+
 	return id;
 }
 

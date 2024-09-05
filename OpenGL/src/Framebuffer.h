@@ -13,7 +13,7 @@ private:
 	float m_Scale; // allows upscaling the texture/viewport
 
 public:
-	Framebuffer(unsigned int width, unsigned int height, float scale = 1.0f);
+	Framebuffer(unsigned int width, unsigned int height, float scale = 1.0f, bool depth_only = false);
 	~Framebuffer();
 
 	void Bind() const;
