@@ -27,3 +27,5 @@ void glfw_process_input(GLFWwindow* window);
 
 /* Gets the absolute path using the current file's relative path */
 std::string AbsPath(std::string rel_path);
+
+void ImGuiTextureToGrayScale(GLuint texture);

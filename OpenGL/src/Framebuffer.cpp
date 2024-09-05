@@ -18,8 +18,17 @@ Framebuffer::Framebuffer(unsigned int width, unsigned int height, float scale /*
 		/* Data type set to fixed-point depth component */
 		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GLsizei(m_Scale * m_Width), GLsizei(m_Scale * m_Height), 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0));
 
-		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+		/* Enable percent closer filtering... */
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+
+		/* Make sure regions outside shadow map are *not* in shadow */
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER));
+		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER));
+		float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		GLCall(glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor));
 
 		/* Render the depth map to the framebuffer texture */
 		GLCall(glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_RenderedTexture, 0));
@@ -71,6 +80,7 @@ Framebuffer::~Framebuffer()
 void Framebuffer::Bind() const
 {
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID));
+	GLCall(glViewport(0, 0, m_Scale * m_Width, m_Scale * m_Height));
 }
 
 void Framebuffer::Unbind() const

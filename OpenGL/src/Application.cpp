@@ -105,9 +105,9 @@ int main(void)
 	GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 	
 	/* Back face culling */
-	//GLCall(glFrontFace(GL_CCW));
-	//GLCall(glCullFace(GL_FRONT));
-	//GLCall(glEnable(GL_CULL_FACE));
+	GLCall(glFrontFace(GL_CCW));
+	GLCall(glCullFace(GL_BACK));
+	GLCall(glEnable(GL_CULL_FACE));
 
 	/* Depth testing */
 	GLCall(glEnable(GL_DEPTH_TEST));
@@ -120,6 +120,16 @@ int main(void)
 	/* ====== SCENE SETUP ====== */
 	/* ========================= */
 
+	/* ====== Framebuffers ====== */
+	Framebuffer rasterized_framebuffer = Framebuffer(viewport_width, viewport_height, framebuffer_scale); // primary rendering frame buffer
+
+	Framebuffer texture_framebuffer = Framebuffer(viewport_width, viewport_height, framebuffer_scale); // render to texture...
+	Texture* rendered_texture = new Texture(texture_framebuffer.GetTexture(), viewport_width, viewport_height);
+
+	int shadow_map_resolution = 1000;
+	Framebuffer shadow_map_fb_light_1 = Framebuffer(shadow_map_resolution, shadow_map_resolution, 1.0f, true);
+	Texture* shadow_map_light_1 = new Texture(shadow_map_fb_light_1.GetTexture(), shadow_map_resolution, shadow_map_resolution, "ShadowMap");
+
 	/* ====== Shaders ====== */
 	Shader* shader_environment = new Shader(AbsPath("res/shaders/Environment.shader"));
 	Shader* shader_environment_reflections = new Shader(AbsPath("res/shaders/EnvironmentReflections.shader"));
@@ -127,8 +137,6 @@ int main(void)
 	Shader* shader_basic = new Shader(AbsPath("res/shaders/Basic.shader"));
 	Shader* shader_floor = new Shader(AbsPath("res/shaders/Floor.shader"));
 	Shader* shader_shadowed = new Shader(AbsPath("res/shaders/ShadowedSurface.shader"));
-	//Shader* shader_light = new Shader(AbsPath("res/shaders/Light.shader"));
-	//Shader* shader_raytrace = new Shader(AbsPath("res/shaders/RayTrace.shader"));
 	//Shader* shader_texture_fullscreen = new Shader(AbsPath("res/shaders/DrawTextureToFullScreen.shader"));
 
 	/* ====== Textures ====== */
@@ -141,20 +149,24 @@ int main(void)
 		new Texture(AbsPath("res/textures/yokohama_night_cube_map/"), 2048, ".jpg")
 	};
 
-	std::vector<unsigned char> image(4*4*3); /* Initialize to smallest possible empty texture */
+	/* Create a texture to save the ray traced result to, which will then be displayed with ImGui */
+	/* Initialize to smallest possible empty texture */
+	std::vector<unsigned char> image(4*4*3);
 	Texture* ray_traced_texture = new Texture(&image[0], 4, 4, "Diffuse", GL_RGB, GL_UNSIGNED_BYTE);
+
+	std::vector<Texture*> shadowMaps = {shadow_map_light_1};
 
 	/* ====== Objects ====== */
 	Object environmentTriangle = Object(CreateEnvironmentMapTriangle(), environmentTextures);
 	Object fullscreenTriangle = Object((CreateEnvironmentMapTriangle()));
 	Object groundGrid = Object(CreateGroundPlaneGrid(101, 101, 50.0f, glm::vec4(1.0f, 0.0f, 0.0f, 0.5f), glm::vec4(0.0f, 1.0f, 0.0f, 0.5f)));
+
 	Object plane1 = Object(CreatePlane());
 
-	Object plane2 = Object(CreatePlane(), floorTextures);
-	//plane2.Translate(0.0f, -4.0f, 0.0f);
-	plane2.Scale(2.0f);
+	Object plane2 = Object(CreatePlane(), shadowMaps);
+	plane2.Scale(10.0f);
 
-	Object sphere = Object(LoadOBJ(AbsPath("res/meshes/sphere.obj")));
+	Object sphere = Object(LoadOBJ(AbsPath("res/meshes/sphere.obj")), shadowMaps);
 	sphere.Translate(1.0f, 1.0f, 4.0f);
 	//sphere.Translate(-0.35f, 0.35f, -0.25f);
 	//sphere.Scale(0.25f);
@@ -164,7 +176,7 @@ int main(void)
 	bunny1.Rotate(glm::vec3(0.0f, 1.0f, 0.0f), 225.0f);
 	bunny1.Scale(0.5f);
 
-	Object bunny2 = Object(LoadOBJ(AbsPath("res/meshes/bunny.obj")));
+	Object bunny2 = Object(LoadOBJ(AbsPath("res/meshes/bunny.obj")), shadowMaps);
 	//bunny2.Translate(0.0f, -4.0f, 0.0f);
 	bunny2.Translate(0.0f, 0.0f, 0.5f);
 	bunny2.Rotate(glm::vec3(0.0f, 0.0f, 1.0f), 180.0f);
@@ -209,19 +221,6 @@ int main(void)
 	ray_camera.simulate_time = true;
 
 	rt::Scene scene = rt::GenerateScene(rt::Scenes::CornellBox);
-
-
-	/* ========================== */
-	/* ====== Framebuffers ====== */
-	/* ========================== */
-	Framebuffer rasterized_framebuffer = Framebuffer(viewport_width, viewport_height, framebuffer_scale); // primary rendering frame buffer
-
-	Framebuffer texture_framebuffer = Framebuffer(viewport_width, viewport_height, framebuffer_scale); // render to texture...
-	Texture* rendered_texture = new Texture(texture_framebuffer.GetTexture(), viewport_width, viewport_height);
-
-	int shadow_map_resolution = 1000;
-	Framebuffer shadow_map_fb_light_1 = Framebuffer(shadow_map_resolution, shadow_map_resolution, 1.0f, false);
-	Texture* shadow_map_light_1 = new Texture(shadow_map_fb_light_1.GetTexture(), shadow_map_resolution, shadow_map_resolution);
 
 	/* ========================= */
 	/* ====== ImGui SETUP ====== */
@@ -301,19 +300,17 @@ int main(void)
 				texture_framebuffer.Unbind();
 
 				/* Render the shadowmap(s) */
+				//GLCall(glCullFace(GL_FRONT)); /* Cull front face as a trick to improve peter-panning */
 				shadow_map_fb_light_1.Bind();
 				{
 					light1.UpdateMatrix();
-					GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-					GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-					/*GLCall(glClear(GL_DEPTH_BUFFER_BIT));*/
-					//bunny1.Draw();
-					//sphere.Draw();
-					//plane2.Draw(light1);
+					GLCall(glClear(GL_DEPTH_BUFFER_BIT));
+					plane2.Draw(light1);
 					sphere.Draw(light1);
 					bunny2.Draw(light1);
 				}
 				shadow_map_fb_light_1.Unbind();
+				//GLCall(glCullFace(GL_BACK));
 
 
 				/* Bind our frame buffer so that we render to it instead of the default viewport */
@@ -324,28 +321,27 @@ int main(void)
 
 					groundGrid.Draw(camera, *shader_world);
 
-					shader_floor->Bind();
-					shader_floor->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
-					shader_floor->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
-					plane1.UpdateTextures(std::vector<Texture*>{rendered_texture});
+					//shader_floor->Bind();
+					//shader_floor->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
+					//shader_floor->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
+					////plane1.UpdateTextures(std::vector<Texture*>{rendered_texture});
 					//plane1.Draw(camera, *shader_floor);
 
-					shader_shadowed->Bind();
-					shader_shadowed->SetUniformMat4f("u_MatrixShadow", glm::translate(glm::vec3(0.5f, 0.5f, 0.5f)) * glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)) * light1.matrix);
-					shader_shadowed->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
-					shader_shadowed->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
+					//shader_environment_reflections->Bind();
+					//shader_environment_reflections->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
+					//shader_environment_reflections->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
+					//sphere.Draw(camera, *shader_environment_reflections);
 
-					plane2.UpdateTextures(std::vector<Texture*>{shadow_map_light_1});
-					plane2.Draw(camera, *shader_shadowed);
-					bunny2.Draw(camera, *shader_shadowed);
-
-					shader_environment_reflections->Bind();
-					shader_environment_reflections->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
-					shader_environment_reflections->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
-					sphere.Draw(camera, *shader_environment_reflections);
-
-					lightCube.SetTransform(glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)) * glm::translate(light1.position));
+					lightCube.SetTransform(glm::inverse(light1.view_matrix));
 					lightCube.Draw(camera);
+
+					shader_shadowed->Bind();
+					shader_shadowed->SetUniformMat4f("u_MatrixShadow", glm::translate(glm::vec3(0.5f, 0.5f, 0.5f - 0.001f)) * glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)) * light1.matrix);
+					shader_shadowed->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
+					shader_shadowed->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
+					plane2.Draw(camera, *shader_shadowed);
+					sphere.Draw(camera, *shader_shadowed);
+					bunny2.Draw(camera, *shader_shadowed);
 
 					/* Draw environment map */
 					GLCall(glDepthMask(GL_FALSE));

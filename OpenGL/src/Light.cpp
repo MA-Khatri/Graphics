@@ -30,9 +30,11 @@ void Light::UpdateColor(glm::vec3 clr)
 
 void Light::UpdateMatrix()
 {
-	/* For now, setting the light matrix to look towards the origin with a 90 deg fov */
-	view_matrix = glm::lookAt(position, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	projection_matrix = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
+	/* For now, setting the light matrix to look towards the origin */
+	//view_matrix = glm::lookAt(position, position + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(-1.0f, 0.0f, 0.0f));
+	view_matrix = glm::lookAt(position, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f));
+	projection_matrix = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 1000.0f);
+	//projection_matrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.01f, 100.0f);
 
 	matrix = projection_matrix * view_matrix;
 }

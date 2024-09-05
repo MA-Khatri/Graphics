@@ -118,6 +118,7 @@ void Object::Draw(Camera camera, Shader& shader, unsigned int uniforms_mode /* =
 	unsigned int numDiffuse = 0;
 	unsigned int numSpecular = 0;
 	unsigned int numCubeMap = 0;
+	unsigned int numShadowMap = 0;
 
 	for (unsigned int i = 0; i < textures.size(); i++)
 	{
@@ -138,6 +139,11 @@ void Object::Draw(Camera camera, Shader& shader, unsigned int uniforms_mode /* =
 			num = std::to_string(numCubeMap++);
 			textures[i]->Bind(i, GL_TEXTURE_CUBE_MAP);
 		}
+		else if (type == "ShadowMap")
+		{
+			num = std::to_string(numShadowMap++);
+			textures[i]->Bind(i);
+		}
 		shader.SetUniform1i(("u_" + type + num).c_str(), i);
 	}
 
@@ -146,12 +152,11 @@ void Object::Draw(Camera camera, Shader& shader, unsigned int uniforms_mode /* =
 		shader.SetUniformMat4f("u_MVP", camera.matrix * model_matrix);
 		shader.SetUniformMat4f("u_Model", model_matrix);
 		shader.SetUniformMat4f("u_ModelNormal", model_normal_matrix);
-		shader.SetUniform3f("u_LightPosition", camera.position.x, camera.position.y, camera.position.z);
 	}
-	else if (uniforms_mode == 1)
+	else if (uniforms_mode == 1) /* Environment map */
 	{
 		shader.SetUniformMat4f("u_MVP", camera.matrix * model_matrix);
-		shader.SetUniformMat4f("u_VP", camera.matrix * glm::rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)));
+		shader.SetUniformMat4f("u_VP", camera.matrix * glm::rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f))); /* Extra rotation since environment maps are defined with +y as up */
 	}
 	
 	GLCall(glDrawElements(draw_mode, ib->GetCount(), GL_UNSIGNED_INT, nullptr));
