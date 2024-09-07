@@ -211,6 +211,40 @@ Mesh CreatePlane()
 	return Mesh{ va, vb, ib, GL_TRIANGLES };
 }
 
+Mesh CreatePlanePatch()
+{
+	float vertices[] = {
+		 1.0f,  1.0f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f, // 0
+		 1.0f, -1.0f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f, // 1
+		-1.0f, -1.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // 2
+		-1.0f,  1.0f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f, // 3
+	};
+
+	unsigned int indices[] = {
+		0, 1, 2, 3
+	};
+
+	VertexArray* va = new VertexArray();
+	va->Bind();
+
+	VertexBuffer* vb = new VertexBuffer(vertices, 4 * 7 * sizeof(float));
+	vb->Bind();
+	VertexBufferLayout layout;
+	layout.Push<float>(2); // xy posn
+	layout.Push<float>(3); // xyz normal
+	layout.Push<float>(2); // uv tex coord
+	va->AddBuffer(*vb, layout);
+
+	IndexBuffer* ib = new IndexBuffer(indices, 6);
+	ib->Bind();
+
+	va->Unbind();
+	vb->Unbind();
+	ib->Unbind();
+
+	return Mesh{ va, vb, ib, GL_PATCHES };
+}
+
 Mesh CreateCube()
 { // from https://pastebin.com/XiCprv6S
 	std::vector<float> vertices = {

@@ -137,11 +137,14 @@ int main(void)
 	Shader* shader_basic = new Shader(AbsPath("res/shaders/Basic.shader"));
 	Shader* shader_floor = new Shader(AbsPath("res/shaders/Floor.shader"));
 	Shader* shader_shadowed = new Shader(AbsPath("res/shaders/ShadowedSurface.shader"));
+	Shader* shader_displacement = new Shader(AbsPath("res/shaders/Displacement.shader"));
+	Shader* shader_displacement_wireframe = new Shader(AbsPath("res/shaders/DisplacementWireframe.shader"), Shader::TESSELLATE_GEOMETRY);
 	//Shader* shader_texture_fullscreen = new Shader(AbsPath("res/shaders/DrawTextureToFullScreen.shader"));
 
 	/* ====== Textures ====== */
 	Texture* whiteDiffuseTexture = new Texture(AbsPath("res/textures/blank.png"), Texture::DIFFUSE, GL_RGBA, GL_UNSIGNED_BYTE);
 	Texture* whiteSpecularTexture = new Texture(AbsPath("res/textures/blank.png"), Texture::SPECULAR, GL_RED, GL_UNSIGNED_BYTE);
+	Texture* teapotNormalMap = new Texture(AbsPath("res/textures/teapot_normal.png"), Texture::NORMALMAP, GL_RGB, GL_UNSIGNED_BYTE);
 
 	std::vector<Texture*> floorTextures = {
 		new Texture(AbsPath("res/textures/planks_diffuse.png"), Texture::DIFFUSE, GL_RGBA, GL_UNSIGNED_BYTE),
@@ -157,7 +160,8 @@ int main(void)
 	std::vector<unsigned char> image(4*4*3);
 	Texture* ray_traced_texture = new Texture(&image[0], 4, 4, Texture::DIFFUSE, GL_RGB, GL_UNSIGNED_BYTE);
 
-	std::vector<Texture*> shadowMaps = {whiteDiffuseTexture, whiteSpecularTexture, shadow_map_light_1};
+	std::vector<Texture*> shadowMaps = { whiteDiffuseTexture, whiteSpecularTexture, shadow_map_light_1 };
+	std::vector<Texture*> shadowDisplacementMaps = { whiteDiffuseTexture, whiteSpecularTexture, shadow_map_light_1, teapotNormalMap };
 
 	/* ====== Objects ====== */
 	Object environmentTriangle = Object(CreateEnvironmentMapTriangle(), environmentTextures);
@@ -168,6 +172,15 @@ int main(void)
 
 	Object plane2 = Object(CreatePlane(), shadowMaps);
 	plane2.Scale(10.0f);
+
+	Object plane3 = Object(CreatePlane(), shadowDisplacementMaps);
+	plane3.Translate(glm::vec3(0.0f, -20.0f, 0.0f));
+	plane3.Rotate(glm::vec3(0.0f, 0.0f, 1.0f), 90.0f);
+	plane3.Scale(10.0f);
+
+	Object plane3_wireframe = Object(CreatePlanePatch(), std::vector<Texture*>{ teapotNormalMap });
+	plane3_wireframe.SetTransform(plane3.GetTransform());
+	GLCall(glPatchParameteri(GL_PATCH_VERTICES, 4));
 
 	Object sphere = Object(LoadOBJ(AbsPath("res/meshes/sphere.obj")), shadowMaps);
 	sphere.Translate(1.0f, 1.0f, 4.0f);
@@ -205,9 +218,14 @@ int main(void)
 
 
 	shader_shadowed->Bind();
-	shader_floor->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
-	shader_floor->SetUniform3f("u_LightColor", light1.color.x, light1.color.y, light1.color.z);
-	shader_floor->SetUniform1i("u_LightMode", light1.mode);
+	shader_shadowed->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
+	shader_shadowed->SetUniform3f("u_LightColor", light1.color.x, light1.color.y, light1.color.z);
+	shader_shadowed->SetUniform1i("u_LightMode", light1.mode);
+
+	shader_displacement->Bind();
+	shader_displacement->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
+	shader_displacement->SetUniform3f("u_LightColor", light1.color.x, light1.color.y, light1.color.z);
+	shader_displacement->SetUniform1i("u_LightMode", light1.mode);
 
 	/* ====== Camera ====== */
 	//Camera camera(viewport_width, viewport_height, glm::vec3(10.0f, -3.0f, 2.0f), glm::normalize(glm::vec3(-0.95f, 0.2f, -0.1f)), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -317,6 +335,7 @@ int main(void)
 					plane2.Draw(light1);
 					sphere.Draw(light1);
 					bunny2.Draw(light1);
+					plane3.Draw(light1);
 				}
 				shadow_map_fb_light_1.Unbind();
 				//GLCall(glCullFace(GL_BACK));
@@ -351,6 +370,13 @@ int main(void)
 					plane2.Draw(camera, *shader_shadowed);
 					sphere.Draw(camera, *shader_shadowed);
 					bunny2.Draw(camera, *shader_shadowed);
+
+					shader_displacement->Bind();
+					shader_displacement->SetUniformMat4f("u_MatrixShadow", glm::translate(glm::vec3(0.5f, 0.5f, 0.5f - light1_shadow_offset)) * glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)) * light1.matrix);
+					shader_displacement->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
+					shader_displacement->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
+					plane3.Draw(camera, *shader_displacement);
+					plane3_wireframe.Draw(camera, *shader_displacement_wireframe);
 
 					/* Draw environment map */
 					GLCall(glDepthMask(GL_FALSE));

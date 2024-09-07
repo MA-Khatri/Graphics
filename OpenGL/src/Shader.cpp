@@ -7,11 +7,30 @@
 
 #include "gl_utils.h"
 
-Shader::Shader(const std::string& filepath)
+Shader::Shader(const std::string& filepath, Shader::Mode shader_mode /* = BASIC */)
 	: m_VertexPath(filepath), m_FragmentPath(filepath), m_RendererID(0)
 {
 	ShaderProgramSource source = ParseShader(filepath);
-	m_RendererID = CreateShader(source.VertexSource, source.FragmentSource);
+
+	switch (shader_mode) {
+
+	case BASIC:
+		m_RendererID = CreateShader(source.VertexSource, source.FragmentSource);
+		break;
+
+	case TESSELLATE:
+		m_RendererID = CreateShader(source.VertexSource, source.TCSSource, source.TESSource, source.FragmentSource);
+		break;
+
+	case GEOMETRY:
+		m_RendererID = CreateShader(source.VertexSource, source.GeometrySource, source.FragmentSource);
+		break;
+
+	case TESSELLATE_GEOMETRY:
+		m_RendererID = CreateShader(source.VertexSource, source.TCSSource, source.TESSource, source.GeometrySource, source.FragmentSource);
+		break;
+	}
+
 }
 
 Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
@@ -87,11 +106,14 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath)
 	{
 		NONE = -1,
 		VERTEX = 0,
-		FRAGMENT = 1
+		FRAGMENT = 1,
+		GEOMETRY = 2,
+		TCS = 3, // Tessellation control shader
+		TES = 4, // Tessellation evaluation shader
 	};
 
 	std::string line;
-	std::stringstream ss[2]; // one for vertex, another for fragment shader
+	std::stringstream ss[5]; // upto 5 types of shaders 
 	ShaderType type = ShaderType::NONE;
 	while (getline(stream, line))
 	{
@@ -101,6 +123,12 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath)
 				type = ShaderType::VERTEX;
 			else if (line.find("fragment") != std::string::npos)
 				type = ShaderType::FRAGMENT;
+			else if (line.find("geometry") != std::string::npos)
+				type = ShaderType::GEOMETRY;
+			else if (line.find("tcs") != std::string::npos)
+				type = ShaderType::TCS;
+			else if (line.find("tes") != std::string::npos)
+				type = ShaderType::TES;
 		}
 		else // add it to the shader source code
 		{
@@ -108,7 +136,7 @@ ShaderProgramSource Shader::ParseShader(const std::string& filepath)
 		}
 	}
 
-	return { ss[0].str(), ss[1].str() };
+	return { ss[0].str(), ss[1].str(), ss[2].str(), ss[3].str(), ss[4].str() };
 }
 
 ShaderProgramSource Shader::ParseShaders(const std::string& vertexPath, const std::string& fragmentPath)
@@ -147,17 +175,34 @@ unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
 		char* message = (char*)alloca(length * sizeof(char));
 		glGetShaderInfoLog(id, length, &length, message);
-		std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" << std::endl;
+		std::string typeStr;
+		switch (type)
+		{
+		case GL_VERTEX_SHADER:
+			typeStr = "VERTEX";
+			break;
+
+		case GL_FRAGMENT_SHADER:
+			typeStr = "FRAGMENT";
+			break;
+
+		case GL_GEOMETRY_SHADER:
+			typeStr = "GEOMETRY";
+			break;
+
+		case GL_TESS_CONTROL_SHADER:
+			typeStr = "TSC";
+			break;
+
+		case GL_TESS_EVALUATION_SHADER:
+			typeStr = "TES";
+			break;
+		}
+		std::cout << "[Shader Error] Failed to compile " << typeStr << " shader for file " << m_VertexPath << std::endl;
 		std::cout << message << std::endl;
 		glDeleteShader(id);
 		return 0;
 	}
-
-	//std::cout << "Shader Compiled: " << std::to_string(id) << std::endl;
-	//if (id == 25)
-	//{
-	//	std::cout << source << std::endl;
-	//}
 
 	return id;
 }
@@ -180,6 +225,93 @@ unsigned int Shader::CreateShader(const std::string& vertexShader, const std::st
 	//GLCall(glDetachShader(program, vs));
 	//GLCall(glDetachShader(program, fs));
 	GLCall(glDeleteShader(vs));
+	GLCall(glDeleteShader(fs));
+
+	return program;
+}
+
+unsigned int Shader::CreateShader(const std::string& vertexShader, const std::string& geometryShader, const std::string& fragmentShader)
+{
+	GLCall(unsigned int program = glCreateProgram());
+	unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
+	unsigned int gs = CompileShader(GL_GEOMETRY_SHADER, geometryShader);
+	unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
+
+	GLCall(glAttachShader(program, vs));
+	GLCall(glAttachShader(program, gs));
+	GLCall(glAttachShader(program, fs));
+	GLCall(glLinkProgram(program));
+	GLCall(glValidateProgram(program));
+
+	// Detach and clean up the intermediate programs
+	// Might want to keep the shaders for debugging and profiling
+	//GLCall(glDetachShader(program, vs));
+	//GLCall(glDetachShader(program, gs));
+	//GLCall(glDetachShader(program, fs));
+	GLCall(glDeleteShader(vs));
+	GLCall(glDeleteShader(gs));
+	GLCall(glDeleteShader(fs));
+
+	return program;
+}
+
+unsigned int Shader::CreateShader(const std::string& vertexShader, const std::string& tcsShader, const std::string& tesShader, const std::string& fragmentShader)
+{
+	GLCall(unsigned int program = glCreateProgram());
+	unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
+	unsigned int tcs = CompileShader(GL_TESS_CONTROL_SHADER, tcsShader);
+	unsigned int tes = CompileShader(GL_TESS_EVALUATION_SHADER, tesShader);
+	unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
+
+	GLCall(glAttachShader(program, vs));
+	GLCall(glAttachShader(program, tcs));
+	GLCall(glAttachShader(program, tes));
+	GLCall(glAttachShader(program, fs));
+	GLCall(glLinkProgram(program));
+	GLCall(glValidateProgram(program));
+
+	// Detach and clean up the intermediate programs
+	// Might want to keep the shaders for debugging and profiling
+	//GLCall(glDetachShader(program, vs));
+	//GLCall(glDetachShader(program, tcs));
+	//GLCall(glDetachShader(program, tes));
+	//GLCall(glDetachShader(program, fs));
+	GLCall(glDeleteShader(vs));
+	GLCall(glDeleteShader(tcs));
+	GLCall(glDeleteShader(tes));
+	GLCall(glDeleteShader(fs));
+
+	return program;
+}
+
+unsigned int Shader::CreateShader(const std::string& vertexShader, const std::string& tcsShader, const std::string& tesShader, const std::string& geometryShader, const std::string& fragmentShader)
+{
+	GLCall(unsigned int program = glCreateProgram());
+	unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
+	unsigned int tcs = CompileShader(GL_TESS_CONTROL_SHADER, tcsShader);
+	unsigned int tes = CompileShader(GL_TESS_EVALUATION_SHADER, tesShader);
+	unsigned int gs = CompileShader(GL_GEOMETRY_SHADER, geometryShader);
+	unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
+
+	GLCall(glAttachShader(program, vs));
+	GLCall(glAttachShader(program, tcs));
+	GLCall(glAttachShader(program, tes));
+	GLCall(glAttachShader(program, gs));
+	GLCall(glAttachShader(program, fs));
+	GLCall(glLinkProgram(program));
+	GLCall(glValidateProgram(program));
+
+	// Detach and clean up the intermediate programs
+	// Might want to keep the shaders for debugging and profiling
+	//GLCall(glDetachShader(program, vs));
+	//GLCall(glDetachShader(program, tcs));
+	//GLCall(glDetachShader(program, tes));
+	//GLCall(glDetachShader(program, gs));
+	//GLCall(glDetachShader(program, fs));
+	GLCall(glDeleteShader(vs));
+	GLCall(glDeleteShader(tcs));
+	GLCall(glDeleteShader(tes));
+	GLCall(glDeleteShader(gs));
 	GLCall(glDeleteShader(fs));
 
 	return program;

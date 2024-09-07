@@ -27,6 +27,8 @@ Mesh CreateRing(unsigned int div = 32, glm::vec4 color = glm::vec4(1.0f, 1.0f, 1
 
 Mesh CreatePlane();
 
+Mesh CreatePlanePatch();
+
 Mesh CreateCube();
 
 Mesh CreateUVSphere(unsigned int div = 32);

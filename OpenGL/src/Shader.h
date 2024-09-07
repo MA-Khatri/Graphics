@@ -9,20 +9,32 @@ struct ShaderProgramSource
 {
 	std::string VertexSource;
 	std::string FragmentSource;
+	std::string GeometrySource;
+	std::string TCSSource;
+	std::string TESSource;
 };
 
 class Shader
 {
+public:
+	enum Mode {
+		BASIC, // vertex and fragment shaders only
+		TESSELLATE, // vertex, fragment, and tessellation shaders (TCS and TES)
+		GEOMETRY, // vertex, fragment, and geometry shader
+		TESSELLATE_GEOMETRY, // vertex, fragment, tessellation, and geometry shaders
+	};
+
 private:
 	std::string m_VertexPath;
 	std::string m_FragmentPath;
 	unsigned int m_RendererID;
+	Mode m_Mode;
 
 	// Caching for uniforms
 	std::unordered_map<std::string, int> m_UniformLocationCache;
 
 public:
-	Shader(const std::string& filepath); // Support for vertex and fragment shader in one file
+	Shader(const std::string& filepath, Shader::Mode shader_mode = Mode::BASIC); // Support for vertex and fragment shader in one file
 	Shader(const std::string& vertexPath, const std::string& fragmentPath); // or vertex and fragment shaders in separate files
 	~Shader();
 
@@ -43,5 +55,10 @@ private:
 	ShaderProgramSource ParseShaders(const std::string& vertexPath, const std::string& fragmentPath);
 	unsigned int CompileShader(unsigned int type, const std::string& source);
 	unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader);
+	unsigned int CreateShader(const std::string& vertexShader, const std::string& geometryShader, const std::string& fragmentShader);
+	unsigned int CreateShader(const std::string& vertexShader, const std::string& tcsShader, const std::string& tesShader, const std::string& fragmentShader);
+	unsigned int CreateShader(const std::string& vertexShader, const std::string& tcsShader, const std::string& tesShader, const std::string& geometryShader, const std::string& fragmentShader);
+
+
 	int GetUniformLocation(const std::string& name);
 };

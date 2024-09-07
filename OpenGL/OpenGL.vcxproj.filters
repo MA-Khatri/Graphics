@@ -511,6 +511,8 @@
     <None Include="res\shaders\Environment.shader" />
     <None Include="res\shaders\EnvironmentReflections.shader" />
     <None Include="res\shaders\ShadowedSurface.shader" />
+    <None Include="res\shaders\Displacement.shader" />
+    <None Include="res\shaders\DisplacementWireframe.shader" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\renderer.h">

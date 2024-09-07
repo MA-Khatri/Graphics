@@ -2,7 +2,7 @@
 
 #include "stb_image/stb_image.h"
 
-Texture::Texture(const std::string& path, const int texture_type /*= DIFFUSE */, GLenum pixel_format /*= GL_RGBA*/, GLenum pixel_type /*= GL_UNSIGNED_BYTE*/,
+Texture::Texture(const std::string& path, Type texture_type /*= DIFFUSE */, GLenum pixel_format /*= GL_RGBA*/, GLenum pixel_type /*= GL_UNSIGNED_BYTE*/,
 	GLenum min_filter /*= GL_LINEAR*/, GLenum mag_filter /*= GL_LINEAR*/, GLenum wrap_s /*= GL_REPEAT*/, GLenum wrap_t /*= GL_REPEAT*/)
 	: m_RendererID(0), m_FilePath(path), m_LocalBuffer(nullptr), m_Width(0), m_Height(0), m_BPP(0), m_TextureType(texture_type), m_PixelFormat(pixel_format), m_PixelType(pixel_type)
 {
@@ -14,7 +14,7 @@ Texture::Texture(const std::string& path, const int texture_type /*= DIFFUSE */,
 		stbi_image_free(m_LocalBuffer);
 }
 
-Texture::Texture(unsigned char* bytes, int width, int height, const int texture_type /*= DIFFUSE */, GLenum pixel_format /*= GL_RGB*/, GLenum pixel_type /*= GL_UNSIGNED_BYTE*/, 
+Texture::Texture(unsigned char* bytes, int width, int height, Type texture_type /*= DIFFUSE */, GLenum pixel_format /*= GL_RGB*/, GLenum pixel_type /*= GL_UNSIGNED_BYTE*/, 
 	GLenum min_filter /*= GL_NEAREST*/, GLenum mag_filter /*= GL_NEAEREST*/, GLenum wrap_s /*= GL_CLAMP_TO_EDGE*/, GLenum wrap_t /*= GL_CLAMP_TO_EDGE*/)
 	: m_RendererID(0), m_LocalBuffer(bytes), m_Width(width), m_Height(height), m_BPP(0), m_TextureType(texture_type), m_PixelFormat(pixel_format), m_PixelType(pixel_type)
 {
@@ -28,7 +28,7 @@ Texture::Texture(unsigned char* bytes, int width, int height, const int texture_
 }
 
 Texture::Texture(const std::string& cube_map_folder_path, int width, const std::string& image_extension /* = ".png"*/)
-	: m_RendererID(0), m_TextureType(CUBEMAP), m_Width(width), m_Height(width), m_PixelFormat(GL_RGBA), m_BPP(0), m_LocalBuffer(nullptr)
+	: m_RendererID(0), m_TextureType(Texture::Type::CUBEMAP), m_Width(width), m_Height(width), m_PixelFormat(GL_RGBA), m_BPP(0), m_LocalBuffer(nullptr)
 {
 	GLCall(glGenTextures(1, &m_RendererID));
 	GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID));

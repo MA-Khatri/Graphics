@@ -48,6 +48,10 @@ public:
 	void Scale(glm::vec3 scale);
 	void Scale(float x, float y, float z);
 
+	glm::mat4x4 GetTransform() { return model_matrix; }
+	glm::mat4x4 GetNormalTransform() { return model_normal_matrix; }
+	void UpdateDrawMode(GLuint mode) { draw_mode = mode; }
+
 	void Draw(); // Draw with default shader
 	void Draw(Camera camera); // Draw with default shader
 	void Draw(Camera camera, Shader& shader, unsigned int uniforms_mode = 0);
