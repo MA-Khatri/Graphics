@@ -22,12 +22,6 @@ void main()
 	gl_Position = vec4(a_Position, 1);
 	
 	v_TexCoord = a_TexCoord;
-	
-	//gl_Position = u_MVP * vec4(a_Position, 1);
-	//v_LightViewPosition = u_MatrixShadow * u_Model * vec4(a_Position, 1);
-	//v_Normal = normalize((u_ModelNormal * vec4(a_Normal, 0)).xyz);
-	//v_TexCoord = a_TexCoord;
-	//v_Position = (u_Model * vec4(a_Position, 1)).xyz;
 };
 
 
