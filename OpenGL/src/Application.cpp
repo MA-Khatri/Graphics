@@ -189,6 +189,8 @@ int main(void)
 
 	/* ====== Light ====== */
 	Light light1 = Light(glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(1.0f, 1.0f, 1.0f), Light::DIRECTIONAL);
+	float light1_shadow_offset = 0.0001f;
+	if (light1.mode == Light::DIRECTIONAL) light1_shadow_offset = 0.005f;
 
 	/* ====== Uniforms ====== */
 	shader_floor->Bind();
@@ -343,7 +345,7 @@ int main(void)
 					lightCube.Draw(camera);
 
 					shader_shadowed->Bind();
-					shader_shadowed->SetUniformMat4f("u_MatrixShadow", glm::translate(glm::vec3(0.5f, 0.5f, 0.5f - 0.01f)) * glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)) * light1.matrix);
+					shader_shadowed->SetUniformMat4f("u_MatrixShadow", glm::translate(glm::vec3(0.5f, 0.5f, 0.5f - light1_shadow_offset)) * glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)) * light1.matrix);
 					shader_shadowed->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
 					shader_shadowed->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
 					plane2.Draw(camera, *shader_shadowed);
