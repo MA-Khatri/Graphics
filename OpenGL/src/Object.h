@@ -54,6 +54,8 @@ public:
 
 	void Draw(); // Draw with default shader
 	void Draw(Camera camera); // Draw with default shader
+	void Draw(glm::mat4x4 matrix, Shader& shader, unsigned int uniforms_mode = 0);
 	void Draw(Camera camera, Shader& shader, unsigned int uniforms_mode = 0);
 	void Draw(Light light); // Draw the shadow map of the provided light
+	void Draw(Light light, Shader& shader, unsigned int uniforms_mode = 0); // Draw the shadow map of the provided light with a custom shader...
 };

@@ -137,7 +137,7 @@ int main(void)
 	Shader* shader_basic = new Shader(AbsPath("res/shaders/Basic.shader"));
 	Shader* shader_floor = new Shader(AbsPath("res/shaders/Floor.shader"));
 	Shader* shader_shadowed = new Shader(AbsPath("res/shaders/ShadowedSurface.shader"));
-	Shader* shader_displacement = new Shader(AbsPath("res/shaders/Displacement.shader"));
+	Shader* shader_displacement = new Shader(AbsPath("res/shaders/Displacement.shader"), Shader::TESSELLATE);
 	Shader* shader_displacement_wireframe = new Shader(AbsPath("res/shaders/DisplacementWireframe.shader"), Shader::TESSELLATE_GEOMETRY);
 	//Shader* shader_texture_fullscreen = new Shader(AbsPath("res/shaders/DrawTextureToFullScreen.shader"));
 
@@ -145,6 +145,7 @@ int main(void)
 	Texture* whiteDiffuseTexture = new Texture(AbsPath("res/textures/blank.png"), Texture::DIFFUSE, GL_RGBA, GL_UNSIGNED_BYTE);
 	Texture* whiteSpecularTexture = new Texture(AbsPath("res/textures/blank.png"), Texture::SPECULAR, GL_RED, GL_UNSIGNED_BYTE);
 	Texture* teapotNormalMap = new Texture(AbsPath("res/textures/teapot_normal.png"), Texture::NORMALMAP, GL_RGB, GL_UNSIGNED_BYTE);
+	Texture* teapotDisplacementMap = new Texture(AbsPath("res/textures/teapot_disp.png"), Texture::DISPLACEMENTMAP, GL_RED, GL_UNSIGNED_BYTE);
 
 	std::vector<Texture*> floorTextures = {
 		new Texture(AbsPath("res/textures/planks_diffuse.png"), Texture::DIFFUSE, GL_RGBA, GL_UNSIGNED_BYTE),
@@ -161,7 +162,7 @@ int main(void)
 	Texture* ray_traced_texture = new Texture(&image[0], 4, 4, Texture::DIFFUSE, GL_RGB, GL_UNSIGNED_BYTE);
 
 	std::vector<Texture*> shadowMaps = { whiteDiffuseTexture, whiteSpecularTexture, shadow_map_light_1 };
-	std::vector<Texture*> shadowDisplacementMaps = { whiteDiffuseTexture, whiteSpecularTexture, shadow_map_light_1, teapotNormalMap };
+	std::vector<Texture*> shadowDisplacementMaps = { whiteDiffuseTexture, whiteSpecularTexture, shadow_map_light_1, teapotDisplacementMap, teapotNormalMap };
 
 	/* ====== Objects ====== */
 	Object environmentTriangle = Object(CreateEnvironmentMapTriangle(), environmentTextures);
@@ -173,12 +174,12 @@ int main(void)
 	Object plane2 = Object(CreatePlane(), shadowMaps);
 	plane2.Scale(10.0f);
 
-	Object plane3 = Object(CreatePlane(), shadowDisplacementMaps);
+	Object plane3 = Object(CreatePlanePatch(), shadowDisplacementMaps);
 	plane3.Translate(glm::vec3(0.0f, -20.0f, 0.0f));
 	plane3.Rotate(glm::vec3(0.0f, 0.0f, 1.0f), 90.0f);
 	plane3.Scale(10.0f);
 
-	Object plane3_wireframe = Object(CreatePlanePatch(), std::vector<Texture*>{ teapotNormalMap });
+	Object plane3_wireframe = Object(CreatePlanePatch(), std::vector<Texture*>{ teapotDisplacementMap, teapotNormalMap });
 	plane3_wireframe.SetTransform(plane3.GetTransform());
 	GLCall(glPatchParameteri(GL_PATCH_VERTICES, 4));
 
@@ -239,6 +240,11 @@ int main(void)
 		we cannot get until we're in the main loop. 
 	*/
 	camera.Update(yfov, near_clip, far_clip, viewport_width, viewport_height);
+
+	/* ======== Variables ======== */
+	float displacement_height = 0.1f;
+	float tessellation_level = 32.0f;
+	bool show_wireframe = true;
 
 	/* ====== Ray tracer setup ====== */
 	//rt::ThinLensCamera ray_camera;
@@ -335,7 +341,7 @@ int main(void)
 					plane2.Draw(light1);
 					sphere.Draw(light1);
 					bunny2.Draw(light1);
-					plane3.Draw(light1);
+					plane3.Draw(light1, *shader_displacement);
 				}
 				shadow_map_fb_light_1.Unbind();
 				//GLCall(glCullFace(GL_BACK));
@@ -375,8 +381,16 @@ int main(void)
 					shader_displacement->SetUniformMat4f("u_MatrixShadow", glm::translate(glm::vec3(0.5f, 0.5f, 0.5f - light1_shadow_offset)) * glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)) * light1.matrix);
 					shader_displacement->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
 					shader_displacement->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
+					shader_displacement->SetUniform1f("u_Height", displacement_height);
+					shader_displacement->SetUniform1f("u_TessLevel", tessellation_level);
 					plane3.Draw(camera, *shader_displacement);
-					plane3_wireframe.Draw(camera, *shader_displacement_wireframe);
+					if (show_wireframe)
+					{
+						shader_displacement_wireframe->Bind();
+						shader_displacement_wireframe->SetUniform1f("u_Height", displacement_height);
+						shader_displacement_wireframe->SetUniform1f("u_TessLevel", tessellation_level);
+						plane3_wireframe.Draw(camera, *shader_displacement_wireframe);
+					}
 
 					/* Draw environment map */
 					GLCall(glDepthMask(GL_FALSE));
@@ -460,6 +474,9 @@ int main(void)
 			ImGui::Text("Mouse Mode: %s", m_mode.c_str());
 
 			ImGui::SliderFloat3("Light Position", &light1.position[0], -20.0f, 20.0f);
+			ImGui::SliderFloat("Displacement Height", &displacement_height, 0.0f, 1.0f);
+			ImGui::SliderFloat("Tessellation Level", &tessellation_level, 1.0f, 64.0f);
+			ImGui::Checkbox("Show Wireframe", &show_wireframe);
 		}
 		ImGui::End();
 		

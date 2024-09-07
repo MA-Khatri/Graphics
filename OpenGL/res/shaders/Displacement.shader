@@ -5,26 +5,107 @@ layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec2 a_TexCoord;
 
+//uniform mat4 u_MVP;
+//uniform mat4 u_Model;
+//uniform mat4 u_ModelNormal;
+//uniform mat4 u_MatrixShadow;
+
+//out vec3 v_Position;
+//out vec3 v_Normal;
+//out vec2 v_TexCoord;
+//out vec4 v_LightViewPosition;
+
+out vec2 v_TexCoord;
+
+void main()
+{
+	gl_Position = vec4(a_Position, 1);
+	
+	v_TexCoord = a_TexCoord;
+	
+	//gl_Position = u_MVP * vec4(a_Position, 1);
+	//v_LightViewPosition = u_MatrixShadow * u_Model * vec4(a_Position, 1);
+	//v_Normal = normalize((u_ModelNormal * vec4(a_Normal, 0)).xyz);
+	//v_TexCoord = a_TexCoord;
+	//v_Position = (u_Model * vec4(a_Position, 1)).xyz;
+};
+
+
+#shader tcs
+#version 460 core
+
+layout (vertices = 4) out;
+
+uniform float u_TessLevel;
+
+in vec2 v_TexCoord[];
+
+out vec2 TexCoord[];
+
+void main()
+{
+	gl_TessLevelOuter[0] = u_TessLevel;
+	gl_TessLevelOuter[1] = u_TessLevel;
+	gl_TessLevelOuter[2] = u_TessLevel;
+	gl_TessLevelOuter[3] = u_TessLevel;
+	
+	gl_TessLevelInner[0] = u_TessLevel;
+	gl_TessLevelInner[1] = u_TessLevel;
+	
+	// Pass through attributes
+	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+	TexCoord[gl_InvocationID] = v_TexCoord[gl_InvocationID];
+}
+
+
+#shader tes
+#version 460 core
+
+layout (quads, fractional_even_spacing, ccw) in;
+
 uniform mat4 u_MVP;
 uniform mat4 u_Model;
-uniform mat4 u_ModelNormal;
 uniform mat4 u_MatrixShadow;
 
+uniform sampler2D u_DisplacementMap0;
+uniform float u_Height;
+
+in vec2 TexCoord[];
+
 out vec3 v_Position;
-out vec3 v_Normal;
 out vec2 v_TexCoord;
 out vec4 v_LightViewPosition;
 
 
+vec4 interpolate(vec4 v0, vec4 v1, vec4 v2, vec4 v3)
+{
+	vec4 a = mix(v0, v1, gl_TessCoord.x);
+	vec4 b = mix(v3, v2, gl_TessCoord.x);
+	return mix(a, b, gl_TessCoord.y);
+}
+
+vec2 interpolate(vec2 v0, vec2 v1, vec2 v2, vec2 v3)
+{
+	vec2 a = mix(v0, v1, gl_TessCoord.x);
+	vec2 b = mix(v3, v2, gl_TessCoord.x);
+	return mix(a, b, gl_TessCoord.y);
+}
+
 void main()
 {
-	gl_Position = u_MVP * vec4(a_Position, 1);
-	v_LightViewPosition = u_MatrixShadow * u_Model * vec4(a_Position, 1);
-	v_Normal = normalize((u_ModelNormal * vec4(a_Normal, 0)).xyz);
-	v_TexCoord = a_TexCoord;
-	v_Position = (u_Model * vec4(a_Position, 1)).xyz;
-};
+	vec2 texCoord = interpolate(TexCoord[0], TexCoord[1], TexCoord[2], TexCoord[3]);
+	float displacement = texture(u_DisplacementMap0, texCoord).x;
+	
+	vec4 posn = interpolate(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_in[2].gl_Position, gl_in[3].gl_Position);
+	posn += vec4(0, 0, u_Height * displacement, 0);
+	gl_Position = u_MVP * posn;
+	
+	// Other calculations to pass through...
+	v_Position = (u_Model * posn).xyz;
+	v_TexCoord = texCoord;
+	v_LightViewPosition = u_MatrixShadow * u_Model * posn;
 
+}
 
 
 #shader fragment
@@ -44,18 +125,16 @@ uniform sampler2D u_Specular0;
 uniform sampler2D u_NormalMap0;
 
 in vec3 v_Position;
-in vec3 v_Normal;
 in vec2 v_TexCoord;
 in vec4 v_LightViewPosition;
 
 
-vec4 directionalLight(vec3 in_Normal)
+vec4 directionalLight(vec3 normal)
 {
 	// ambient lighting
 	float ambient = 0.2f;
 
 	// diffuse lighting
-	vec3 normal = normalize(in_Normal);
 	vec3 lightDirection = normalize(u_LightPosition); // direction from light position to world origin 
 	float diffuse = 0.8f * max(dot(normal, lightDirection), 0.0f);
 
@@ -69,7 +148,7 @@ vec4 directionalLight(vec3 in_Normal)
 	return vec4((texture(u_Diffuse0, v_TexCoord) * (diffuse + ambient) + texture(u_Specular0, v_TexCoord).r * specular).rgb * u_LightColor, 1);
 }
 
-vec4 pointLight(vec3 in_Normal)
+vec4 pointLight(vec3 normal)
 {
 	// used in two variables so I calculate it here to not have to do it twice
 	vec3 lightVec = u_LightPosition - v_Position;
@@ -84,7 +163,6 @@ vec4 pointLight(vec3 in_Normal)
 	float ambient = 0.20f;
 
 	// diffuse lighting
-	vec3 normal = normalize(in_Normal);
 	vec3 lightDirection = normalize(lightVec);
 	float diffuse = max(dot(normal, lightDirection), 0.0f);
 
@@ -98,7 +176,7 @@ vec4 pointLight(vec3 in_Normal)
 	return vec4((texture(u_Diffuse0, v_TexCoord) * (diffuse * inten + ambient) + texture(u_Specular0, v_TexCoord).r * specular * inten).rgb * u_LightColor, 1);
 }
 
-vec4 spotLight(vec3 in_Normal)
+vec4 spotLight(vec3 normal)
 {
 	// controls how big the area that is lit up is
 	float outerCone = 0.50f;
@@ -108,7 +186,6 @@ vec4 spotLight(vec3 in_Normal)
 	float ambient = 0.20f;
 
 	// diffuse lighting
-	vec3 normal = normalize(in_Normal);
 	vec3 lightDirection = normalize(u_LightPosition - v_Position);
 	float diffuse = max(dot(normal, lightDirection), 0.0f);
 

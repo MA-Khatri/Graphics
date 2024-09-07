@@ -221,7 +221,7 @@ Mesh CreatePlanePatch()
 	};
 
 	unsigned int indices[] = {
-		0, 1, 2, 3
+		3, 2, 1, 0
 	};
 
 	VertexArray* va = new VertexArray();

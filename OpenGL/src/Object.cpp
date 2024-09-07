@@ -109,7 +109,7 @@ void Object::Draw(Camera camera)
 	GLCall(glDrawElements(draw_mode, ib->GetCount(), GL_UNSIGNED_INT, nullptr));
 }
 
-void Object::Draw(Camera camera, Shader& shader, unsigned int uniforms_mode /* = 0 */)
+void Object::Draw(glm::mat4x4 matrix, Shader& shader, unsigned int uniforms_mode /* = 0 */)
 {
 	shader.Bind();
 	va->Bind();
@@ -173,20 +173,25 @@ void Object::Draw(Camera camera, Shader& shader, unsigned int uniforms_mode /* =
 	switch (uniforms_mode) {
 
 	case 0:
-		shader.SetUniformMat4f("u_MVP", camera.matrix * model_matrix);
+		shader.SetUniformMat4f("u_MVP", matrix * model_matrix);
 		shader.SetUniformMat4f("u_Model", model_matrix);
 		shader.SetUniformMat4f("u_ModelNormal", model_normal_matrix);
 		break;
 
 	case 1: /* Environment map */
-		shader.SetUniformMat4f("u_MVP", camera.matrix * model_matrix);
-		shader.SetUniformMat4f("u_VP", camera.matrix * glm::rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f))); /* Extra rotation since environment maps are defined with +y as up */
+		shader.SetUniformMat4f("u_MVP", matrix * model_matrix);
+		shader.SetUniformMat4f("u_VP", matrix * glm::rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f))); /* Extra rotation since environment maps are defined with +y as up */
 		break;
 
 	}
 
-	
+
 	GLCall(glDrawElements(draw_mode, ib->GetCount(), GL_UNSIGNED_INT, nullptr));
+}
+
+void Object::Draw(Camera camera, Shader& shader, unsigned int uniforms_mode /* = 0 */)
+{
+	Draw(camera.matrix, shader, uniforms_mode);
 }
 
 void Object::Draw(Light light)
@@ -199,4 +204,9 @@ void Object::Draw(Light light)
 	basic_shader.SetUniformMat4f("u_MVP", light.matrix * model_matrix);
 
 	GLCall(glDrawElements(draw_mode, ib->GetCount(), GL_UNSIGNED_INT, nullptr));
+}
+
+void Object::Draw(Light light, Shader& shader, unsigned int uniforms_mode)
+{
+	Draw(light.matrix, shader, uniforms_mode);
 }
