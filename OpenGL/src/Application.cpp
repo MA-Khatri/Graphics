@@ -128,7 +128,7 @@ int main(void)
 
 	int shadow_map_resolution = 1000;
 	Framebuffer shadow_map_fb_light_1 = Framebuffer(shadow_map_resolution, shadow_map_resolution, 1.0f, true);
-	Texture* shadow_map_light_1 = new Texture(shadow_map_fb_light_1.GetTexture(), shadow_map_resolution, shadow_map_resolution, "ShadowMap");
+	Texture* shadow_map_light_1 = new Texture(shadow_map_fb_light_1.GetTexture(), shadow_map_resolution, shadow_map_resolution, Texture::SHADOWMAP);
 
 	/* ====== Shaders ====== */
 	Shader* shader_environment = new Shader(AbsPath("res/shaders/Environment.shader"));
@@ -140,9 +140,12 @@ int main(void)
 	//Shader* shader_texture_fullscreen = new Shader(AbsPath("res/shaders/DrawTextureToFullScreen.shader"));
 
 	/* ====== Textures ====== */
+	Texture* whiteDiffuseTexture = new Texture(AbsPath("res/textures/blank.png"), Texture::DIFFUSE, GL_RGBA, GL_UNSIGNED_BYTE);
+	Texture* whiteSpecularTexture = new Texture(AbsPath("res/textures/blank.png"), Texture::SPECULAR, GL_RED, GL_UNSIGNED_BYTE);
+
 	std::vector<Texture*> floorTextures = {
-		new Texture(AbsPath("res/textures/planks_diffuse.png"), "Diffuse", GL_RGBA, GL_UNSIGNED_BYTE),
-		new Texture(AbsPath("res/textures/planks_specular.png"), "Specular", GL_RED, GL_UNSIGNED_BYTE)
+		new Texture(AbsPath("res/textures/planks_diffuse.png"), Texture::DIFFUSE, GL_RGBA, GL_UNSIGNED_BYTE),
+		new Texture(AbsPath("res/textures/planks_specular.png"), Texture::SPECULAR, GL_RED, GL_UNSIGNED_BYTE)
 	};
 
 	std::vector<Texture*> environmentTextures = {
@@ -152,9 +155,9 @@ int main(void)
 	/* Create a texture to save the ray traced result to, which will then be displayed with ImGui */
 	/* Initialize to smallest possible empty texture */
 	std::vector<unsigned char> image(4*4*3);
-	Texture* ray_traced_texture = new Texture(&image[0], 4, 4, "Diffuse", GL_RGB, GL_UNSIGNED_BYTE);
+	Texture* ray_traced_texture = new Texture(&image[0], 4, 4, Texture::DIFFUSE, GL_RGB, GL_UNSIGNED_BYTE);
 
-	std::vector<Texture*> shadowMaps = {shadow_map_light_1};
+	std::vector<Texture*> shadowMaps = {whiteDiffuseTexture, whiteSpecularTexture, shadow_map_light_1};
 
 	/* ====== Objects ====== */
 	Object environmentTriangle = Object(CreateEnvironmentMapTriangle(), environmentTextures);
@@ -178,27 +181,31 @@ int main(void)
 
 	Object bunny2 = Object(LoadOBJ(AbsPath("res/meshes/bunny.obj")), shadowMaps);
 	//bunny2.Translate(0.0f, -4.0f, 0.0f);
-	bunny2.Translate(0.0f, 0.0f, 0.5f);
-	bunny2.Rotate(glm::vec3(0.0f, 0.0f, 1.0f), 180.0f);
-	bunny2.Rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
+	//bunny2.Translate(0.0f, 0.0f, 0.5f);
+	//bunny2.Rotate(glm::vec3(0.0f, 0.0f, 1.0f), 180.0f);
+	bunny2.Rotate(glm::vec3(0.0f, 0.0f, 1.0f), -90.0f);
 
 	Object lightCube = Object(CreateCube());
 
 	/* ====== Light ====== */
-	Light light1 = Light(glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+	Light light1 = Light(glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(1.0f, 1.0f, 1.0f), Light::DIRECTIONAL);
+
+	/* ====== Uniforms ====== */
 	shader_floor->Bind();
 	shader_floor->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
 	shader_floor->SetUniform3f("u_LightColor", light1.color.x, light1.color.y, light1.color.z);
+	shader_floor->SetUniform1i("u_LightMode", light1.mode);
+
 
 	shader_environment_reflections->Bind();
 	shader_environment_reflections->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
 	shader_environment_reflections->SetUniform3f("u_LightColor", light1.color.x, light1.color.y, light1.color.z);
 
 
-	/* ====== Uniforms ====== */
-	shader_floor->Bind();
-	shader_floor->SetUniform1i("u_LightMode", 2);
-
+	shader_shadowed->Bind();
+	shader_floor->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
+	shader_floor->SetUniform3f("u_LightColor", light1.color.x, light1.color.y, light1.color.z);
+	shader_floor->SetUniform1i("u_LightMode", light1.mode);
 
 	/* ====== Camera ====== */
 	//Camera camera(viewport_width, viewport_height, glm::vec3(10.0f, -3.0f, 2.0f), glm::normalize(glm::vec3(-0.95f, 0.2f, -0.1f)), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -300,7 +307,7 @@ int main(void)
 				texture_framebuffer.Unbind();
 
 				/* Render the shadowmap(s) */
-				//GLCall(glCullFace(GL_FRONT)); /* Cull front face as a trick to improve peter-panning */
+				//GLCall(glCullFace(GL_FRONT)); /* Cull front face as a trick to improve peter-panning? */
 				shadow_map_fb_light_1.Bind();
 				{
 					light1.UpdateMatrix();
@@ -319,7 +326,7 @@ int main(void)
 					GLCall(glClearColor(0.075f, 0.133f, 0.173f, 1.0f));
 					GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-					groundGrid.Draw(camera, *shader_world);
+					//groundGrid.Draw(camera, *shader_world);
 
 					//shader_floor->Bind();
 					//shader_floor->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
@@ -336,7 +343,7 @@ int main(void)
 					lightCube.Draw(camera);
 
 					shader_shadowed->Bind();
-					shader_shadowed->SetUniformMat4f("u_MatrixShadow", glm::translate(glm::vec3(0.5f, 0.5f, 0.5f - 0.001f)) * glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)) * light1.matrix);
+					shader_shadowed->SetUniformMat4f("u_MatrixShadow", glm::translate(glm::vec3(0.5f, 0.5f, 0.5f - 0.01f)) * glm::scale(glm::vec3(0.5f, 0.5f, 0.5f)) * light1.matrix);
 					shader_shadowed->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
 					shader_shadowed->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
 					plane2.Draw(camera, *shader_shadowed);
@@ -410,7 +417,7 @@ int main(void)
 		ImGui::Begin("Info");
 		{                
 			//ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate); /* use built-in frame rate (average of 120 frames) */
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", ImGui::GetIO().DeltaTime, 1.0f / ImGui::GetIO().DeltaTime);
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", ImGui::GetIO().DeltaTime * 1000.0f, 1.0f / ImGui::GetIO().DeltaTime);
 			ImGui::Text("Window size\n  Width: %.1i  Height: %.1i", window_width, window_height);
 			ImGui::Text("Viewport size\n  Width: %.1i  Height: %.1i", viewport_width, viewport_height);
 			ImGui::Text("Field of View (Y):  %.1f deg", yfov);

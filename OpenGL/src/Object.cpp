@@ -119,45 +119,72 @@ void Object::Draw(Camera camera, Shader& shader, unsigned int uniforms_mode /* =
 	unsigned int numSpecular = 0;
 	unsigned int numCubeMap = 0;
 	unsigned int numShadowMap = 0;
+	unsigned int numNormalMap = 0;
+	unsigned int numDisplacementMap = 0;
 
 	for (unsigned int i = 0; i < textures.size(); i++)
 	{
 		std::string num;
-		std::string type = textures[i]->GetType();
-		if (type == "Diffuse")
-		{
+		std::string type;
+		int ntype = textures[i]->GetType();
+
+		switch (ntype) {
+
+		case Texture::DIFFUSE:
+			type = "Diffuse";
 			num = std::to_string(numDiffuse++);
 			textures[i]->Bind(i);
-		}
-		else if (type == "Specular")
-		{
+			break;
+
+		case Texture::SPECULAR:
+			type = "Specular";
 			num = std::to_string(numSpecular++);
 			textures[i]->Bind(i);
-		}
-		else if (type == "CubeMap")
-		{
+			break;
+
+		case Texture::CUBEMAP:
+			type = "CubeMap";
 			num = std::to_string(numCubeMap++);
 			textures[i]->Bind(i, GL_TEXTURE_CUBE_MAP);
-		}
-		else if (type == "ShadowMap")
-		{
+			break;
+
+		case Texture::SHADOWMAP:
+			type = "ShadowMap";
 			num = std::to_string(numShadowMap++);
 			textures[i]->Bind(i);
+			break;
+
+		case Texture::NORMALMAP:
+			type = "NormalMap";
+			num = std::to_string(numNormalMap++);
+			textures[i]->Bind(i);
+			break;
+
+		case Texture::DISPLACEMENTMAP:
+			type = "DisplacementMap";
+			num = std::to_string(numDisplacementMap++);
+			textures[i]->Bind(i);
+			break;
+
 		}
 		shader.SetUniform1i(("u_" + type + num).c_str(), i);
 	}
 
-	if (uniforms_mode == 0)
-	{
+	switch (uniforms_mode) {
+
+	case 0:
 		shader.SetUniformMat4f("u_MVP", camera.matrix * model_matrix);
 		shader.SetUniformMat4f("u_Model", model_matrix);
 		shader.SetUniformMat4f("u_ModelNormal", model_normal_matrix);
-	}
-	else if (uniforms_mode == 1) /* Environment map */
-	{
+		break;
+
+	case 1: /* Environment map */
 		shader.SetUniformMat4f("u_MVP", camera.matrix * model_matrix);
 		shader.SetUniformMat4f("u_VP", camera.matrix * glm::rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f))); /* Extra rotation since environment maps are defined with +y as up */
+		break;
+
 	}
+
 	
 	GLCall(glDrawElements(draw_mode, ib->GetCount(), GL_UNSIGNED_INT, nullptr));
 }

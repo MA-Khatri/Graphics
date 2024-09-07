@@ -80,7 +80,7 @@ Framebuffer::~Framebuffer()
 void Framebuffer::Bind() const
 {
 	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID));
-	GLCall(glViewport(0, 0, m_Scale * m_Width, m_Scale * m_Height));
+	GLCall(glViewport(0, 0, GLsizei(m_Scale * m_Width), GLsizei(m_Scale * m_Height)));
 }
 
 void Framebuffer::Unbind() const
