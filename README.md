@@ -36,3 +36,13 @@ Features:
 - Arbitrary matrix transformations (including non-uniform scaling)
 - Environment maps
 - Pinhole and thin lens cameras
+
+---
+
+Resources used:
+
+- [The Cherno's OpenGL series](https://youtube.com/playlist?list=PLlrATfBNZ98foTJPJ_Ev03o2oq3-GGOS2&si=32JwEvKfUVJ4TE7f)
+- [Cem Yuksel's Course on Interactive Computer Graphics](https://youtube.com/playlist?list=PLplnkTzzqsZS3R5DjmCQsqupu43oS9CFN&si=N93uHdDh6B19PljD)
+- [Ray Tracing in One Weekend by Peter Shirley](https://raytracing.github.io/)
+- [Physically Based Rendering: From Theory to Implementation](https://pbr-book.org/)
+- [ImGui Docking Branch](https://github.com/ocornut/imgui/tree/docking)
