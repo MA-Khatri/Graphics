@@ -361,10 +361,10 @@ int main(void)
 					////plane1.UpdateTextures(std::vector<Texture*>{rendered_texture});
 					//plane1.Draw(camera, *shader_floor);
 
-					//shader_environment_reflections->Bind();
-					//shader_environment_reflections->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
-					//shader_environment_reflections->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
-					//sphere.Draw(camera, *shader_environment_reflections);
+					shader_environment_reflections->Bind();
+					shader_environment_reflections->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
+					shader_environment_reflections->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
+					sphere.Draw(camera, *shader_environment_reflections);
 
 					lightCube.SetTransform(glm::inverse(light1.view_matrix));
 					lightCube.Draw(camera);
@@ -374,7 +374,7 @@ int main(void)
 					shader_shadowed->SetUniform3f("u_LightPosition", light1.position.x, light1.position.y, light1.position.z);
 					shader_shadowed->SetUniform3f("u_CameraPosition", camera.position.x, camera.position.y, camera.position.z);
 					plane2.Draw(camera, *shader_shadowed);
-					sphere.Draw(camera, *shader_shadowed);
+					//sphere.Draw(camera, *shader_shadowed);
 					bunny2.Draw(camera, *shader_shadowed);
 
 					shader_displacement->Bind();
@@ -438,8 +438,8 @@ int main(void)
 				ray_camera.up = rt::Vec3(camera.up.x, camera.up.y, camera.up.z);
 
 				/* Specific to thin lens setup */
-				//ray_camera.defocus_angle = 1.0f; /* Aperture size -- affects how much out of focus things are blurred */
-				//ray_camera.focus_distance = 11.0f; /* Distance to plane of perfect focus */
+				//ray_camera.defocus_angle = 2.0f; /* Aperture size -- affects how much out of focus things are blurred */
+				//ray_camera.focus_distance = 17.5f; /* Distance to plane of perfect focus */
 
 				ray_camera.Initialize();
 

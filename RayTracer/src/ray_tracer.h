@@ -358,10 +358,10 @@ Scene GenerateScene(Scenes scene)
 		//Transform t;
 		//t.Rotate(120.0, Vec3(0.0, 0.0, 1.0));
 		//t.Rotate(90.0, Vec3(1.0, 0.0, 0.0));
-		//t.Scale(5.0);
-		//auto mesh = std::make_shared<BVH_Node>(LoadMesh(t, "dragon.obj", glass));
+		//t.Scale(7.0);
+		//auto mesh = std::make_shared<BVH_Node>(LoadMesh(t, "dragon.obj", white));
 		//world.Add(mesh);
-		//lights.Add(mesh);
+		////lights.Add(mesh);
 
 		break;
 	}
